@@ -12,9 +12,10 @@ import java.util.Map;
 import java.util.Set;
 
 public class MemoryFileSystemProvider extends FileSystemProvider {
+
     @Override
     public String getScheme() {
-        return null;
+        return "memory";
     }
 
     @Override
