@@ -8,10 +8,19 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
 import java.nio.file.spi.FileSystemProvider;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 public class MemoryFileSystemProvider extends FileSystemProvider {
+
+
+    // TODO : thread safety ??
+    private final Map<URI,FileSystem> fileSystems;
+
+    public MemoryFileSystemProvider(){
+        this.fileSystems = new HashMap<>();
+    }
 
     @Override
     public String getScheme() {
@@ -20,12 +29,21 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
 
     @Override
     public FileSystem newFileSystem(URI uri, Map<String, ?> env) throws IOException {
-        return null;
+        if( fileSystems.containsKey(uri)){
+            throw new RuntimeException("uri already exists, can't reuse it : "+uri);
+        }
+        FileSystem fs = new MemoryFileSystem();
+        fileSystems.put(uri, fs);
+        return fs;
     }
 
     @Override
     public FileSystem getFileSystem(URI uri) {
-        return null;
+        FileSystem fs = fileSystems.get(uri);
+        if(null == fs){
+            throw new RuntimeException("no filesystem exists with this uri : "+uri);
+        }
+        return fs;
     }
 
     @Override
