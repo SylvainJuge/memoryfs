@@ -24,8 +24,18 @@ public class MemoryFileSystemProviderTest {
         if (null == provider) {
             fail("memory fs provider not found");
         }
-
     }
+
+    //@Test
+    public void providerShouldBeLoadedOnce(){
+        // multiple calls to service loader should return the same instance
+
+        // TODO : it seems that service loader creates a new instance at each call
+        // however, if fs code uses a for Path resolution, it may be perfectly fine
+        // -> we must check that getting instances of this filesystem are identical through paths
+        assertThat(getProvider()).isSameAs(getProvider());
+    }
+
 
     @Test
     public void checkProviderScheme(){
@@ -39,11 +49,30 @@ public class MemoryFileSystemProviderTest {
 
         URI fsUri = URI.create("dummyUri");
         FileSystemProvider provider = getProvider();
-        FileSystem fs = provider.newFileSystem(fsUri, new HashMap<String, Object>());
+        FileSystem fs = newMemoryFileSystem(provider, fsUri);
         assertThat(fs).isNotNull();
 
         assertThat(provider.getFileSystem(fsUri)).isSameAs(fs);
     }
+
+    @Test
+    public void defaultFileSystemProperties(){
+        FileSystem fs = newMemoryFileSystem(getProvider(), URI.create("dummy"));
+        assertThat(fs.isOpen()).isTrue();
+        assertThat(fs.isReadOnly()).isFalse();
+        assertThat(fs.getSeparator()).isNotEmpty();
+
+    }
+
+    private static FileSystem newMemoryFileSystem(FileSystemProvider provider, URI uri){
+        FileSystem fs = null;
+        try {
+            fs = provider.newFileSystem(uri, new HashMap<String, Object>());
+        } catch (IOException e) {
+            fail(e.getMessage());
+        }
+        return fs;
+}
 
     // TODO
     // - see how filesytem is used, especially when newFileSystem() is called when creating files in it

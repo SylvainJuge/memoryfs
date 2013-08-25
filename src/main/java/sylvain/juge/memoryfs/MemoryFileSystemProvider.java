@@ -14,7 +14,6 @@ import java.util.Set;
 
 public class MemoryFileSystemProvider extends FileSystemProvider {
 
-
     // TODO : thread safety ??
     private final Map<URI,FileSystem> fileSystems;
 
@@ -48,52 +47,57 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
 
     @Override
     public Path getPath(URI uri) {
-        return null;
+        throw new UnsupportedOperationException("TODO : implement this");
     }
 
     @Override
     public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
-        return null;
+        throw new UnsupportedOperationException("TODO : implement this");
     }
 
     @Override
     public DirectoryStream<Path> newDirectoryStream(Path dir, DirectoryStream.Filter<? super Path> filter) throws IOException {
-        return null;
+        throw new UnsupportedOperationException("TODO : implement this");
     }
 
     @Override
     public void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
+        throw new UnsupportedOperationException("TODO : implement this");
     }
 
     @Override
     public void delete(Path path) throws IOException {
+        throw new UnsupportedOperationException("TODO : implement this");
     }
 
     @Override
     public void copy(Path source, Path target, CopyOption... options) throws IOException {
+        throw new UnsupportedOperationException("TODO : implement this");
     }
 
     @Override
     public void move(Path source, Path target, CopyOption... options) throws IOException {
+        throw new UnsupportedOperationException("TODO : implement this");
     }
 
     @Override
     public boolean isSameFile(Path path, Path path2) throws IOException {
-        return false;
+        throw new UnsupportedOperationException("TODO : implement this");
     }
 
     @Override
     public boolean isHidden(Path path) throws IOException {
-        return false;
+        throw new UnsupportedOperationException("TODO : implement this");
     }
 
     @Override
     public FileStore getFileStore(Path path) throws IOException {
-        return null;
+        throw new UnsupportedOperationException("TODO : implement this");
     }
 
     @Override
     public void checkAccess(Path path, AccessMode... modes) throws IOException {
+        throw new UnsupportedOperationException("TODO : implement this");
     }
 
     @Override
@@ -103,12 +107,12 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
 
     @Override
     public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) throws IOException {
-        return null;
+        throw new UnsupportedOperationException("not supported");
     }
 
     @Override
     public Map<String, Object> readAttributes(Path path, String attributes, LinkOption... options) throws IOException {
-        return null;
+        throw new UnsupportedOperationException("not supported");
     }
 
     @Override

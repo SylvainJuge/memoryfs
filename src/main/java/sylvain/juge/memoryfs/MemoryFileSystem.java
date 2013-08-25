@@ -9,6 +9,7 @@ import java.util.Set;
 
 public class MemoryFileSystem extends FileSystem {
 
+    public static final String SEPARATOR = "/";
     private final FileSystemProvider provider;
 
     MemoryFileSystem(FileSystemProvider provider) {
@@ -26,18 +27,19 @@ public class MemoryFileSystem extends FileSystem {
 
     @Override
     public boolean isOpen() {
+        // TODO : see usage at jdk level to see how we can use it
         return true;
     }
 
     @Override
     public boolean isReadOnly() {
+        // TODO : see usage at jdk level to see how we can use it
         return false;
     }
 
     @Override
     public String getSeparator() {
-        // TODO : implement this
-        return null;
+        return SEPARATOR;
     }
 
     @Override
