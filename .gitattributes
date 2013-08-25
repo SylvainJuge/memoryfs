@@ -1,0 +1,8 @@
+
+# text files automatically converted between crlf <-> lf
+*.java text
+*.xml  text
+README text
+TODO   text
+
+# binary files
