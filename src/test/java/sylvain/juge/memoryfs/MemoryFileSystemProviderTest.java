@@ -48,6 +48,11 @@ public class MemoryFileSystemProviderTest {
     // TODO
     // - see how filesytem is used, especially when newFileSystem() is called when creating files in it
     // -> if only 1 instance is used, we can easily control ro/rw state of such fs
+    //
+    // - when storage is implemented, see how we can use ByteBuffer to allocate storage out of heap
+    //
+    // - misc : create a "/dev/null" fs where we always write
+    // - misc : allow to control ro/rw state at runtime (allow to test that app does not write when not required)
 
 
     // tests to write
