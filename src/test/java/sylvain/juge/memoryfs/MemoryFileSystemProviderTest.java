@@ -45,6 +45,11 @@ public class MemoryFileSystemProviderTest {
         assertThat(provider.getFileSystem(fsUri)).isSameAs(fs);
     }
 
+    // TODO
+    // - see how filesytem is used, especially when newFileSystem() is called when creating files in it
+    // -> if only 1 instance is used, we can easily control ro/rw state of such fs
+
+
     // tests to write
     // - try to get a fs instance without creating it beforehand : myst throw exception
 

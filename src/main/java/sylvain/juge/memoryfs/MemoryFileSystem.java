@@ -4,13 +4,20 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.nio.file.spi.FileSystemProvider;
+import java.util.Collections;
 import java.util.Set;
 
 public class MemoryFileSystem extends FileSystem {
 
+    private final FileSystemProvider provider;
+
+    MemoryFileSystem(FileSystemProvider provider) {
+        this.provider = provider;
+    }
+
     @Override
     public FileSystemProvider provider() {
-        return null;
+        return provider;
     }
 
     @Override
@@ -19,7 +26,7 @@ public class MemoryFileSystem extends FileSystem {
 
     @Override
     public boolean isOpen() {
-        return false;
+        return true;
     }
 
     @Override
@@ -29,41 +36,46 @@ public class MemoryFileSystem extends FileSystem {
 
     @Override
     public String getSeparator() {
+        // TODO : implement this
         return null;
     }
 
     @Override
     public Iterable<Path> getRootDirectories() {
+        // TODO : implement this
         return null;
     }
 
     @Override
     public Iterable<FileStore> getFileStores() {
+        // TODO : implement this
         return null;
     }
 
     @Override
     public Set<String> supportedFileAttributeViews() {
-        return null;
+        return Collections.emptySet();
     }
 
     @Override
     public Path getPath(String first, String... more) {
+        // TODO : implement this
         return null;
     }
 
     @Override
     public PathMatcher getPathMatcher(String syntaxAndPattern) {
+        // TODO : implement this
         return null;
     }
 
     @Override
     public UserPrincipalLookupService getUserPrincipalLookupService() {
-        return null;
+        throw new UnsupportedOperationException("not supported");
     }
 
     @Override
     public WatchService newWatchService() throws IOException {
-        return null;
+        throw new UnsupportedOperationException("not supported");
     }
 }

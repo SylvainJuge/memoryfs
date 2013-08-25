@@ -32,7 +32,7 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
         if( fileSystems.containsKey(uri)){
             throw new RuntimeException("uri already exists, can't reuse it : "+uri);
         }
-        FileSystem fs = new MemoryFileSystem();
+        FileSystem fs = new MemoryFileSystem(this);
         fileSystems.put(uri, fs);
         return fs;
     }
