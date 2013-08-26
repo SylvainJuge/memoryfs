@@ -12,11 +12,15 @@ public class MemoryFileSystem extends FileSystem {
 
     public static final String SEPARATOR = "/";
     private final MemoryFileSystemProvider provider;
-    private final URI uri;
+    private final String id;
 
-    MemoryFileSystem(MemoryFileSystemProvider provider, URI uri) {
+    // TODO thread safety ??
+    private boolean isOpen;
+
+    MemoryFileSystem(MemoryFileSystemProvider provider, String id) {
         this.provider = provider;
-        this.uri = uri;
+        this.id = id;
+        this.isOpen = true;
     }
 
     @Override
@@ -26,13 +30,13 @@ public class MemoryFileSystem extends FileSystem {
 
     @Override
     public void close() throws IOException {
-        provider.removeFileSystem(uri);
+        provider.removeFileSystem(id);
+        this.isOpen = false;
     }
 
     @Override
     public boolean isOpen() {
-        // TODO : see usage at jdk level to see how we can use it
-        return true;
+        return isOpen;
     }
 
     @Override
