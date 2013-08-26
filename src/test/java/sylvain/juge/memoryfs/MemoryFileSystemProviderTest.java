@@ -14,28 +14,28 @@ import static org.fest.assertions.api.Fail.fail;
 
 public class MemoryFileSystemProviderTest {
 
-    private static final HashMap<String,Object> EMPTY_OPTIONS = new HashMap<>();
+    private static final HashMap<String, Object> EMPTY_OPTIONS = new HashMap<>();
 
     private static final URI DUMMY_MEMORY_URI = URI.create("memory://dummy");
 
     // TODO : see how to use fs only by using a path that uses "memory" scheme
 
     @Test
-    public void loadThroughServiceLoader(){
+    public void loadThroughServiceLoader() {
         FileSystemProvider provider = getNewProvider();
         assertThat(provider).isInstanceOf(MemoryFileSystemProvider.class);
     }
 
     @Test
     public void loadThroughFileSystemsAndUri() throws IOException {
-        try(FileSystem fs = FileSystems.newFileSystem(DUMMY_MEMORY_URI, EMPTY_OPTIONS)){
+        try (FileSystem fs = FileSystems.newFileSystem(DUMMY_MEMORY_URI, EMPTY_OPTIONS)) {
             assertThat(fs).isInstanceOf(MemoryFileSystem.class);
             assertThat(FileSystems.getFileSystem(DUMMY_MEMORY_URI)).isSameAs(fs);
         }
     }
 
     @Test
-    public void samePathPrefixPointsToSameFileSystem(){
+    public void samePathPrefixPointsToSameFileSystem() {
         Path path1 = Paths.get(URI.create("memory://dummy/1"));
         Path path2 = Paths.get(URI.create("memory://dummy/2"));
         // both paths must point to same FS instance
@@ -56,19 +56,19 @@ public class MemoryFileSystemProviderTest {
         fail("should not be able to create two FS with same URI");
     }
 
-    private static void closeQuietly(FileSystem fs){
-        if( null == fs){
+    private static void closeQuietly(FileSystem fs) {
+        if (null == fs) {
             return;
         }
         try {
             fs.close();
-        } catch(IOException e){
+        } catch (IOException e) {
             // silently ignored
         }
     }
 
     //@Test
-    public void providerShouldBeLoadedOnce(){
+    public void providerShouldBeLoadedOnce() {
         // multiple calls to service loader should return the same instance
 
         // TODO : it seems that service loader creates a new instance at each call
@@ -84,7 +84,7 @@ public class MemoryFileSystemProviderTest {
     }
 
     @Test
-    public void checkProviderScheme(){
+    public void checkProviderScheme() {
         FileSystemProvider provider = getNewProvider();
         assertThat(provider).isNotNull();
         assertThat(provider.getScheme()).isEqualTo("memory");
@@ -102,7 +102,7 @@ public class MemoryFileSystemProviderTest {
         Path pathWithoutScheme = Paths.get("anything");
         FileSystemProvider provider = getNewProvider();
         boolean ok;
-        try(FileSystem fs = createFileSystem(provider, pathWithoutScheme)){
+        try (FileSystem fs = createFileSystem(provider, pathWithoutScheme)) {
             assertThat(fs).isNotNull();
             assertThat(fs).isSameAs(provider.getFileSystem(URI.create("memory://anything")));
             ok = true;
@@ -123,7 +123,7 @@ public class MemoryFileSystemProviderTest {
         FileSystemAlreadyExistsException expected = null;
         try {
             createFileSystem(provider, path);
-        } catch (FileSystemAlreadyExistsException e){
+        } catch (FileSystemAlreadyExistsException e) {
             expected = e;
         }
         assertThat(expected).isInstanceOf(FileSystemAlreadyExistsException.class);
@@ -132,7 +132,7 @@ public class MemoryFileSystemProviderTest {
         fs.close();
         assertThat(fs.isOpen()).isFalse();
 
-        try(FileSystem reOpendedFs = createFileSystem(provider, path)){
+        try (FileSystem reOpendedFs = createFileSystem(provider, path)) {
             assertThat(reOpendedFs).isNotNull();
             fs = reOpendedFs;
         }
@@ -143,7 +143,7 @@ public class MemoryFileSystemProviderTest {
     @Test
     public void createFileSystemInstanceAndGetByUri() throws IOException {
         FileSystemProvider provider = getNewProvider();
-        try(FileSystem fs =  createFileSystem(provider,DUMMY_MEMORY_URI)){
+        try (FileSystem fs = createFileSystem(provider, DUMMY_MEMORY_URI)) {
             assertThat(fs).isNotNull();
             assertThat(provider.getFileSystem(DUMMY_MEMORY_URI)).isSameAs(fs);
         }
@@ -172,14 +172,14 @@ public class MemoryFileSystemProviderTest {
     // - try to get a fs instance without creating it beforehand : myst throw exception
 
     @Test
-    public void newProviderReturnsNewInstanceOnEachCall(){
+    public void newProviderReturnsNewInstanceOnEachCall() {
         assertThat(getNewProvider()).isNotSameAs(getNewProvider());
     }
 
-    private static FileSystemProvider getNewProvider(){
+    private static FileSystemProvider getNewProvider() {
         ServiceLoader<FileSystemProvider> loader = ServiceLoader.load(FileSystemProvider.class);
-        for(FileSystemProvider provider:loader){
-            if(provider instanceof MemoryFileSystemProvider){
+        for (FileSystemProvider provider : loader) {
+            if (provider instanceof MemoryFileSystemProvider) {
                 return MemoryFileSystemProvider.class.cast(provider);
             }
         }
@@ -187,7 +187,7 @@ public class MemoryFileSystemProviderTest {
     }
 
     private static FileSystem createFileSystem(FileSystemProvider provider, Path path) throws IOException {
-        return provider.newFileSystem(path,EMPTY_OPTIONS);
+        return provider.newFileSystem(path, EMPTY_OPTIONS);
     }
 
     private static FileSystem createFileSystem(FileSystemProvider provider, URI uri) throws IOException {
