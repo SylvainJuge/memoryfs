@@ -14,6 +14,8 @@ import java.util.Set;
 
 public class MemoryFileSystemProvider extends FileSystemProvider {
 
+    public static final String SCHEME = "memory";
+
     // TODO : thread safety ??
     private final Map<URI,FileSystem> fileSystems;
 
@@ -23,15 +25,18 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
 
     @Override
     public String getScheme() {
-        return "memory";
+        return SCHEME;
     }
 
     @Override
     public FileSystem newFileSystem(URI uri, Map<String, ?> env) throws IOException {
-        if( fileSystems.containsKey(uri)){
-            throw new RuntimeException("uri already exists, can't reuse it : "+uri);
+        if(!SCHEME.equals(uri.getScheme())){
+            throw new IllegalArgumentException("invalid URI : "+ uri);
         }
-        FileSystem fs = new MemoryFileSystem(this);
+        if( fileSystems.containsKey(uri)){
+            throw new FileSystemAlreadyExistsException("file system already exists for URI : "+uri);
+        }
+        FileSystem fs = new MemoryFileSystem(this, uri);
         fileSystems.put(uri, fs);
         return fs;
     }
@@ -43,6 +48,13 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
             throw new RuntimeException("no filesystem exists with this uri : "+uri);
         }
         return fs;
+    }
+
+    void removeFileSystem(URI uri){
+        if(!fileSystems.containsKey(uri)){
+            throw new IllegalStateException("file system does not exist in provider : "+uri);
+        }
+        fileSystems.remove(uri);
     }
 
     @Override

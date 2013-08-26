@@ -5,6 +5,9 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.FileSystem;
+import java.nio.file.FileSystemAlreadyExistsException;
+import java.nio.file.FileSystems;
+import java.nio.file.Paths;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.HashMap;
 import java.util.ServiceLoader;
@@ -14,16 +17,40 @@ import static org.fest.assertions.api.Fail.fail;
 
 public class MemoryFileSystemProviderTest {
 
+    private static final HashMap<String,Object> EMPTY_OPTIONS = new HashMap<>();
+
+    private static final URI DUMMY_MEMORY_URI = java.net.URI.create("memory://dummy");
 
     // TODO : see how to use fs only by using a path that uses "memory" scheme
 
     @Test
     public void loadThroughServiceLoader(){
         FileSystemProvider provider = getProvider();
-        assertThat(provider).isNotNull();
-        if (null == provider) {
-            fail("memory fs provider not found");
+        assertThat(provider).isInstanceOf(MemoryFileSystemProvider.class);
+    }
+
+    @Test
+    public void loadThroughFileSystemsAndUri() throws IOException {
+        try(FileSystem fs = FileSystems.newFileSystem(DUMMY_MEMORY_URI, EMPTY_OPTIONS)){
+            assertThat(fs).isInstanceOf(MemoryFileSystem.class);
+            assertThat(FileSystems.getFileSystem(DUMMY_MEMORY_URI)).isSameAs(fs);
         }
+    }
+
+    @Test(expectedExceptions = {FileSystemAlreadyExistsException.class})
+    public void createDuplicateFileSystem() throws IOException {
+        FileSystem fs1 = null;
+        FileSystem fs2 = null;
+        try {
+            fs1 = FileSystems.newFileSystem(DUMMY_MEMORY_URI, EMPTY_OPTIONS);
+            fs2 = FileSystems.newFileSystem(DUMMY_MEMORY_URI, EMPTY_OPTIONS);
+        } finally {
+            fs1.close();
+            if (null != fs2) {
+                fs2.close();
+            }
+        }
+        fail("should not be able to create two FS with same URI");
     }
 
     //@Test
@@ -36,6 +63,15 @@ public class MemoryFileSystemProviderTest {
         assertThat(getProvider()).isSameAs(getProvider());
     }
 
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void createFileSystemWithoutCorrectScheme() throws IOException {
+        FileSystem fs = null;
+        try {
+            fs = getProvider().newFileSystem(URI.create("withoutMemoryScheme"), EMPTY_OPTIONS);
+        } finally {
+            assertThat(fs).isNull();
+        }
+    }
 
     @Test
     public void checkProviderScheme(){
@@ -46,33 +82,21 @@ public class MemoryFileSystemProviderTest {
 
     @Test
     public void createFileSystemInstanceAndGetByUri() throws IOException {
-
-        URI fsUri = URI.create("dummyUri");
         FileSystemProvider provider = getProvider();
-        FileSystem fs = newMemoryFileSystem(provider, fsUri);
-        assertThat(fs).isNotNull();
-
-        assertThat(provider.getFileSystem(fsUri)).isSameAs(fs);
-    }
-
-    @Test
-    public void defaultFileSystemProperties(){
-        FileSystem fs = newMemoryFileSystem(getProvider(), URI.create("dummy"));
-        assertThat(fs.isOpen()).isTrue();
-        assertThat(fs.isReadOnly()).isFalse();
-        assertThat(fs.getSeparator()).isNotEmpty();
-
-    }
-
-    private static FileSystem newMemoryFileSystem(FileSystemProvider provider, URI uri){
-        FileSystem fs = null;
-        try {
-            fs = provider.newFileSystem(uri, new HashMap<String, Object>());
-        } catch (IOException e) {
-            fail(e.getMessage());
+        try(FileSystem fs =  provider.newFileSystem(DUMMY_MEMORY_URI, EMPTY_OPTIONS)){
+            assertThat(fs).isNotNull();
+            assertThat(provider.getFileSystem(DUMMY_MEMORY_URI)).isSameAs(fs);
         }
-        return fs;
-}
+    }
+
+        @Test
+    public void defaultFileSystemProperties() throws IOException {
+        try (FileSystem fs = getProvider().newFileSystem(DUMMY_MEMORY_URI, EMPTY_OPTIONS)) {
+            assertThat(fs.isOpen()).isTrue();
+            assertThat(fs.isReadOnly()).isFalse();
+            assertThat(fs.getSeparator()).isNotEmpty();
+        }
+    }
 
     // TODO
     // - see how filesytem is used, especially when newFileSystem() is called when creating files in it
@@ -87,7 +111,7 @@ public class MemoryFileSystemProviderTest {
     // tests to write
     // - try to get a fs instance without creating it beforehand : myst throw exception
 
-    private static MemoryFileSystemProvider getProvider(){
+    private static FileSystemProvider getProvider(){
         ServiceLoader<FileSystemProvider> loader = ServiceLoader.load(FileSystemProvider.class);
         for(FileSystemProvider provider:loader){
             if(provider instanceof MemoryFileSystemProvider){

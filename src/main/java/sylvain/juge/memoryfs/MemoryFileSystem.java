@@ -1,6 +1,7 @@
 package sylvain.juge.memoryfs;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.*;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.nio.file.spi.FileSystemProvider;
@@ -10,10 +11,12 @@ import java.util.Set;
 public class MemoryFileSystem extends FileSystem {
 
     public static final String SEPARATOR = "/";
-    private final FileSystemProvider provider;
+    private final MemoryFileSystemProvider provider;
+    private final URI uri;
 
-    MemoryFileSystem(FileSystemProvider provider) {
+    MemoryFileSystem(MemoryFileSystemProvider provider, URI uri) {
         this.provider = provider;
+        this.uri = uri;
     }
 
     @Override
@@ -23,6 +26,7 @@ public class MemoryFileSystem extends FileSystem {
 
     @Override
     public void close() throws IOException {
+        provider.removeFileSystem(uri);
     }
 
     @Override
