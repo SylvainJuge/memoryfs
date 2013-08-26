@@ -16,7 +16,7 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
 
     public static final String SCHEME = "memory";
 
-    // TODO : thread safety ??
+    // thread safety : synchronized on instance for r/w
     private final Map<String, FileSystem> fileSystems;
 
     public MemoryFileSystemProvider() {
@@ -34,12 +34,14 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
             throw new IllegalArgumentException("invalid URI : " + uri);
         }
         String id = getFileSystemIdentifier(uri);
-        if (fileSystems.containsKey(id)) {
-            throw new FileSystemAlreadyExistsException("file system already exists : " + id);
+        synchronized (fileSystems) {
+            if (fileSystems.containsKey(id)) {
+                throw new FileSystemAlreadyExistsException("file system already exists : " + id);
+            }
+            FileSystem fs = new MemoryFileSystem(this, id);
+            fileSystems.put(id, fs);
+            return fs;
         }
-        FileSystem fs = new MemoryFileSystem(this, id);
-        fileSystems.put(id, fs);
-        return fs;
     }
 
     @Override
@@ -63,18 +65,22 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
     @Override
     public FileSystem getFileSystem(URI uri) {
         String id = getFileSystemIdentifier(uri);
-        FileSystem fs = fileSystems.get(id);
-        if (null == fs) {
-            throw new RuntimeException("no filesystem exists with this ID : " + id);
+        synchronized (fileSystems) {
+            FileSystem fs = fileSystems.get(id);
+            if (null == fs) {
+                throw new RuntimeException("no filesystem exists with this ID : " + id);
+            }
+            return fs;
         }
-        return fs;
     }
 
     void removeFileSystem(String id) {
-        if (!fileSystems.containsKey(id)) {
-            throw new IllegalStateException("file system does not exist in provider : " + id);
+        synchronized (fileSystems) {
+            if (!fileSystems.containsKey(id)) {
+                throw new IllegalStateException("file system does not exist in provider : " + id);
+            }
+            fileSystems.remove(id);
         }
-        fileSystems.remove(id);
     }
 
     @Override

@@ -6,6 +6,7 @@ import java.nio.file.attribute.UserPrincipalLookupService;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.Collections;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MemoryFileSystem extends FileSystem {
 
@@ -13,13 +14,12 @@ public class MemoryFileSystem extends FileSystem {
     private final MemoryFileSystemProvider provider;
     private final String id;
 
-    // TODO thread safety ??
-    private boolean isOpen;
+    private AtomicBoolean isOpen;
 
     MemoryFileSystem(MemoryFileSystemProvider provider, String id) {
         this.provider = provider;
         this.id = id;
-        this.isOpen = true;
+        this.isOpen = new AtomicBoolean(true);
     }
 
     @Override
@@ -29,13 +29,14 @@ public class MemoryFileSystem extends FileSystem {
 
     @Override
     public void close() throws IOException {
-        provider.removeFileSystem(id);
-        this.isOpen = false;
+        if(isOpen.getAndSet(false)){
+            provider.removeFileSystem(id);
+        }
     }
 
     @Override
     public boolean isOpen() {
-        return isOpen;
+        return isOpen.get();
     }
 
     @Override
