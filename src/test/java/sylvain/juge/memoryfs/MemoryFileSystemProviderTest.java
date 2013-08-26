@@ -35,7 +35,7 @@ public class MemoryFileSystemProviderTest {
     }
 
     @Test
-    public void samePathPrefixPointsToSameFileSystem() {
+    public void samePathPrefixResolvesToSameFileSystem() {
         Path path1 = Paths.get(URI.create("memory://dummy/1"));
         Path path2 = Paths.get(URI.create("memory://dummy/2"));
         // both paths must point to same FS instance
@@ -54,27 +54,6 @@ public class MemoryFileSystemProviderTest {
             closeQuietly(fs2);
         }
         fail("should not be able to create two FS with same URI");
-    }
-
-    private static void closeQuietly(FileSystem fs) {
-        if (null == fs) {
-            return;
-        }
-        try {
-            fs.close();
-        } catch (IOException e) {
-            // silently ignored
-        }
-    }
-
-    //@Test
-    public void providerShouldBeLoadedOnce() {
-        // multiple calls to service loader should return the same instance
-
-        // TODO : it seems that service loader creates a new instance at each call
-        // however, if fs code uses a for Path resolution, it may be perfectly fine
-        // -> we must check that getting instances of this filesystem are identical through paths
-        assertThat(getNewProvider()).isSameAs(getNewProvider());
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
@@ -158,19 +137,6 @@ public class MemoryFileSystemProviderTest {
         }
     }
 
-    // TODO
-    // - see how filesytem is used, especially when newFileSystem() is called when creating files in it
-    // -> if only 1 instance is used, we can easily control ro/rw state of such fs
-    //
-    // - when storage is implemented, see how we can use ByteBuffer to allocate storage out of heap
-    //
-    // - misc : create a "/dev/null" fs where we always write
-    // - misc : allow to control ro/rw state at runtime (allow to test that app does not write when not required)
-
-
-    // tests to write
-    // - try to get a fs instance without creating it beforehand : myst throw exception
-
     @Test
     public void newProviderReturnsNewInstanceOnEachCall() {
         assertThat(getNewProvider()).isNotSameAs(getNewProvider());
@@ -192,5 +158,16 @@ public class MemoryFileSystemProviderTest {
 
     private static FileSystem createFileSystem(FileSystemProvider provider, URI uri) throws IOException {
         return provider.newFileSystem(uri, EMPTY_OPTIONS);
+    }
+
+    private static void closeQuietly(FileSystem fs) {
+        if (null == fs) {
+            return;
+        }
+        try {
+            fs.close();
+        } catch (IOException e) {
+            // silently ignored
+        }
     }
 }
