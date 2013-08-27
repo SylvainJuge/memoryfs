@@ -7,6 +7,7 @@ import java.net.URI;
 import java.nio.file.*;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.HashMap;
+import java.util.List;
 import java.util.ServiceLoader;
 
 import static org.fest.assertions.api.Assertions.assertThat;
@@ -17,8 +18,6 @@ public class MemoryFileSystemProviderTest {
     private static final HashMap<String, Object> EMPTY_OPTIONS = new HashMap<>();
 
     private static final URI DUMMY_MEMORY_URI = URI.create("memory://dummy");
-
-    // TODO : see how to use fs only by using a path that uses "memory" scheme
 
     @Test
     public void loadThroughServiceLoader() {
@@ -142,7 +141,33 @@ public class MemoryFileSystemProviderTest {
         assertThat(getNewProvider()).isNotSameAs(getNewProvider());
     }
 
-    private static FileSystemProvider getNewProvider() {
+    @Test
+    public void fileSystemProviderStaticallyAvailable(){
+        boolean found = false;
+        List<FileSystemProvider> providers = FileSystemProvider.installedProviders();
+        for (FileSystemProvider provider : providers) {
+            if( MemoryFileSystemProvider.class.equals( provider.getClass())){
+                found = true;
+            }
+        }
+        assertThat(found).isTrue();
+    }
+
+    @Test
+    public void getFileStoreFromPath(){
+        Path path = Paths.get(DUMMY_MEMORY_URI);
+        assertThat(path).isNotNull();
+        assertThat(path.getFileSystem()).isInstanceOf(MemoryFileSystem.class);
+        Iterable<FileStore> stores = path.getFileSystem().getFileStores();
+        int count = 0;
+        for(FileStore store : stores){
+            assertThat(store).isNotNull();
+            count++;
+        }
+        assertThat(count).isEqualTo(1);
+    }
+
+    static FileSystemProvider getNewProvider() {
         ServiceLoader<FileSystemProvider> loader = ServiceLoader.load(FileSystemProvider.class);
         for (FileSystemProvider provider : loader) {
             if (provider instanceof MemoryFileSystemProvider) {
