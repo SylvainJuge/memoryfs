@@ -101,21 +101,25 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
     @Override
     public void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
         throw new UnsupportedOperationException("TODO : implement this");
+        // zip fs : delegate to path implementation
     }
 
     @Override
     public void delete(Path path) throws IOException {
         throw new UnsupportedOperationException("TODO : implement this");
+        // zip fs : delegate to path implementation
     }
 
     @Override
     public void copy(Path source, Path target, CopyOption... options) throws IOException {
         throw new UnsupportedOperationException("TODO : implement this");
+        // zip fs : delegate to path implementation
     }
 
     @Override
     public void move(Path source, Path target, CopyOption... options) throws IOException {
         throw new UnsupportedOperationException("TODO : implement this");
+        // zip fs : delegate to path implementation
     }
 
     @Override
