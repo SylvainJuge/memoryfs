@@ -21,14 +21,15 @@ public class MemoryPathTest {
 
     @Test
     public void getFileSystem(){
-        MemoryFileSystem fs = new MemoryFileSystem(null, null);
+
+        MemoryFileSystem fs = createFs();
         MemoryPath path = new MemoryPath(fs, "");
         assertThat(path.getFileSystem()).isSameAs(fs);
     }
 
     @Test
     public void relativePathToUri(){
-        MemoryPath path = new MemoryPath(null, "relative/path");
+        MemoryPath path = new MemoryPath(createFs(), "relative/path");
 
         assertThat(path.isAbsolute()).isFalse();
         checkUri(path.toUri(), "relative/path");
@@ -39,7 +40,7 @@ public class MemoryPathTest {
 
     @Test
     public void absolutePathToUri(){
-        MemoryPath path = new MemoryPath(null, "/absolute/path/");
+        MemoryPath path = new MemoryPath(createFs(), "/absolute/path");
 
         assertThat(path.isAbsolute()).isTrue();
         checkUri(path.toUri(), "/absolute/path");
@@ -61,24 +62,20 @@ public class MemoryPathTest {
         String scheme = "memory";
         assertThat(uri.getPath()).isEqualTo(path);
         assertThat(uri.getScheme()).isEqualTo(scheme);
-        assertThat(uri.getSchemeSpecificPart()).isEqualTo(scheme);
-        assertThat(uri.getRawSchemeSpecificPart()).isEqualTo(scheme);
-        assertThat(uri.getHost()).isEmpty();
+        assertThat(uri.getHost()).isNull(); // URI parsing does not return empty host
         assertThat(uri.getPort()).isLessThan(0);
-        assertThat(uri.getQuery()).isEmpty();
-        assertThat(uri.getAuthority()).isEmpty();
-        assertThat(uri.getRawAuthority()).isEmpty();
-        assertThat(uri.getFragment()).isEmpty();
-        assertThat(uri.getRawFragment()).isEmpty();
-        assertThat(uri.getQuery()).isEmpty();
-        assertThat(uri.getRawQuery()).isEmpty();
-        assertThat(uri.getUserInfo()).isEmpty();
-        assertThat(uri.getRawUserInfo()).isEmpty();
+        assertThat(uri.getQuery()).isNull();
+        assertThat(uri.getRawQuery()).isNull();
+        assertThat(uri.getAuthority()).isNull();
+        assertThat(uri.getRawAuthority()).isNull();
+        assertThat(uri.getFragment()).isNull();
+        assertThat(uri.getRawFragment()).isNull();
+        assertThat(uri.getUserInfo()).isNull();
+        assertThat(uri.getRawUserInfo()).isNull();
     }
 
     private static MemoryFileSystem createFs(){
         MemoryFileSystemProvider provider = new MemoryFileSystemProvider();
-        MemoryFileSystem fs = new MemoryFileSystem(provider, "");
-        return fs;
+        return new MemoryFileSystem(provider, "");
     }
 }
