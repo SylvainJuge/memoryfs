@@ -3,16 +3,25 @@ package sylvain.juge.memoryfs;
 import org.testng.annotations.Test;
 
 import java.net.URI;
-import java.nio.file.FileSystem;
 import java.nio.file.Path;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 
 public class MemoryPathTest {
 
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void fileSystemRequired(){
+        new MemoryFileSystem(null, "/anypath");
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void emptyPathNotAllowed(){
+        new MemoryPath(createFs(), "");
+    }
+
     @Test
     public void getFileSystem(){
-        FileSystem fs = new MemoryFileSystem(null, null);
+        MemoryFileSystem fs = new MemoryFileSystem(null, null);
         MemoryPath path = new MemoryPath(fs, "");
         assertThat(path.getFileSystem()).isSameAs(fs);
     }
@@ -21,11 +30,8 @@ public class MemoryPathTest {
     public void relativePathToUri(){
         MemoryPath path = new MemoryPath(null, "relative/path");
 
-
         assertThat(path.isAbsolute()).isFalse();
-
-        checkUri(path.toUri(), "memory", "relative/path");
-
+        checkUri(path.toUri(), "relative/path");
         checkPathParts(path,
                 "relative/path",
                 "relative");
@@ -33,11 +39,10 @@ public class MemoryPathTest {
 
     @Test
     public void absolutePathToUri(){
-        MemoryPath path = new MemoryPath(null, "/absolute/path");
+        MemoryPath path = new MemoryPath(null, "/absolute/path/");
 
         assertThat(path.isAbsolute()).isTrue();
-        checkUri(path.toUri(), "memory", "/absolute/path");
-
+        checkUri(path.toUri(), "/absolute/path");
         checkPathParts(path,
                 "/absolute/path",
                 "/absolute");
@@ -52,7 +57,8 @@ public class MemoryPathTest {
         }
     }
 
-    private static void checkUri(URI uri, String scheme, String path){
+    private static void checkUri(URI uri, String path){
+        String scheme = "memory";
         assertThat(uri.getPath()).isEqualTo(path);
         assertThat(uri.getScheme()).isEqualTo(scheme);
         assertThat(uri.getSchemeSpecificPart()).isEqualTo(scheme);
@@ -70,5 +76,9 @@ public class MemoryPathTest {
         assertThat(uri.getRawUserInfo()).isEmpty();
     }
 
-
+    private static MemoryFileSystem createFs(){
+        MemoryFileSystemProvider provider = new MemoryFileSystemProvider();
+        MemoryFileSystem fs = new MemoryFileSystem(provider, "");
+        return fs;
+    }
 }

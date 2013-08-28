@@ -9,15 +9,23 @@ import java.util.Iterator;
 public class MemoryPath implements Path {
 
     private static final String SEPARATOR = "/";
-    private final FileSystem fs;
-    private final String[] items;
-    private final boolean isAbsolute;
+    private final MemoryFileSystem fs;
+    private final String path;
+    private final String[] pathParts;
+    private final boolean absolute;
 
 
-    MemoryPath(FileSystem fs, String path){
+    MemoryPath(MemoryFileSystem fs, String path){
+        if( null == fs){
+            throw new IllegalArgumentException("filesytem required");
+        }
+        if( null == path || path.isEmpty()){
+            throw new IllegalArgumentException("path required not empty, got : "+path);
+        }
         this.fs = fs;
-        isAbsolute = path.startsWith(SEPARATOR);
-        items = path.split(SEPARATOR);
+        this.path = path;
+        pathParts = path.split("/");
+        absolute = path.startsWith(SEPARATOR);
     }
 
     @Override
@@ -27,7 +35,7 @@ public class MemoryPath implements Path {
 
     @Override
     public boolean isAbsolute() {
-        return false;
+        return absolute;
     }
 
     @Override
@@ -112,7 +120,13 @@ public class MemoryPath implements Path {
 
     @Override
     public URI toUri() {
-        return URI.create("memory:///");
+        StringBuilder sb = new StringBuilder();
+        sb.append(fs.getUri());
+        if(!absolute){
+            throw new RuntimeException("how to guess relative path uri ? with current folder ?");
+        }
+        sb.append(path.substring(1)); // remove 1st / at root of path
+        return URI.create(sb.toString());
     }
 
     @Override
@@ -127,6 +141,7 @@ public class MemoryPath implements Path {
 
     @Override
     public File toFile() {
+        // TODO : how to create file instance that is mapped to memory for legacy ?
         return null;
     }
 
@@ -149,4 +164,5 @@ public class MemoryPath implements Path {
     public int compareTo(Path other) {
         return 0;
     }
+
 }

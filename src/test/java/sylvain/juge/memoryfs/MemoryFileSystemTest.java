@@ -18,6 +18,17 @@ public class MemoryFileSystemTest {
 
     // TODO : FileStore : difference between unallocated space and usable space ?
 
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void nullProviderNotAllowed(){
+        new MemoryFileSystem(null, "");
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void nullIdNotAllowed(){
+        MemoryFileSystemProvider provider = new MemoryFileSystemProvider(); // TODO : use mock
+        new MemoryFileSystem(provider, null);
+    }
+
 
     @Test
     public void getDefaultFsCapacityNumbers() throws IOException {

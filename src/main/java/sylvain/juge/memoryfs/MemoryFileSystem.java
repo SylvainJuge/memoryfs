@@ -1,6 +1,7 @@
 package sylvain.juge.memoryfs;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.*;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.nio.file.spi.FileSystemProvider;
@@ -17,9 +18,19 @@ public class MemoryFileSystem extends FileSystem {
     private AtomicBoolean isOpen;
 
     MemoryFileSystem(MemoryFileSystemProvider provider, String id) {
+        if( null == provider){
+            throw new IllegalArgumentException("provider must be provided");
+        }
+        if( null == id){
+            throw new IllegalArgumentException("id is required");
+        }
         this.provider = provider;
         this.id = id;
         this.isOpen = new AtomicBoolean(true);
+    }
+
+    URI getUri(){
+        return URI.create("memory://"+id+"/");
     }
 
     @Override

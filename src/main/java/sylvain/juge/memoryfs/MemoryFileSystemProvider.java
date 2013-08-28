@@ -15,7 +15,7 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
     public static final String SCHEME = "memory";
 
     // thread safety : synchronized on instance for r/w
-    private final Map<String, FileSystem> fileSystems;
+    private final Map<String, MemoryFileSystem> fileSystems;
 
     public MemoryFileSystemProvider() {
         this.fileSystems = new HashMap<>();
@@ -51,7 +51,7 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
             if (fileSystems.containsKey(id)) {
                 throw new FileSystemAlreadyExistsException("file system already exists : " + id);
             }
-            FileSystem fs = new MemoryFileSystem(this, id);
+            MemoryFileSystem fs = new MemoryFileSystem(this, id);
             fileSystems.put(id, fs);
             return fs;
         }
@@ -82,7 +82,7 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
         }
     }
 
-    Map<String,FileSystem> registeredFileSystems(){
+    Map<String,? extends FileSystem> registeredFileSystems(){
         synchronized (fileSystems) {
             return Collections.unmodifiableMap(fileSystems);
         }
@@ -102,7 +102,7 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
         checkMemoryScheme(uri);
         String id = getFileSystemIdentifier(uri);
         synchronized (fileSystems){
-            FileSystem fs = fileSystems.get(id);
+            MemoryFileSystem fs = fileSystems.get(id);
             if( null == fs){
                 throw new IllegalArgumentException("non existing filesystem : "+id);
             }
