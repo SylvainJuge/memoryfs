@@ -6,6 +6,7 @@ import java.net.URI;
 import java.nio.file.Path;
 
 import static org.fest.assertions.api.Assertions.assertThat;
+import static org.fest.assertions.api.Fail.fail;
 
 public class MemoryPathTest {
 
@@ -47,6 +48,12 @@ public class MemoryPathTest {
         checkPathParts(path,
                 "/absolute/path",
                 "/absolute");
+    }
+
+    @Test
+    public void pathWithTrailingSlash(){
+        // trailing slash should be itnored for folders
+        fail("TODO");
     }
 
     private static void checkPathParts(Path p, String... parts){
