@@ -58,8 +58,7 @@ public class MemoryFileSystem extends FileSystem {
 
     @Override
     public Iterable<FileStore> getFileStores() {
-        // TODO : implement this
-        return null;
+        return Collections.emptyList();
     }
 
     @Override

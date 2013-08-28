@@ -8,9 +8,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
 import java.nio.file.spi.FileSystemProvider;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class MemoryFileSystemProvider extends FileSystemProvider {
 
@@ -28,11 +26,26 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
         return SCHEME;
     }
 
+    private static void checkMemoryScheme(URI uri){
+        if (!SCHEME.equals(uri.getScheme())) {
+            throw new IllegalArgumentException("invalid scheme : " + uri);
+        }
+    }
+
+    private static void checkFileSystemUri(URI uri){
+        if(!uri.isAbsolute()){
+            throw new IllegalArgumentException("invalid URI : must be absolute : " + uri);
+        }
+        String path = uri.getPath();
+        if (!"/".equals(path)) {
+            throw new IllegalArgumentException("invalid URI, fs root path must be / : " + uri);
+        }
+    }
+
     @Override
     public FileSystem newFileSystem(URI uri, Map<String, ?> env) throws IOException {
-        if (!SCHEME.equals(uri.getScheme())) {
-            throw new IllegalArgumentException("invalid URI : " + uri);
-        }
+        checkMemoryScheme(uri);
+        checkFileSystemUri(uri);
         String id = getFileSystemIdentifier(uri);
         synchronized (fileSystems) {
             if (fileSystems.containsKey(id)) {
@@ -50,20 +63,15 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
         return newFileSystem(uri, env);
     }
 
-    /**
-     * @return file system identifier from its URI
-     */
     private static String getFileSystemIdentifier(URI uri) {
-        String path = uri.getPath();
-        String[] pathParts = path.split("/");
-        if (pathParts.length < 1) {
-            throw new IllegalArgumentException("invalid file system URI : " + uri);
-        }
-        return pathParts[0];
+        String host = uri.getHost();
+        return null == host ? "": host;
     }
 
     @Override
     public FileSystem getFileSystem(URI uri) {
+        checkMemoryScheme(uri);
+        checkFileSystemUri(uri);
         String id = getFileSystemIdentifier(uri);
         synchronized (fileSystems) {
             FileSystem fs = fileSystems.get(id);
@@ -71,6 +79,12 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
                 throw new RuntimeException("no filesystem exists with this ID : " + id);
             }
             return fs;
+        }
+    }
+
+    Map<String,FileSystem> registeredFileSystems(){
+        synchronized (fileSystems) {
+            return Collections.unmodifiableMap(fileSystems);
         }
     }
 
@@ -85,7 +99,15 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
 
     @Override
     public Path getPath(URI uri) {
-        return Paths.get(uri.getPath());
+        checkMemoryScheme(uri);
+        String id = getFileSystemIdentifier(uri);
+        synchronized (fileSystems){
+            FileSystem fs = fileSystems.get(id);
+            if( null == fs){
+                throw new IllegalArgumentException("non existing filesystem : "+id);
+            }
+            return new MemoryPath(fs, uri.getPath());
+        }
     }
 
     @Override

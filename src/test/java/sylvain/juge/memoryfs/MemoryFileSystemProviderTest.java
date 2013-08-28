@@ -1,14 +1,13 @@
 package sylvain.juge.memoryfs;
 
+import org.testng.annotations.AfterTest;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.*;
 import java.nio.file.spi.FileSystemProvider;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ServiceLoader;
+import java.util.*;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.fest.assertions.api.Fail.fail;
@@ -17,48 +16,53 @@ public class MemoryFileSystemProviderTest {
 
     private static final HashMap<String, Object> EMPTY_OPTIONS = new HashMap<>();
 
-    private static final URI DUMMY_MEMORY_URI = URI.create("memory://dummy");
+    // handle the static state of file system manager
+
+    @AfterTest
+    public void checkStaticFileSystemProviderState() {
+        // there is a static provider instance that may be used by tests when creating fs instance without explicit
+        // references to provider itself.
+        //
+        // we have to make sure that tests properly close associated filesystems
+        // otherwise fs provider instance may contain stale fs references which creates side effects.
+        checkNoFileSystemsLeftOpen(getStaticProvider());
+    }
 
     @Test
     public void loadThroughServiceLoader() {
-        FileSystemProvider provider = getNewProvider();
+        MemoryFileSystemProvider provider = getNewProvider();
         assertThat(provider).isInstanceOf(MemoryFileSystemProvider.class);
+        checkNoFileSystemsLeftOpen(provider);
     }
 
     @Test
     public void loadThroughFileSystemsAndUri() throws IOException {
-        try (FileSystem fs = FileSystems.newFileSystem(DUMMY_MEMORY_URI, EMPTY_OPTIONS)) {
-            assertThat(fs).isInstanceOf(MemoryFileSystem.class);
-            assertThat(FileSystems.getFileSystem(DUMMY_MEMORY_URI)).isSameAs(fs);
+        URI uri = URI.create("memory://fs/");
+        try (FileSystem fs = staticCreateAndGet(uri)) {
+            // most of tests are done in create & get method
+            assertThat(fs).isNotNull();
         }
     }
+
+    // non-static properties of provider : we use a dedicated instance for each test
 
     @Test
-    public void samePathPrefixResolvesToSameFileSystem() {
-        Path path1 = Paths.get(URI.create("memory://dummy/1"));
-        Path path2 = Paths.get(URI.create("memory://dummy/2"));
-        // both paths must point to same FS instance
-        assertThat(path1.getFileSystem()).isSameAs(path2.getFileSystem());
-    }
-
-    @Test(expectedExceptions = {FileSystemAlreadyExistsException.class})
-    public void createDuplicateFileSystem() throws IOException {
-        FileSystem fs1 = null;
-        FileSystem fs2 = null;
-        try {
-            fs1 = FileSystems.newFileSystem(DUMMY_MEMORY_URI, EMPTY_OPTIONS);
-            fs2 = FileSystems.newFileSystem(DUMMY_MEMORY_URI, EMPTY_OPTIONS);
-        } finally {
-            closeQuietly(fs1);
-            closeQuietly(fs2);
+    public void sameHostPrefixResolvesToSameFileSystem() throws IOException {
+        MemoryFileSystemProvider provider = getNewProvider();
+        try (FileSystem fs = createAndGet(provider, URI.create("memory://host1/"))) {
+            Path path1 = provider.getPath(URI.create("memory://host1/dummy/1"));
+            Path path2 = provider.getPath(URI.create("memory://host1/dummy/2"));
+            // both paths must point to same FS instance
+            assertThat(path1.getFileSystem())
+                    .isInstanceOf(MemoryFileSystem.class)
+                    .isSameAs(path2.getFileSystem())
+                    .isSameAs(fs);
         }
-        fail("should not be able to create two FS with same URI");
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void createFileSystemWithoutCorrectScheme() throws IOException {
-        createFileSystem(getNewProvider(), URI.create("withoutMemoryScheme"));
-        fail("should not be able to create such FS");
+        createAndGet(getNewProvider(), URI.create("withoutMemoryScheme"));
     }
 
     @Test
@@ -69,67 +73,49 @@ public class MemoryFileSystemProviderTest {
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
-    public void createFsWithInvalidSchemeInPath() throws IOException {
-        FileSystemProvider provider = getNewProvider();
-        Path invalidPath = Paths.get("invalid://dummy");
-        createFileSystem(provider, invalidPath);
+    public void createFsWithInvalidSchemeInUri() throws IOException {
+        createAndGet(getNewProvider(), URI.create("invalid://dummy"));
     }
 
-    @Test
-    public void createFsFromPathAddMemoryScheme() throws IOException {
-        Path pathWithoutScheme = Paths.get("anything");
-        FileSystemProvider provider = getNewProvider();
-        boolean ok;
-        try (FileSystem fs = createFileSystem(provider, pathWithoutScheme)) {
-            assertThat(fs).isNotNull();
-            assertThat(fs).isSameAs(provider.getFileSystem(URI.create("memory://anything")));
-            ok = true;
-        }
-        assertThat(ok).isTrue();
+    @Test(expectedExceptions = FileSystemAlreadyExistsException.class)
+    public void shouldNotAllowDuplicates() throws IOException {
+        URI uri = URI.create("memory:///");
+        MemoryFileSystemProvider provider = getNewProvider();
+        FileSystem fs = createAndGet(provider, uri);
+        assertThat(fs.isOpen()).isTrue();
+        createAndGet(provider, uri);
     }
 
     @Test
     public void openCloseReopen() throws IOException {
-        FileSystemProvider provider = getNewProvider();
+        MemoryFileSystemProvider provider = getNewProvider();
 
-        Path path = Paths.get("dummy");
+        URI uri = URI.create("memory://dummy/");
 
-        FileSystem fs = createFileSystem(provider, path);
+        FileSystem fs = createAndGet(provider, uri);
         assertThat(fs.isOpen()).isTrue();
-
-        // we should not be able to create FS with same path
-        FileSystemAlreadyExistsException expected = null;
-        try {
-            createFileSystem(provider, path);
-        } catch (FileSystemAlreadyExistsException e) {
-            expected = e;
-        }
-        assertThat(expected).isInstanceOf(FileSystemAlreadyExistsException.class);
-
-        // once closed, we should be able to create again
         fs.close();
         assertThat(fs.isOpen()).isFalse();
-
-        try (FileSystem reOpendedFs = createFileSystem(provider, path)) {
-            assertThat(reOpendedFs).isNotNull();
-            fs = reOpendedFs;
-        }
-        assertThat(fs.isOpen()).isFalse();
-
+        FileSystem recreatedFs = createAndGet(provider, uri);
+        //recreatedFs.close();
+        checkNoFileSystemsLeftOpen(provider);
     }
 
     @Test
     public void createFileSystemInstanceAndGetByUri() throws IOException {
-        FileSystemProvider provider = getNewProvider();
-        try (FileSystem fs = createFileSystem(provider, DUMMY_MEMORY_URI)) {
+        MemoryFileSystemProvider provider = getNewProvider();
+        checkNoFileSystemsLeftOpen(provider);
+        URI uri = URI.create("memory://dummy/");
+        try (FileSystem fs = createAndGet(provider, uri)) {
             assertThat(fs).isNotNull();
-            assertThat(provider.getFileSystem(DUMMY_MEMORY_URI)).isSameAs(fs);
+            // nothing much to do, since we have equivalent tests in createAndGet
         }
+        checkNoFileSystemsLeftOpen(provider);
     }
 
     @Test
     public void defaultFileSystemProperties() throws IOException {
-        try (FileSystem fs = createFileSystem(getNewProvider(), DUMMY_MEMORY_URI)) {
+        try (FileSystem fs = createAndGet(getNewProvider(), URI.create("memory://dummy/"))) {
             assertThat(fs.isOpen()).isTrue();
             assertThat(fs.isReadOnly()).isFalse();
             assertThat(fs.getSeparator()).isNotEmpty();
@@ -142,32 +128,96 @@ public class MemoryFileSystemProviderTest {
     }
 
     @Test
-    public void fileSystemProviderStaticallyAvailable(){
+    public void memoryFileSystemProviderStaticallyAvailable(){
         boolean found = false;
         List<FileSystemProvider> providers = FileSystemProvider.installedProviders();
         for (FileSystemProvider provider : providers) {
-            if( MemoryFileSystemProvider.class.equals( provider.getClass())){
+            if( MemoryFileSystemProvider.class.equals(provider.getClass())){
                 found = true;
             }
         }
         assertThat(found).isTrue();
     }
 
-    @Test
-    public void getFileStoreFromPath(){
-        Path path = Paths.get(DUMMY_MEMORY_URI);
-        assertThat(path).isNotNull();
-        assertThat(path.getFileSystem()).isInstanceOf(MemoryFileSystem.class);
-        Iterable<FileStore> stores = path.getFileSystem().getFileStores();
-        int count = 0;
-        for(FileStore store : stores){
-            assertThat(store).isNotNull();
-            count++;
+    @Test(enabled = false) // TODO : disabled yet since file store is not implemented
+    public void getFileStoreFromPath() throws IOException {
+        URI uri = URI.create("memory://dummy/");
+        try (FileSystem fs = staticCreateAndGet(uri)){
+            Path path = Paths.get(uri);
+            assertThat(path).isNotNull();
+            assertThat(path.getFileSystem())
+                    .isSameAs(fs);
+            Iterable<FileStore> stores = path.getFileSystem().getFileStores();
+            assertThat(stores).hasSize(1);
+            for (FileStore store : stores) {
+                assertThat(store).isNotNull();
+            }
         }
-        assertThat(count).isEqualTo(1);
     }
 
-    static FileSystemProvider getNewProvider() {
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void getFileSystemIdFromUriWithInvalidUriScheme() {
+        createAndGet(getNewProvider(), URI.create("notMemory://dummy/"));
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void getFileSystemIdFromUriWithAnySuffix() {
+        // only straight URIs are allowed as FS
+        createAndGet(getNewProvider(), URI.create("memory://fs1/a"));
+    }
+
+    @Test
+    public void getFileSystemIdFromValidUri() {
+        // note : we don't care about cleaning up since we use dedicated provider instances
+        createAndGet(getNewProvider(), URI.create("memory:///").create("memory:///"));
+        createAndGet(getNewProvider(), URI.create("memory://id/"));
+    }
+
+
+    private static String findFirstCommonId(Set<String> before, Set<String> after){
+        for (String id : after) {
+            if(!before.contains(id)){
+                return id;
+            }
+        }
+        throw new IllegalArgumentException("no distinct element in after set");
+    }
+
+    private static FileSystem staticCreateAndGet(URI uri) {
+        FileSystem fs = null;
+        try {
+            fs = FileSystems.newFileSystem(uri, null);
+        } catch (IOException e) {
+            fail("unexpected io exception", e);
+        }
+        assertThat(FileSystems.getFileSystem(uri)).isSameAs(fs);
+        assertThat(fs).isInstanceOf(MemoryFileSystem.class);
+        return fs;
+    }
+
+    // create fs by using a specific provider instance
+    private static FileSystem createAndGet(MemoryFileSystemProvider provider, URI uri) {
+        // try to create file with specific uri, and if it succeeds,
+        // we check that this filesystem is properly registered with expected id
+
+        Set<String> beforeIds = new HashSet<>(provider.registeredFileSystems().keySet());
+        String id;
+        FileSystem fs = null;
+        try {
+            fs = provider.newFileSystem(uri, null);
+        } catch (IOException e) {
+            fail("unexpected io exception", e);
+        }
+        Set<String> afterIds = provider.registeredFileSystems().keySet();
+        assertThat(afterIds).hasSize(beforeIds.size() + 1);
+        id = findFirstCommonId(beforeIds, afterIds);
+        assertThat(provider.registeredFileSystems().get(id)).isSameAs(fs);
+        assertThat(provider.getFileSystem(uri)).isSameAs(fs);
+        return fs;
+    }
+
+
+    static MemoryFileSystemProvider getNewProvider() {
         ServiceLoader<FileSystemProvider> loader = ServiceLoader.load(FileSystemProvider.class);
         for (FileSystemProvider provider : loader) {
             if (provider instanceof MemoryFileSystemProvider) {
@@ -177,22 +227,18 @@ public class MemoryFileSystemProviderTest {
         return null;
     }
 
-    private static FileSystem createFileSystem(FileSystemProvider provider, Path path) throws IOException {
-        return provider.newFileSystem(path, EMPTY_OPTIONS);
+    private static MemoryFileSystemProvider getStaticProvider(){
+        List<FileSystemProvider> providers = FileSystemProvider.installedProviders();
+        for (FileSystemProvider provider : providers) {
+            if( provider instanceof MemoryFileSystemProvider){
+                return (MemoryFileSystemProvider)provider;
+            }
+        }
+        return null;
     }
 
-    private static FileSystem createFileSystem(FileSystemProvider provider, URI uri) throws IOException {
-        return provider.newFileSystem(uri, EMPTY_OPTIONS);
+    private static void checkNoFileSystemsLeftOpen(MemoryFileSystemProvider provider){
+        assertThat(provider.registeredFileSystems().isEmpty());
     }
 
-    private static void closeQuietly(FileSystem fs) {
-        if (null == fs) {
-            return;
-        }
-        try {
-            fs.close();
-        } catch (IOException e) {
-            // silently ignored
-        }
-    }
 }
