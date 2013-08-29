@@ -84,7 +84,7 @@ public class MemoryPathTest {
         String scheme = "memory";
         assertThat(uri.getPath()).isEqualTo(path);
         assertThat(uri.getScheme()).isEqualTo(scheme);
-        assertThat(uri.getHost()).isNull(); // URI parsing does not return empty host
+        assertThat(uri.getHost()).isNull();
         assertThat(uri.getPort()).isLessThan(0);
         assertThat(uri.getQuery()).isNull();
         assertThat(uri.getRawQuery()).isNull();
