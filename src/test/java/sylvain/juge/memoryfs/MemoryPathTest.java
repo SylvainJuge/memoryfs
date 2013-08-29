@@ -24,7 +24,7 @@ public class MemoryPathTest {
     public void getFileSystem(){
 
         MemoryFileSystem fs = createFs();
-        MemoryPath path = new MemoryPath(fs, "");
+        MemoryPath path = new MemoryPath(fs, "/");
         assertThat(path.getFileSystem()).isSameAs(fs);
     }
 
