@@ -17,12 +17,11 @@ public class MemoryPathTest {
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void emptyPathNotAllowed(){
-        new MemoryPath(createFs(), "");
+        createPath("");
     }
 
     @Test
     public void getFileSystem(){
-
         MemoryFileSystem fs = createFs();
         MemoryPath path = new MemoryPath(fs, "/");
         assertThat(path.getFileSystem()).isSameAs(fs);
@@ -30,7 +29,7 @@ public class MemoryPathTest {
 
     @Test
     public void relativePathToUri(){
-        MemoryPath path = new MemoryPath(createFs(), "relative/path");
+        MemoryPath path = createPath("relative/path");
 
         assertThat(path.isAbsolute()).isFalse();
         checkUri(path.toUri(), "relative/path");
@@ -41,7 +40,7 @@ public class MemoryPathTest {
 
     @Test
     public void absolutePathToUri(){
-        MemoryPath path = new MemoryPath(createFs(), "/absolute/path");
+        MemoryPath path = createPath("/absolute/path");
 
         assertThat(path.isAbsolute()).isTrue();
         checkUri(path.toUri(), "/absolute/path");
@@ -50,25 +49,33 @@ public class MemoryPathTest {
                 "/absolute/path");
     }
 
-    @Test
+    @Test(expectedExceptions = IllegalArgumentException.class)
     public void getNameLessThanZero(){
-        fail("TODO");
+        createPath("/").getName(-1);
     }
 
-    @Test
+    @Test(expectedExceptions = IllegalArgumentException.class)
     public void getNameOutOfIndex(){
-        fail("TODO");
+        MemoryPath path = createPath("/dummy");
+        assertThat(path.getNameCount()).isEqualTo(1);
+        path.getName(path.getNameCount());
     }
 
-    @Test
-    public void getNameEmptyPath(){
-        fail("TODO");
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void getNameEmptyParts(){
+        MemoryPath path = createPath("/");
+        assertThat(path.getNameCount()).isZero();
+        path.getName(0);
     }
 
     @Test
     public void pathWithTrailingSlash(){
         // trailing slash should be itnored for folders
         fail("TODO");
+    }
+
+    private static MemoryPath createPath(String path){
+        return new MemoryPath(createFs(), path);
     }
 
     private static void checkPathParts(Path p, String... parts){

@@ -67,6 +67,9 @@ public class MemoryPath implements Path {
 
     @Override
     public Path getName(int index) {
+        if( index < 0 || parts.size() <= index){
+            throw new IllegalArgumentException("invalid name index : " + index);
+        }
         StringBuilder sb = new StringBuilder();
         if( absolute){
             sb.append(SEPARATOR);
