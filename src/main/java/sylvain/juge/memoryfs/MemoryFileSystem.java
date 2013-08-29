@@ -18,10 +18,10 @@ public class MemoryFileSystem extends FileSystem {
     private AtomicBoolean isOpen;
 
     MemoryFileSystem(MemoryFileSystemProvider provider, String id) {
-        if( null == provider){
+        if (null == provider) {
             throw new IllegalArgumentException("provider must be provided");
         }
-        if( null == id){
+        if (null == id) {
             throw new IllegalArgumentException("id is required");
         }
         this.provider = provider;
@@ -29,8 +29,8 @@ public class MemoryFileSystem extends FileSystem {
         this.isOpen = new AtomicBoolean(true);
     }
 
-    URI getUri(){
-        return URI.create("memory://"+id+"/");
+    URI getUri() {
+        return URI.create("memory://" + id + "/");
     }
 
     @Override
@@ -40,7 +40,7 @@ public class MemoryFileSystem extends FileSystem {
 
     @Override
     public void close() throws IOException {
-        if(isOpen.getAndSet(false)){
+        if (isOpen.getAndSet(false)) {
             provider.removeFileSystem(id);
         }
     }

@@ -17,18 +17,18 @@ public class MemoryPath implements Path {
     private final boolean absolute;
 
 
-    MemoryPath(MemoryFileSystem fs, String path){
-        if( null == fs){
+    MemoryPath(MemoryFileSystem fs, String path) {
+        if (null == fs) {
             throw new IllegalArgumentException("filesytem required");
         }
-        if( null == path || path.isEmpty()){
-            throw new IllegalArgumentException("path required not empty, got : "+path);
+        if (null == path || path.isEmpty()) {
+            throw new IllegalArgumentException("path required not empty, got : " + path);
         }
         this.fs = fs;
         this.path = path;
         parts = new ArrayList<>();
-        for( String s:path.split(SEPARATOR)){
-            if(!s.isEmpty()){
+        for (String s : path.split(SEPARATOR)) {
+            if (!s.isEmpty()) {
                 parts.add(s);
             }
         }
@@ -67,15 +67,15 @@ public class MemoryPath implements Path {
 
     @Override
     public Path getName(int index) {
-        if( index < 0 || parts.size() <= index){
+        if (index < 0 || parts.size() <= index) {
             throw new IllegalArgumentException("invalid name index : " + index);
         }
         StringBuilder sb = new StringBuilder();
-        if( absolute){
+        if (absolute) {
             sb.append(SEPARATOR);
         }
-        for( int i = 0; i< parts.size() && i <= index; i++){
-            if( 0 < i){
+        for (int i = 0; i < parts.size() && i <= index; i++) {
+            if (0 < i) {
                 sb.append(SEPARATOR);
             }
             sb.append(parts.get(i));
@@ -142,7 +142,7 @@ public class MemoryPath implements Path {
     public URI toUri() {
         StringBuilder sb = new StringBuilder();
         sb.append(fs.getUri());
-        if(!absolute){
+        if (!absolute) {
             throw new RuntimeException("how to guess relative path uri ? with current folder ?");
         }
         sb.append(path.substring(1)); // remove 1st / at root of path

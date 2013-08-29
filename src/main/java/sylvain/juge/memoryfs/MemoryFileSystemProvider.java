@@ -8,7 +8,10 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
 import java.nio.file.spi.FileSystemProvider;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class MemoryFileSystemProvider extends FileSystemProvider {
 
@@ -26,14 +29,14 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
         return SCHEME;
     }
 
-    private static void checkMemoryScheme(URI uri){
+    private static void checkMemoryScheme(URI uri) {
         if (!SCHEME.equals(uri.getScheme())) {
             throw new IllegalArgumentException("invalid scheme : " + uri);
         }
     }
 
-    private static void checkFileSystemUri(URI uri){
-        if(!uri.isAbsolute()){
+    private static void checkFileSystemUri(URI uri) {
+        if (!uri.isAbsolute()) {
             throw new IllegalArgumentException("invalid URI : must be absolute : " + uri);
         }
         String path = uri.getPath();
@@ -65,7 +68,7 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
 
     private static String getFileSystemIdentifier(URI uri) {
         String host = uri.getHost();
-        return null == host ? "": host;
+        return null == host ? "" : host;
     }
 
     @Override
@@ -82,7 +85,7 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
         }
     }
 
-    Map<String,? extends FileSystem> registeredFileSystems(){
+    Map<String, ? extends FileSystem> registeredFileSystems() {
         synchronized (fileSystems) {
             return Collections.unmodifiableMap(fileSystems);
         }
@@ -101,10 +104,10 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
     public Path getPath(URI uri) {
         checkMemoryScheme(uri);
         String id = getFileSystemIdentifier(uri);
-        synchronized (fileSystems){
+        synchronized (fileSystems) {
             MemoryFileSystem fs = fileSystems.get(id);
-            if( null == fs){
-                throw new IllegalArgumentException("non existing filesystem : "+id);
+            if (null == fs) {
+                throw new IllegalArgumentException("non existing filesystem : " + id);
             }
             return new MemoryPath(fs, uri.getPath());
         }
