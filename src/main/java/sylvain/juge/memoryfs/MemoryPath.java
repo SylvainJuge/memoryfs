@@ -4,14 +4,16 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.*;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 public class MemoryPath implements Path {
 
     private static final String SEPARATOR = "/";
     private final MemoryFileSystem fs;
     private final String path;
-    private final String[] pathParts;
+    private final List<String> parts;
     private final boolean absolute;
 
 
@@ -24,7 +26,12 @@ public class MemoryPath implements Path {
         }
         this.fs = fs;
         this.path = path;
-        pathParts = path.split("/");
+        parts = new ArrayList<>();
+        for( String s:path.split(SEPARATOR)){
+            if(!s.isEmpty()){
+                parts.add(s);
+            }
+        }
         absolute = path.startsWith(SEPARATOR);
     }
 
@@ -55,12 +62,22 @@ public class MemoryPath implements Path {
 
     @Override
     public int getNameCount() {
-        return 0;
+        return parts.size();
     }
 
     @Override
     public Path getName(int index) {
-        return null;
+        StringBuilder sb = new StringBuilder();
+        if( absolute){
+            sb.append(SEPARATOR);
+        }
+        for( int i = 0; i< parts.size() && i <= index; i++){
+            if( 0 < i){
+                sb.append(SEPARATOR);
+            }
+            sb.append(parts.get(i));
+        }
+        return new MemoryPath(fs, sb.toString());
     }
 
     @Override

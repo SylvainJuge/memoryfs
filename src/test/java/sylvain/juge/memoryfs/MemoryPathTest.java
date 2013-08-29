@@ -46,8 +46,23 @@ public class MemoryPathTest {
         assertThat(path.isAbsolute()).isTrue();
         checkUri(path.toUri(), "/absolute/path");
         checkPathParts(path,
-                "/absolute/path",
-                "/absolute");
+                "/absolute",
+                "/absolute/path");
+    }
+
+    @Test
+    public void getNameLessThanZero(){
+        fail("TODO");
+    }
+
+    @Test
+    public void getNameOutOfIndex(){
+        fail("TODO");
+    }
+
+    @Test
+    public void getNameEmptyPath(){
+        fail("TODO");
     }
 
     @Test
