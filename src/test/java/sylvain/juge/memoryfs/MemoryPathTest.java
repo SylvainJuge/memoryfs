@@ -109,17 +109,25 @@ public class MemoryPathTest {
     @Test
     public void equalsHashCodeWithItself(){
         Path p = createPath("anyPath");
-        assertThat(p).isEqualTo(p);
-        assertThat(p.hashCode()).isEqualTo(p.hashCode());
+        checkEqualsHashCodeIdentical(p,p);
     }
 
     @Test
     public void equalsHashCodeWithSamePartsButAbsoluteness(){
-
+        Path p1 = createPath("same/path");
+        assertThat(p1.isAbsolute()).isFalse();
+        Path p2 = createPath("/same/path");
+        assertThat(p2.isAbsolute()).isTrue();
+        checkEqualsHashCodeDifferent(p1,p2);
     }
 
     @Test
     public void equalsHashCodeWithEquivalent(){
+        // - create equivalent path with extra slashes and ensure that they are identical
+        // examples
+        // // is equal to /
+        // a/ is equal to a
+        //
         fail("TODO");
     }
 
@@ -128,11 +136,16 @@ public class MemoryPathTest {
         fail("TODO");
     }
 
-    private static void checkRoot(Path p){
-        Path root = p.getRoot();
-        assertThat(root).isNotNull();
-        // root is its own root
-        assertThat(root.getRoot()).isEqualTo(root.getRoot());
+    private static <T> void checkEqualsHashCodeIdentical(T o1, T o2){
+        assertThat(o1).isEqualTo(o2);
+        assertThat(o2).isEqualTo(o1);
+        assertThat(o1.hashCode()).isEqualTo(o2.hashCode());
+    }
+
+    private static <T> void checkEqualsHashCodeDifferent(T o1, T o2){
+        assertThat(o1).isNotEqualTo(o2);
+        assertThat(o2).isNotEqualTo(o1);
+        assertThat(o1.hashCode()).isNotEqualTo(o2.hashCode());
     }
 
     private static void checkParents(Path p, String... expectedParents) {

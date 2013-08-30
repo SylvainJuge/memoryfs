@@ -228,10 +228,10 @@ public class MemoryPath implements Path {
 
     @Override
     public int hashCode() {
-        int result = 31;
+        int result = 19;
+        result = 31 * result + ( absolute ? 1 : 0);
         for (String s : parts) {
-            result = 31 * result;
-            result += s.hashCode();
+            result = 31 * result + s.hashCode();
         }
         return result;
     }
