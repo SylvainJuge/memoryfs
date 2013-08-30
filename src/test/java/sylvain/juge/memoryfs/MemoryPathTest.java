@@ -108,11 +108,14 @@ public class MemoryPathTest {
 
     @Test
     public void equalsHashCodeWithItself(){
-        for(String s: new String[]{"","/","a/","a/b",".."}){
-            Path path = createPath(s);
-        }
+        Path p = createPath("anyPath");
+        assertThat(p).isEqualTo(p);
+        assertThat(p.hashCode()).isEqualTo(p.hashCode());
+    }
 
-        fail("TODO");
+    @Test
+    public void equalsHashCodeWithSamePartsButAbsoluteness(){
+
     }
 
     @Test
