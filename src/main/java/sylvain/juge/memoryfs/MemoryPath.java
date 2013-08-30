@@ -62,7 +62,7 @@ public class MemoryPath implements Path {
 
     @Override
     public Path getParent() {
-        if(isRoot()){
+        if (isRoot()) {
             return null;
         }
         if (parts.size() == 1) {
