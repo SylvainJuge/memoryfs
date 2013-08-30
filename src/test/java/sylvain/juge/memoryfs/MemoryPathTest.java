@@ -35,10 +35,9 @@ public class MemoryPathTest {
         // TODO : get relative path parent
 
         checkParents(path,
-                "relative/path",
-                "relative");
+                "relative",
+                "relative/path");
     }
-
 
     @Test
     public void absolutePathToUri() {
@@ -48,8 +47,8 @@ public class MemoryPathTest {
         assertThat(path.getRoot()).isEqualTo(createPath("/"));
 
         checkParents(path,
-                "/absolute/path",
-                "/absolute");
+                "/absolute",
+                "/absolute/path");
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
@@ -154,6 +153,7 @@ public class MemoryPathTest {
         for (int i = 0; i < expectedParents.length; i++) {
             Path parent = p.getName(i);
             if (i == 0) {
+                // getName(0) return identity;
                 assertThat(p.getParent()).isEqualTo(parent);
             }
             assertThat(parent.isAbsolute()).isEqualTo(p.isAbsolute());

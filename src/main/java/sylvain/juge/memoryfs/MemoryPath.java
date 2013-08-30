@@ -65,7 +65,10 @@ public class MemoryPath implements Path {
         if(isRoot()){
             return null;
         }
-        return getName(getNameCount()-1);
+        if (parts.size() == 1) {
+            return getRoot();
+        }
+        return getName(parts.size() - 2);
     }
 
     @Override
@@ -78,6 +81,11 @@ public class MemoryPath implements Path {
         if (index < 0 || parts.size() <= index) {
             throw new IllegalArgumentException("invalid name index : " + index);
         }
+        // last item is current path itself
+        if (index == parts.size() - 1) {
+            return this;
+        }
+
         StringBuilder sb = new StringBuilder();
         if (absolute) {
             sb.append(SEPARATOR);
