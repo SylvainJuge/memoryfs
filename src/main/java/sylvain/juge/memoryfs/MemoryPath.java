@@ -12,11 +12,10 @@ public class MemoryPath implements Path {
 
     private static final String SEPARATOR = "/";
     private final MemoryFileSystem fs;
-    private final String path;
     private final List<String> parts;
     private final boolean absolute;
 
-
+    // TODO : add another constructor to avoid re-parsing when creating form existing path
     MemoryPath(MemoryFileSystem fs, String path) {
         if (null == fs) {
             throw new IllegalArgumentException("filesytem required");
@@ -25,7 +24,6 @@ public class MemoryPath implements Path {
             throw new IllegalArgumentException("path required not empty, got : " + path);
         }
         this.fs = fs;
-        this.path = path;
         parts = new ArrayList<>();
         for (String s : path.split(SEPARATOR)) {
             if (!s.isEmpty()) {
@@ -33,6 +31,10 @@ public class MemoryPath implements Path {
             }
         }
         absolute = path.startsWith(SEPARATOR);
+    }
+
+    private boolean isRoot(){
+        return absolute && parts.isEmpty();
     }
 
     @Override
@@ -47,7 +49,10 @@ public class MemoryPath implements Path {
 
     @Override
     public Path getRoot() {
-        return null;
+        if(isRoot()){
+            return this;
+        }
+        return absolute ? new MemoryPath(fs, "/") : null;
     }
 
     @Override
@@ -57,7 +62,11 @@ public class MemoryPath implements Path {
 
     @Override
     public Path getParent() {
-        return null;
+        if(isRoot()){
+            return null;
+        }
+        // note : must not resolve path . and .., probably ~ too.
+        throw new RuntimeException("TODO implement getParent for non-root elements");
     }
 
     @Override
@@ -85,7 +94,7 @@ public class MemoryPath implements Path {
 
     @Override
     public Path subpath(int beginIndex, int endIndex) {
-        return null;
+        throw new RuntimeException("TODO : implement subpath");
     }
 
     @Override
@@ -110,6 +119,16 @@ public class MemoryPath implements Path {
 
     @Override
     public Path normalize() {
+        // if path does not have any item nor root, return empty path
+        // otherwise, we need to strip uneccesary items like . and ...
+        // a/b/../c -> a/c
+        // a/.. -> ""
+        // a/../b -> b
+        // ../a -> ??? can't be normalized unless resolved as relative
+        // ./a -> a
+        // a/. -> a
+        // a/./b -> a/b
+        // a/ -> a ( we strip the last useless '/' )
         return null;
     }
 
@@ -145,7 +164,12 @@ public class MemoryPath implements Path {
         if (!absolute) {
             throw new RuntimeException("how to guess relative path uri ? with current folder ?");
         }
-        sb.append(path.substring(1)); // remove 1st / at root of path
+        for (int i = 0; i < parts.size(); i++) {
+            if (0 < i) {
+                sb.append(SEPARATOR);
+            }
+            sb.append(parts.get(i));
+        }
         return URI.create(sb.toString());
     }
 
@@ -185,4 +209,30 @@ public class MemoryPath implements Path {
         return 0;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        MemoryPath other = (MemoryPath) o;
+
+        if (absolute != other.absolute) return false;
+        if(parts.size()!=other.parts.size()) return false;
+
+        for(int i=0;i<parts.size();i++){
+            if(!parts.get(i).equals(other.parts.get(i))) return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 31;
+        for (String s : parts) {
+            result = 31 * result;
+            result += s.hashCode();
+        }
+        return result;
+    }
 }

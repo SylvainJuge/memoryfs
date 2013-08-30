@@ -32,19 +32,25 @@ public class MemoryPathTest {
         MemoryPath path = createPath("relative/path");
 
         assertThat(path.isAbsolute()).isFalse();
+        assertThat(path.getRoot()).isNull(); // relative path does not have root
+        // TODO : get relative path parent
+
         checkUri(path.toUri(), "relative/path");
-        checkPathParts(path,
+        checkParents(path,
                 "relative/path",
                 "relative");
     }
+
 
     @Test
     public void absolutePathToUri() {
         MemoryPath path = createPath("/absolute/path");
 
         assertThat(path.isAbsolute()).isTrue();
+        assertThat(path.getRoot()).isEqualTo(createPath("/"));
+
         checkUri(path.toUri(), "/absolute/path");
-        checkPathParts(path,
+        checkParents(path,
                 "/absolute",
                 "/absolute/path");
     }
@@ -70,16 +76,82 @@ public class MemoryPathTest {
 
     @Test
     public void pathWithTrailingSlash() {
-        // trailing slash should be itnored for folders ?
+        // useless trailing slash should be removed from path
+        MemoryPath path = createPath("/withTrailingSlash/");
+        assertThat(path.getNameCount()).isEqualTo(1);
+        assertThat(path.toUri().toString()).endsWith("/withTrailingSlash");
+        assertThat(path).isEqualTo(createPath("/withTrailingSlash"));
+    }
+
+    @Test
+    public void rootPath() {
+        // root path trailing slash should not be removed
+        MemoryPath root = createPath("/");
+        assertThat(root.getNameCount()).isEqualTo(0);
+        assertThat(root.getParent()).isNull(); // TODO : does parent of root is null or is it itself ?
+        assertThat(root.getRoot()).isEqualTo(root);
+        assertThat(root.toUri().toString()).isEqualTo("memory:///");
+    }
+
+    @Test
+    public void pathWithUselessSlashes(){
+        // useless duplicates slashes should be remvoed from path
         fail("TODO");
     }
 
-    private static void checkPathParts(Path p, String... parts) {
-        assertThat(p.getNameCount()).isEqualTo(parts.length);
-        for (int i = 0; i < parts.length; i++) {
-            Path part = p.getName(i);
-            assertThat(part.isAbsolute()).isEqualTo(p.isAbsolute());
-            assertThat(part.toUri().getPath()).isEqualTo(parts[i]);
+    // TODO : generate all possible paths ?
+    // ""
+    // a / . ..
+    // a/ // ./ ../  /a // /. /..   -> 1 item, 1 separator
+    // a/b                          -> 2 items, 1 separator
+    //                                 3 items, 2 separators
+
+    @Test
+    public void equalsHashCodeWithItself(){
+        for(String s: new String[]{"","/","a/","a/b",".."}){
+            Path path = createPath(s);
+        }
+
+        fail("TODO");
+    }
+
+    @Test
+    public void equalsHashCodeWithEquivalent(){
+        fail("TODO");
+    }
+
+    @Test
+    public void equalsHashCodeWithDifferent(){
+        fail("TODO");
+    }
+
+    private static void checkRoot(Path p){
+        Path root = p.getRoot();
+        assertThat(root).isNotNull();
+        // root is its own root
+        assertThat(root.getRoot()).isEqualTo(root.getRoot());
+    }
+
+    private static void checkParents(Path p, String... expectedParents) {
+        assertThat(p.getNameCount()).isEqualTo(expectedParents.length);
+        for (int i = 0; i < expectedParents.length; i++) {
+            Path parent = p.getName(i);
+            if( i == 0 ){
+                assertThat(p.getParent()).isEqualTo(parent);
+            }
+            assertThat(parent.isAbsolute()).isEqualTo(p.isAbsolute());
+            assertThat(parent.toUri().getPath()).isEqualTo(expectedParents[i]);
+            // if child path is absolute, then its parent path must be absolute
+            // also, both paths must have the same root
+            if(p.isAbsolute()){
+                assertThat(parent.isAbsolute()).isTrue();
+                assertThat(parent.getRoot()).isEqualTo(p.getRoot());
+            } else {
+                assertThat(parent.isAbsolute()).isFalse();
+                assertThat(parent.getRoot()).isNull();
+            }
+            // TODO : check that all sub-paths or this path are parent of p
+            // using startsWith, endsWith, and other parenting-related methods
         }
     }
 
