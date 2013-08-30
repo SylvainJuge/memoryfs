@@ -6,7 +6,6 @@ import java.net.URI;
 import java.nio.file.Path;
 
 import static org.fest.assertions.api.Assertions.assertThat;
-import static org.fest.assertions.api.Fail.fail;
 
 public class MemoryPathTest {
 
@@ -85,26 +84,12 @@ public class MemoryPathTest {
 
     @Test
     public void rootPath() {
-        // root path trailing slash should not be removed
         MemoryPath root = createPath("/");
         assertThat(root.getNameCount()).isEqualTo(0);
         assertThat(root.getParent()).isNull(); // TODO : does parent of root is null or is it itself ?
         assertThat(root.getRoot()).isEqualTo(root);
         assertThat(root.toUri().toString()).isEqualTo("memory:///");
     }
-
-    @Test
-    public void pathWithUselessSlashes() {
-        // useless duplicates slashes should be remvoed from path
-        fail("TODO");
-    }
-
-    // TODO : generate all possible paths ?
-    // ""
-    // a / . ..
-    // a/ // ./ ../  /a // /. /..   -> 1 item, 1 separator
-    // a/b                          -> 2 items, 1 separator
-    //                                 3 items, 2 separators
 
     @Test
     public void equalsHashCodeWithItself() {
@@ -130,11 +115,12 @@ public class MemoryPathTest {
         checkHashCodeEqualsConsistency(true,
                 createPath("/a"),
                 createPath("/a/"),
-                createPath("/a//"));
+                createPath("/a//"),
+                createPath("//a"));
         checkHashCodeEqualsConsistency(true,
-                createPath("a"),
-                createPath("a/"),
-                createPath("a//"));
+                createPath("a/b"),
+                createPath("a/b/"),
+                createPath("a//b"));
     }
 
     @Test
