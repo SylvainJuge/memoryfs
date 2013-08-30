@@ -34,7 +34,6 @@ public class MemoryPathTest {
         assertThat(path.getRoot()).isNull(); // relative path does not have root
         // TODO : get relative path parent
 
-        checkUri(path.toUri(), "relative/path");
         checkParents(path,
                 "relative/path",
                 "relative");
@@ -48,7 +47,6 @@ public class MemoryPathTest {
         assertThat(path.isAbsolute()).isTrue();
         assertThat(path.getRoot()).isEqualTo(createPath("/"));
 
-        checkUri(path.toUri(), "/absolute/path");
         checkParents(path,
                 "/absolute",
                 "/absolute/path");
@@ -88,7 +86,6 @@ public class MemoryPathTest {
         assertThat(root.getNameCount()).isEqualTo(0);
         assertThat(root.getParent()).isNull(); // TODO : does parent of root is null or is it itself ?
         assertThat(root.getRoot()).isEqualTo(root);
-        assertThat(root.toUri().toString()).isEqualTo("memory:///");
     }
 
     @Test
@@ -191,7 +188,9 @@ public class MemoryPathTest {
     }
 
     private static MemoryPath createPath(String path) {
-        return new MemoryPath(createFs(), path);
+        MemoryPath result = new MemoryPath(createFs(), path);
+        checkUri(result.toUri(), path);
+        return result;
     }
 
     private static MemoryFileSystem createFs() {
