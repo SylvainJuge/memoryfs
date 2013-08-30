@@ -109,7 +109,7 @@ public class MemoryPathTest {
     @Test
     public void equalsHashCodeWithItself(){
         Path p = createPath("anyPath");
-        checkEqualsHashCodeIdentical(p,p);
+        checkHashCodeEqualsConsistency(true, p, p);
     }
 
     @Test
@@ -118,34 +118,52 @@ public class MemoryPathTest {
         assertThat(p1.isAbsolute()).isFalse();
         Path p2 = createPath("/same/path");
         assertThat(p2.isAbsolute()).isTrue();
-        checkEqualsHashCodeDifferent(p1,p2);
+        checkHashCodeEqualsConsistency(false, p1, p2);
     }
 
     @Test
     public void equalsHashCodeWithEquivalent(){
-        // - create equivalent path with extra slashes and ensure that they are identical
-        // examples
-        // // is equal to /
-        // a/ is equal to a
-        //
-        fail("TODO");
+        checkHashCodeEqualsConsistency(true,
+                createPath("/"),
+                createPath("///"),
+                createPath("//"));
+        checkHashCodeEqualsConsistency(true,
+                createPath("/a"),
+                createPath("/a/"),
+                createPath("/a//"));
+        checkHashCodeEqualsConsistency(true,
+                createPath("a"),
+                createPath("a/"),
+                createPath("a//"));
     }
 
     @Test
-    public void equalsHashCodeWithDifferent(){
-        fail("TODO");
+    public void equalsHashCodeWithDifferent() {
+        checkHashCodeEqualsConsistency(false,
+                createPath("/a"),
+                createPath("/b"));
+        checkHashCodeEqualsConsistency(false,
+                createPath("a"),
+                createPath("b"));
     }
 
-    private static <T> void checkEqualsHashCodeIdentical(T o1, T o2){
-        assertThat(o1).isEqualTo(o2);
-        assertThat(o2).isEqualTo(o1);
-        assertThat(o1.hashCode()).isEqualTo(o2.hashCode());
-    }
-
-    private static <T> void checkEqualsHashCodeDifferent(T o1, T o2){
-        assertThat(o1).isNotEqualTo(o2);
-        assertThat(o2).isNotEqualTo(o1);
-        assertThat(o1.hashCode()).isNotEqualTo(o2.hashCode());
+    private static <T> void checkHashCodeEqualsConsistency( boolean shouldEqual, T... o){
+        assertThat(o.length).isGreaterThanOrEqualTo(1);
+        for(int i=0;i<o.length;i++){
+            for(int j=0;j<o.length;j++){
+                if( j <= i){
+                    if( shouldEqual ){
+                        assertThat(o[i]).isEqualTo(o[j]);
+                        assertThat(o[j]).isEqualTo(o[i]);
+                        assertThat(o[i].hashCode()).isEqualTo(o[j].hashCode());
+                    } else if( j < i ) {
+                        assertThat(o[i]).isNotEqualTo(o[j]);
+                        assertThat(o[j]).isNotEqualTo(o[i]);
+                        assertThat(o[i].hashCode()).isNotEqualTo(o[j].hashCode());
+                    }
+                }
+            }
+        }
     }
 
     private static void checkParents(Path p, String... expectedParents) {
