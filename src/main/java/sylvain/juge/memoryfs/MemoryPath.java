@@ -65,8 +65,7 @@ public class MemoryPath implements Path {
         if(isRoot()){
             return null;
         }
-        // note : must not resolve path . and .., probably ~ too.
-        throw new RuntimeException("TODO implement getParent for non-root elements");
+        return getName(getNameCount()-1);
     }
 
     @Override

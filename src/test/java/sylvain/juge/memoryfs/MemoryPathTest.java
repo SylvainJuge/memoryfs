@@ -48,8 +48,8 @@ public class MemoryPathTest {
         assertThat(path.getRoot()).isEqualTo(createPath("/"));
 
         checkParents(path,
-                "/absolute",
-                "/absolute/path");
+                "/absolute/path",
+                "/absolute");
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
