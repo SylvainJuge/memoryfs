@@ -71,6 +71,25 @@ public class MemoryPathTest {
     }
 
     @Test
+    public void getFileName(){
+        checkFileName(createPath("/"), null);
+        checkFileName(createPath("/a"), "a");
+        checkFileName(createPath("/a/b"), "b");
+        checkFileName(createPath("a"), "a");
+        checkFileName(createPath("a/b"), "b");
+    }
+
+    private static void checkFileName(Path path, String expectedFileName){
+        Path fileName = path.getFileName();
+        if( null == expectedFileName){
+            assertThat(fileName).isNull();
+        } else {
+            assertThat(fileName.isAbsolute()).describedAs("relative path").isFalse();
+            assertThat(fileName).isEqualTo(createPath(expectedFileName));
+        }
+    }
+
+    @Test
     public void pathWithTrailingSlash() {
         // useless trailing slash should be removed from path
         MemoryPath path = createPath("/withTrailingSlash/");
