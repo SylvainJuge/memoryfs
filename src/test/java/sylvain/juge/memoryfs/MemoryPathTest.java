@@ -79,16 +79,6 @@ public class MemoryPathTest {
         checkFileName(createPath("a/b"), "b");
     }
 
-    private static void checkFileName(Path path, String expectedFileName){
-        Path fileName = path.getFileName();
-        if( null == expectedFileName){
-            assertThat(fileName).isNull();
-        } else {
-            assertThat(fileName.isAbsolute()).describedAs("relative path").isFalse();
-            assertThat(fileName).isEqualTo(createPath(expectedFileName));
-        }
-    }
-
     @Test
     public void pathWithTrailingSlash() {
         // useless trailing slash should be removed from path
@@ -151,6 +141,7 @@ public class MemoryPathTest {
                 createPath("b"));
     }
 
+    @SafeVarargs
     private static <T> void checkHashCodeEqualsConsistency(boolean shouldEqual, T... o) {
         assertThat(o.length).isGreaterThanOrEqualTo(1);
         for (int i = 0; i < o.length; i++) {
@@ -191,6 +182,16 @@ public class MemoryPathTest {
             }
             // TODO : check that all sub-paths or this path are parent of p
             // using startsWith, endsWith, and other parenting-related methods
+        }
+    }
+
+    private static void checkFileName(Path path, String expectedFileName){
+        Path fileName = path.getFileName();
+        if( null == expectedFileName){
+            assertThat(fileName).isNull();
+        } else {
+            assertThat(fileName.isAbsolute()).describedAs("relative path").isFalse();
+            assertThat(fileName).isEqualTo(createPath(expectedFileName));
         }
     }
 
