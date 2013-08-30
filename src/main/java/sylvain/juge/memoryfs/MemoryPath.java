@@ -235,4 +235,9 @@ public class MemoryPath implements Path {
         }
         return result;
     }
+
+    @Override
+    public String toString() {
+        return toUri().toString();
+    }
 }
