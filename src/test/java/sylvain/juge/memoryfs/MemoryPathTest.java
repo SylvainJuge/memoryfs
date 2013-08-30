@@ -94,7 +94,7 @@ public class MemoryPathTest {
     }
 
     @Test
-    public void pathWithUselessSlashes(){
+    public void pathWithUselessSlashes() {
         // useless duplicates slashes should be remvoed from path
         fail("TODO");
     }
@@ -107,13 +107,13 @@ public class MemoryPathTest {
     //                                 3 items, 2 separators
 
     @Test
-    public void equalsHashCodeWithItself(){
+    public void equalsHashCodeWithItself() {
         Path p = createPath("anyPath");
         checkHashCodeEqualsConsistency(true, p, p);
     }
 
     @Test
-    public void equalsHashCodeWithSamePartsButAbsoluteness(){
+    public void equalsHashCodeWithSamePartsButAbsoluteness() {
         Path p1 = createPath("same/path");
         assertThat(p1.isAbsolute()).isFalse();
         Path p2 = createPath("/same/path");
@@ -122,7 +122,7 @@ public class MemoryPathTest {
     }
 
     @Test
-    public void equalsHashCodeWithEquivalent(){
+    public void equalsHashCodeWithEquivalent() {
         checkHashCodeEqualsConsistency(true,
                 createPath("/"),
                 createPath("///"),
@@ -147,16 +147,16 @@ public class MemoryPathTest {
                 createPath("b"));
     }
 
-    private static <T> void checkHashCodeEqualsConsistency( boolean shouldEqual, T... o){
+    private static <T> void checkHashCodeEqualsConsistency(boolean shouldEqual, T... o) {
         assertThat(o.length).isGreaterThanOrEqualTo(1);
-        for(int i=0;i<o.length;i++){
-            for(int j=0;j<o.length;j++){
-                if( j <= i){
-                    if( shouldEqual ){
+        for (int i = 0; i < o.length; i++) {
+            for (int j = 0; j < o.length; j++) {
+                if (j <= i) {
+                    if (shouldEqual) {
                         assertThat(o[i]).isEqualTo(o[j]);
                         assertThat(o[j]).isEqualTo(o[i]);
                         assertThat(o[i].hashCode()).isEqualTo(o[j].hashCode());
-                    } else if( j < i ) {
+                    } else if (j < i) {
                         assertThat(o[i]).isNotEqualTo(o[j]);
                         assertThat(o[j]).isNotEqualTo(o[i]);
                         assertThat(o[i].hashCode()).isNotEqualTo(o[j].hashCode());
@@ -170,14 +170,14 @@ public class MemoryPathTest {
         assertThat(p.getNameCount()).isEqualTo(expectedParents.length);
         for (int i = 0; i < expectedParents.length; i++) {
             Path parent = p.getName(i);
-            if( i == 0 ){
+            if (i == 0) {
                 assertThat(p.getParent()).isEqualTo(parent);
             }
             assertThat(parent.isAbsolute()).isEqualTo(p.isAbsolute());
             assertThat(parent.toUri().getPath()).isEqualTo(expectedParents[i]);
             // if child path is absolute, then its parent path must be absolute
             // also, both paths must have the same root
-            if(p.isAbsolute()){
+            if (p.isAbsolute()) {
                 assertThat(parent.isAbsolute()).isTrue();
                 assertThat(parent.getRoot()).isEqualTo(p.getRoot());
             } else {
