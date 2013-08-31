@@ -1,9 +1,11 @@
 package sylvain.juge.memoryfs;
 
+import org.fest.assertions.api.StringAssert;
 import org.testng.annotations.Test;
 
 import java.net.URI;
 import java.nio.file.Path;
+import java.util.Arrays;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 
@@ -22,7 +24,7 @@ public class MemoryPathTest {
     @Test
     public void getFileSystem() {
         MemoryFileSystem fs = createFs();
-        MemoryPath path = new MemoryPath(fs, "/");
+        MemoryPath path = MemoryPath.create(fs, "/");
         assertThat(path.getFileSystem()).isSameAs(fs);
     }
 
@@ -77,6 +79,24 @@ public class MemoryPathTest {
         checkFileName(createPath("/a/b"), "b");
         checkFileName(createPath("a"), "a");
         checkFileName(createPath("a/b"), "b");
+    }
+
+    @Test
+    public void absolutePath(){
+        for(String absolute: Arrays.asList("/", "/a", "/a/b")){
+            MemoryPath path = createPath(absolute);
+            assertThat(path.isAbsolute()).isTrue();
+            assertThat(path.toAbsolutePath()).isEqualTo(path);
+        }
+        for(String relative: Arrays.asList("a","a/b")){
+            MemoryPath path = createPath(relative);
+            assertThat(path.isAbsolute()).isFalse();
+            Path toAbsolute = path.toAbsolutePath();
+            assertThat(toAbsolute.isAbsolute()).isTrue();
+            // TODO : check that resuling path endsWith 'relative' as suffix
+            assertThat(toAbsolute.toUri().toString()).isEqualTo("memory:///" + relative);
+        }
+        // TODO : relative path without normalization
     }
 
     @Test
@@ -169,8 +189,10 @@ public class MemoryPathTest {
                 // getName(0) return identity;
                 assertThat(p.getParent()).isEqualTo(parent);
             }
-            assertThat(parent.isAbsolute()).isEqualTo(p.isAbsolute());
-            assertThat(parent.toUri().getPath()).isEqualTo(expectedParents[i]);
+
+            // toUri converts to absolute path, thus we can't test a lot more than suffix
+            assertThat(p.toUri().getPath()).startsWith(parent.toUri().getPath());
+
             // if child path is absolute, then its parent path must be absolute
             // also, both paths must have the same root
             if (p.isAbsolute()) {
@@ -196,7 +218,7 @@ public class MemoryPathTest {
     }
 
     private static MemoryPath createPath(String path) {
-        MemoryPath result = new MemoryPath(createFs(), path);
+        MemoryPath result = MemoryPath.create(createFs(), path);
         URI uri = result.toUri();
         // TODO : check normalized and/or absolute paths, because removing slashes does not allow direct comparison
         // assertThat(uri.getPath()).isEqualTo(path);

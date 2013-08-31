@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -15,22 +16,30 @@ public class MemoryPath implements Path {
     private final List<String> parts;
     private final boolean absolute;
 
-    // TODO : add another constructor to avoid re-parsing when creating form existing path
-    MemoryPath(MemoryFileSystem fs, String path) {
-        if (null == fs) {
-            throw new IllegalArgumentException("filesytem required");
-        }
+    static MemoryPath create(MemoryFileSystem fs, String path){
         if (null == path || path.isEmpty()) {
             throw new IllegalArgumentException("path required not empty, got : " + path);
         }
-        this.fs = fs;
-        parts = new ArrayList<>();
+        List<String> parts = new ArrayList<>();
         for (String s : path.split(SEPARATOR)) {
             if (!s.isEmpty()) {
                 parts.add(s);
             }
         }
-        absolute = path.startsWith(SEPARATOR);
+        boolean absolute = path.startsWith(SEPARATOR);
+        return new MemoryPath(fs, parts, 0, parts.size(), absolute);
+    }
+
+    private MemoryPath(MemoryFileSystem fs, List<String> parts, int start, int end, boolean absolute){
+        if (null == fs) {
+            throw new IllegalArgumentException("filesytem required");
+        }
+        if( start < 0 || parts.size() < end || end < start ){
+            throw new IllegalArgumentException(String.format("invalid range [%d,%d[ in list %s", start, end, Arrays.toString(parts.toArray())));
+        }
+        this.fs = fs;
+        this.parts = parts.subList(start, end);
+        this.absolute = absolute;
     }
 
     private boolean isRoot(){
@@ -52,12 +61,13 @@ public class MemoryPath implements Path {
         if(isRoot()){
             return this;
         }
-        return absolute ? new MemoryPath(fs, "/") : null;
+        return absolute ? create(fs,"/") : null;
     }
 
     @Override
     public Path getFileName() {
-        return null;
+        return parts.isEmpty() ? null :
+                new MemoryPath(fs, parts, parts.size()-1, parts.size(), false);
     }
 
     @Override
@@ -85,18 +95,7 @@ public class MemoryPath implements Path {
         if (index == parts.size() - 1) {
             return this;
         }
-
-        StringBuilder sb = new StringBuilder();
-        if (absolute) {
-            sb.append(SEPARATOR);
-        }
-        for (int i = 0; i < parts.size() && i <= index; i++) {
-            if (0 < i) {
-                sb.append(SEPARATOR);
-            }
-            sb.append(parts.get(i));
-        }
-        return new MemoryPath(fs, sb.toString());
+        return new MemoryPath(fs, parts, 0, index+1, absolute);
     }
 
     @Override
@@ -164,12 +163,13 @@ public class MemoryPath implements Path {
         return null;
     }
 
+    // TODO : performance : we may cache uri since path is immutable
     @Override
     public URI toUri() {
         StringBuilder sb = new StringBuilder();
         sb.append(fs.getUri());
         if (!absolute) {
-            throw new RuntimeException("how to guess relative path uri ? with current folder ?");
+            sb.append(SEPARATOR);
         }
         for (int i = 0; i < parts.size(); i++) {
             if (0 < i) {
@@ -182,7 +182,10 @@ public class MemoryPath implements Path {
 
     @Override
     public Path toAbsolutePath() {
-        return null;
+        if(absolute){
+            return this;
+        }
+        return new MemoryPath(fs, parts, 0, parts.size(), true);
     }
 
     @Override

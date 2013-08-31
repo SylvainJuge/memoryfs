@@ -109,7 +109,7 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
             if (null == fs) {
                 throw new IllegalArgumentException("non existing filesystem : " + id);
             }
-            return new MemoryPath(fs, uri.getPath());
+            return MemoryPath.create(fs, uri.getPath());
         }
     }
 
