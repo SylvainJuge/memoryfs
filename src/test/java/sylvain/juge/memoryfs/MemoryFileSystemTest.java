@@ -56,7 +56,7 @@ public class MemoryFileSystemTest {
 
     @Test
     public void fileStoreCapacity() throws IOException {
-        FileSystem fs = FileSystems.newFileSystem(URI.create("memory://memory1"), EMPTY_OPTIONS);
+        FileSystem fs = FileSystems.newFileSystem(URI.create("memory:///"), EMPTY_OPTIONS);
         assertThat(fs.getFileStores()).hasSize(1);
         for(FileStore store:fs.getFileStores()){
             assertThat(store.getTotalSpace()).isEqualTo(10);

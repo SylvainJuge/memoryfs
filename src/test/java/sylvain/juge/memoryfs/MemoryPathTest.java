@@ -1,6 +1,5 @@
 package sylvain.juge.memoryfs;
 
-import org.fest.assertions.api.StringAssert;
 import org.testng.annotations.Test;
 
 import java.net.URI;
