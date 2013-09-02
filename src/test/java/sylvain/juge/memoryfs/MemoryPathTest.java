@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 
 import static org.fest.assertions.api.Assertions.assertThat;
+import static sylvain.juge.memoryfs.TestEquals.checkHashCodeEqualsConsistency;
 
 public class MemoryPathTest {
 
@@ -160,24 +161,23 @@ public class MemoryPathTest {
                 createPath("b"));
     }
 
-    @SafeVarargs
-    private static <T> void checkHashCodeEqualsConsistency(boolean shouldEqual, T... o) {
-        assertThat(o.length).isGreaterThanOrEqualTo(1);
-        for (int i = 0; i < o.length; i++) {
-            for (int j = 0; j < o.length; j++) {
-                if (j <= i) {
-                    if (shouldEqual) {
-                        assertThat(o[i]).isEqualTo(o[j]);
-                        assertThat(o[j]).isEqualTo(o[i]);
-                        assertThat(o[i].hashCode()).isEqualTo(o[j].hashCode());
-                    } else if (j < i) {
-                        assertThat(o[i]).isNotEqualTo(o[j]);
-                        assertThat(o[j]).isNotEqualTo(o[i]);
-                        assertThat(o[i].hashCode()).isNotEqualTo(o[j].hashCode());
-                    }
-                }
-            }
+    @Test
+    public void normalizeNormalizedOrNonNormalizablePaths(){
+        for(String s:Arrays.asList("/a", "/a/b", "a", "a/b", "..", ".", "../a")) {
+            checkNormalize(s,s);
         }
+    }
+
+    @Test
+    public void normalizeNormalizablePaths(){
+        checkNormalize("/a/../b","/b");
+        checkNormalize("/./a","/a");
+        checkNormalize("a/../b/../c","c");
+        checkNormalize("a/./b/.","a/b");
+    }
+
+    private static void checkNormalize(String p, String expected){
+        assertThat(createPath(p).normalize()).isEqualTo(createPath(expected));
     }
 
     private static void checkParents(Path p, String... expectedParents) {

@@ -125,17 +125,31 @@ public class MemoryPath implements Path {
 
     @Override
     public Path normalize() {
-        // if path does not have any item nor root, return empty path
-        // otherwise, we need to strip uneccesary items like . and ...
-        // a/b/../c -> a/c
-        // a/.. -> ""
-        // a/../b -> b
-        // ../a -> ??? can't be normalized unless resolved as relative
-        // ./a -> a
-        // a/. -> a
-        // a/./b -> a/b
-        // a/ -> a ( we strip the last useless '/' )
-        return null;
+        List<String> normalized = new ArrayList<>();
+        for (String part : parts) {
+            switch (part) {
+                case ".":
+                    if(normalized.isEmpty()){
+                        normalized.add(part);
+                    }
+                    break;
+                case "..":
+                    // drop previous normalized item (if any)
+                    if (normalized.isEmpty()) {
+                        normalized.add(part);
+                    } else {
+                        normalized.remove(normalized.size() - 1);
+                    }
+                    break;
+                default:
+                    if(normalized.size()==1 && normalized.get(0).equals(".")){
+                        normalized.clear();
+                    }
+                    normalized.add(part);
+            }
+        }
+        return new MemoryPath(fs, normalized,0,normalized.size(),absolute);
+
     }
 
     @Override
