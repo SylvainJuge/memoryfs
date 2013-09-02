@@ -41,6 +41,7 @@ public class MemoryPathTest {
                 "relative/path");
     }
 
+
     @Test
     public void absolutePathToUri() {
         MemoryPath path = createPath("/absolute/path");
@@ -73,7 +74,8 @@ public class MemoryPathTest {
     }
 
     @Test
-    public void getFileName(){
+    public void getFileName() {
+        // like default FS, root path is an "empty absolute path"
         checkFileName(createPath("/"), null);
         checkFileName(createPath("/a"), "a");
         checkFileName(createPath("/a/b"), "b");
@@ -82,13 +84,13 @@ public class MemoryPathTest {
     }
 
     @Test
-    public void absolutePath(){
-        for(String absolute: Arrays.asList("/", "/a", "/a/b")){
+    public void absolutePath() {
+        for (String absolute : Arrays.asList("/", "/a", "/a/b")) {
             MemoryPath path = createPath(absolute);
             assertThat(path.isAbsolute()).isTrue();
             assertThat(path.toAbsolutePath()).isEqualTo(path);
         }
-        for(String relative: Arrays.asList("a","a/b")){
+        for (String relative : Arrays.asList("a", "a/b")) {
             MemoryPath path = createPath(relative);
             assertThat(path.isAbsolute()).isFalse();
             Path toAbsolute = path.toAbsolutePath();
@@ -162,21 +164,21 @@ public class MemoryPathTest {
     }
 
     @Test
-    public void normalizeNormalizedOrNonNormalizablePaths(){
-        for(String s:Arrays.asList("/a", "/a/b", "a", "a/b", "..", ".", "../a")) {
-            checkNormalize(s,s);
+    public void normalizeNormalizedOrNonNormalizablePaths() {
+        for (String s : Arrays.asList("/a", "/a/b", "a", "a/b", "..", ".", "../a")) {
+            checkNormalize(s, s);
         }
     }
 
     @Test
-    public void normalizeNormalizablePaths(){
-        checkNormalize("/a/../b","/b");
-        checkNormalize("/./a","/a");
-        checkNormalize("a/../b/../c","c");
-        checkNormalize("a/./b/.","a/b");
+    public void normalizeNormalizablePaths() {
+        checkNormalize("/a/../b", "/b");
+        checkNormalize("/./a", "/a");
+        checkNormalize("a/../b/../c", "c");
+        checkNormalize("a/./b/.", "a/b");
     }
 
-    private static void checkNormalize(String p, String expected){
+    private static void checkNormalize(String p, String expected) {
         assertThat(createPath(p).normalize()).isEqualTo(createPath(expected));
     }
 
@@ -206,9 +208,9 @@ public class MemoryPathTest {
         }
     }
 
-    private static void checkFileName(Path path, String expectedFileName){
+    private static void checkFileName(Path path, String expectedFileName) {
         Path fileName = path.getFileName();
-        if( null == expectedFileName){
+        if (null == expectedFileName) {
             assertThat(fileName).isNull();
         } else {
             assertThat(fileName.isAbsolute()).describedAs("relative path").isFalse();
