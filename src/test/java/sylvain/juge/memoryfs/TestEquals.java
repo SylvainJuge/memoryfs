@@ -2,7 +2,11 @@ package sylvain.juge.memoryfs;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 
-public class TestEquals {
+public final class TestEquals {
+
+    private TestEquals(){
+        // uncallable constructor
+    }
 
     /**
      * Tests {@link Object#equals(Object)} and {@link Object#hashCode()} consistency between all pairs of {@code a}.

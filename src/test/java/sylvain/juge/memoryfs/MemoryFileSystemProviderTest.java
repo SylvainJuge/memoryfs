@@ -14,9 +14,9 @@ import static org.fest.assertions.api.Fail.fail;
 
 public class MemoryFileSystemProviderTest {
 
-    private static final HashMap<String, Object> EMPTY_OPTIONS = new HashMap<>();
-
     // handle the static state of file system manager
+
+    // TODO : check creating FS instances with capacity
 
     @AfterTest
     public void checkStaticFileSystemProviderState() {
@@ -97,7 +97,7 @@ public class MemoryFileSystemProviderTest {
         fs.close();
         assertThat(fs.isOpen()).isFalse();
         FileSystem recreatedFs = createAndGet(provider, uri);
-        //recreatedFs.close();
+        recreatedFs.close();
         checkNoFileSystemsLeftOpen(provider);
     }
 
@@ -140,6 +140,7 @@ public class MemoryFileSystemProviderTest {
     }
 
     @Test(enabled = false) // TODO : disabled yet since file store is not implemented
+    // TODO : move this test to FileSystemTest
     public void getFileStoreFromPath() throws IOException {
         URI uri = URI.create("memory://dummy/");
         try (FileSystem fs = staticCreateAndGet(uri)) {
@@ -169,7 +170,7 @@ public class MemoryFileSystemProviderTest {
     @Test
     public void getFileSystemIdFromValidUri() {
         // note : we don't care about cleaning up since we use dedicated provider instances
-        createAndGet(getNewProvider(), URI.create("memory:///").create("memory:///"));
+        createAndGet(getNewProvider(), URI.create("memory:///"));
         createAndGet(getNewProvider(), URI.create("memory://id/"));
     }
 

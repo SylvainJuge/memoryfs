@@ -23,49 +23,42 @@ public class MemoryFileSystemTest {
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void nullProviderNotAllowed() {
-        new MemoryFileSystem(null, "");
+        new MemoryFileSystem(null, "", 0);
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void nullIdNotAllowed() {
-        MemoryFileSystemProvider provider = new MemoryFileSystemProvider(); // TODO : use mock
-        new MemoryFileSystem(provider, null);
+        createFs(null, 0);
     }
 
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void negativeCapacityNotAllowed() {
+        createFs("", -1);
+    }
 
-    @Test
-    public void getDefaultFsCapacityNumbers() throws IOException {
-        for (FileStore store : FileSystems.getDefault().getFileStores()) {
-            System.out.println("name " + store.name());
-            System.out.println("total space " + store.getTotalSpace()); // file store total space (exact)
-            System.out.println("usable space " + store.getUsableSpace()); // accessible to jvm (hint, not reliable due to pending I/O)
-            System.out.println("unnalocated space " + store.getUnallocatedSpace()); // hint, not really reliable due to pending I/0
-            // actual size should be provided through attributes
+    // TODO : test for concurrent access on open/close state
+
+    @Test(enabled = false) // failing test disabled yet
+    public void createFsWithCapacity() throws IOException {
+
+        // TODO : allow to pass capacity when creating filesystem
+        // - either through map of options, or through creation uri
+        // - providing a URI builder on impl may be convenient
+        int capacity = 100;
+        try (FileSystem fs = createFs("", capacity)) {
+            assertThat(fs.getFileStores()).hasSize(1);
+            for (FileStore store : fs.getFileStores()) {
+                assertThat(store.name()).isEqualTo("");
+                assertThat(store.getTotalSpace()).isEqualTo(capacity);
+                assertThat(store.getUsableSpace()).isEqualTo(capacity);
+                assertThat(store.getUnallocatedSpace()).isEqualTo(capacity);
+            }
         }
-        //fail("end of dummy test");
     }
 
-    @Test
-    public void defaultFsUriToFile() {
-        Path path = FileSystems.getDefault().getPath("item");
-        System.out.println(path.getClass());
-        System.out.println(path.toAbsolutePath());
-        System.out.println(path.toUri());
-
-        // TODO : I need to implement MemoryFilePath (and see how much we can reuse from existing implementations)
-        // => nothing is reusable without depending on sun proprietary packages
-        fail("test");
+    private MemoryFileSystem createFs(String id, long capacity) {
+        MemoryFileSystemProvider provider = new MemoryFileSystemProvider();
+        return new MemoryFileSystem(provider, id, capacity);
     }
 
-    @Test
-    public void fileStoreCapacity() throws IOException {
-        FileSystem fs = FileSystems.newFileSystem(URI.create("memory:///"), EMPTY_OPTIONS);
-        assertThat(fs.getFileStores()).hasSize(1);
-        for (FileStore store : fs.getFileStores()) {
-            assertThat(store.getTotalSpace()).isEqualTo(10);
-            assertThat(store.getUnallocatedSpace()).isEqualTo(42);
-            assertThat(store.getUsableSpace()).isEqualTo(42);
-        }
-
-    }
 }

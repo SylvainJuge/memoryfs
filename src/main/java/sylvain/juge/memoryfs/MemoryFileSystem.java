@@ -17,12 +17,16 @@ public class MemoryFileSystem extends FileSystem {
 
     private AtomicBoolean isOpen;
 
-    MemoryFileSystem(MemoryFileSystemProvider provider, String id) {
+    // TODO : allow for more than one filestore
+    MemoryFileSystem(MemoryFileSystemProvider provider, String id, long capacity) {
         if (null == provider) {
             throw new IllegalArgumentException("provider must be provided");
         }
         if (null == id) {
             throw new IllegalArgumentException("id is required");
+        }
+        if( capacity < 0){
+            throw new IllegalArgumentException("capacity can't be negative");
         }
         this.provider = provider;
         this.id = id;

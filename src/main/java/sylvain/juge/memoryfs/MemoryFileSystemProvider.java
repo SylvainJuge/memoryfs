@@ -54,7 +54,8 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
             if (fileSystems.containsKey(id)) {
                 throw new FileSystemAlreadyExistsException("file system already exists : " + id);
             }
-            MemoryFileSystem fs = new MemoryFileSystem(this, id);
+            // TODO : retrieve fs capacity from options or through uri parameters
+            MemoryFileSystem fs = new MemoryFileSystem(this, id, 0);
             fileSystems.put(id, fs);
             return fs;
         }

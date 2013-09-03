@@ -13,7 +13,7 @@ public class MemoryPathTest {
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void fileSystemRequired() {
-        new MemoryFileSystem(null, "/anypath");
+        new MemoryFileSystem(null, "/anypath", 0);
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
@@ -240,6 +240,6 @@ public class MemoryPathTest {
 
     private static MemoryFileSystem createFs() {
         MemoryFileSystemProvider provider = new MemoryFileSystemProvider();
-        return new MemoryFileSystem(provider, "");
+        return new MemoryFileSystem(provider, "", 0);
     }
 }
