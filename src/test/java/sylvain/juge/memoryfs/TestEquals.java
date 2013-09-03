@@ -6,8 +6,9 @@ public class TestEquals {
 
     /**
      * Tests {@link Object#equals(Object)} and {@link Object#hashCode()} consistency between all pairs of {@code a}.
+     *
      * @param shouldEqual true to test equality, false to test non-equality
-     * @param o objects to compare
+     * @param o           objects to compare
      * @param <T>
      */
     @SafeVarargs

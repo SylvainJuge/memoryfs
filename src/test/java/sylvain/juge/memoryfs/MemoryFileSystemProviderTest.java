@@ -128,11 +128,11 @@ public class MemoryFileSystemProviderTest {
     }
 
     @Test
-    public void memoryFileSystemProviderStaticallyAvailable(){
+    public void memoryFileSystemProviderStaticallyAvailable() {
         boolean found = false;
         List<FileSystemProvider> providers = FileSystemProvider.installedProviders();
         for (FileSystemProvider provider : providers) {
-            if( MemoryFileSystemProvider.class.equals(provider.getClass())){
+            if (MemoryFileSystemProvider.class.equals(provider.getClass())) {
                 found = true;
             }
         }
@@ -142,7 +142,7 @@ public class MemoryFileSystemProviderTest {
     @Test(enabled = false) // TODO : disabled yet since file store is not implemented
     public void getFileStoreFromPath() throws IOException {
         URI uri = URI.create("memory://dummy/");
-        try (FileSystem fs = staticCreateAndGet(uri)){
+        try (FileSystem fs = staticCreateAndGet(uri)) {
             Path path = Paths.get(uri);
             assertThat(path).isNotNull();
             assertThat(path.getFileSystem())
@@ -174,9 +174,9 @@ public class MemoryFileSystemProviderTest {
     }
 
 
-    private static String findFirstCommonId(Set<String> before, Set<String> after){
+    private static String findFirstCommonId(Set<String> before, Set<String> after) {
         for (String id : after) {
-            if(!before.contains(id)){
+            if (!before.contains(id)) {
                 return id;
             }
         }
@@ -227,17 +227,17 @@ public class MemoryFileSystemProviderTest {
         return null;
     }
 
-    private static MemoryFileSystemProvider getStaticProvider(){
+    private static MemoryFileSystemProvider getStaticProvider() {
         List<FileSystemProvider> providers = FileSystemProvider.installedProviders();
         for (FileSystemProvider provider : providers) {
-            if( provider instanceof MemoryFileSystemProvider){
-                return (MemoryFileSystemProvider)provider;
+            if (provider instanceof MemoryFileSystemProvider) {
+                return (MemoryFileSystemProvider) provider;
             }
         }
         return null;
     }
 
-    private static void checkNoFileSystemsLeftOpen(MemoryFileSystemProvider provider){
+    private static void checkNoFileSystemsLeftOpen(MemoryFileSystemProvider provider) {
         assertThat(provider.registeredFileSystems().isEmpty());
     }
 

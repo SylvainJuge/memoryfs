@@ -104,9 +104,8 @@ public class MemoryPathTest {
     @Test
     public void pathWithTrailingSlash() {
         // useless trailing slash should be removed from path
-        MemoryPath path = createPath("/withTrailingSlash/");
+        MemoryPath path = createAndCheckPath("/withTrailingSlash/", "/withTrailingSlash");
         assertThat(path.getNameCount()).isEqualTo(1);
-        assertThat(path.toUri().toString()).endsWith("/withTrailingSlash");
         assertThat(path).isEqualTo(createPath("/withTrailingSlash"));
     }
 
@@ -165,7 +164,7 @@ public class MemoryPathTest {
 
     @Test
     public void normalizeNormalizedOrNonNormalizablePaths() {
-        for (String s : Arrays.asList("/a", "/a/b", "a", "a/b", "..", ".", "../a","../..","../../..")) {
+        for (String s : Arrays.asList("/a", "/a/b", "a", "a/b", "..", ".", "../a", "../..", "../../..")) {
             checkNormalize(s, s);
         }
     }
@@ -179,7 +178,7 @@ public class MemoryPathTest {
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
-    public void outOfRootAbsolutePath(){
+    public void outOfRootAbsolutePath() {
         // thou shall not go upper than root !
         createPath("/..");
     }
@@ -224,9 +223,9 @@ public class MemoryPathTest {
         }
     }
 
-    private static MemoryPath createAndCheckPath(String path, String expectedPath){
+    private static MemoryPath createAndCheckPath(String path, String expectedPath) {
         MemoryPath item = createPath(path);
-        String expectedItemPath = (item.isAbsolute() ? "": "/") + expectedPath;
+        String expectedItemPath = (item.isAbsolute() ? "" : "/") + expectedPath;
         assertThat(item.toUri().getPath()).isEqualTo(expectedItemPath);
         return item;
     }

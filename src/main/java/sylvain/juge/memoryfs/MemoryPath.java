@@ -18,7 +18,7 @@ public class MemoryPath implements Path {
     private final List<String> parts;
     private final boolean absolute;
 
-    static MemoryPath create(MemoryFileSystem fs, String path){
+    static MemoryPath create(MemoryFileSystem fs, String path) {
         if (null == path || path.isEmpty()) {
             throw new IllegalArgumentException("path required not empty, got : " + path);
         }
@@ -35,11 +35,11 @@ public class MemoryPath implements Path {
         return new MemoryPath(fs, parts, 0, parts.size(), absolute);
     }
 
-    private MemoryPath(MemoryFileSystem fs, List<String> parts, int start, int end, boolean absolute){
+    private MemoryPath(MemoryFileSystem fs, List<String> parts, int start, int end, boolean absolute) {
         if (null == fs) {
             throw new IllegalArgumentException("filesytem required");
         }
-        if( start < 0 || parts.size() < end || end < start ){
+        if (start < 0 || parts.size() < end || end < start) {
             throw new IllegalArgumentException(String.format("invalid range [%d,%d[ in list %s", start, end, Arrays.toString(parts.toArray())));
         }
         this.fs = fs;
@@ -47,7 +47,7 @@ public class MemoryPath implements Path {
         this.absolute = absolute;
     }
 
-    private boolean isRoot(){
+    private boolean isRoot() {
         return absolute && parts.isEmpty();
     }
 
@@ -63,16 +63,16 @@ public class MemoryPath implements Path {
 
     @Override
     public Path getRoot() {
-        if(isRoot()){
+        if (isRoot()) {
             return this;
         }
-        return absolute ? create(fs,"/") : null;
+        return absolute ? create(fs, SEPARATOR) : null;
     }
 
     @Override
     public Path getFileName() {
         return parts.isEmpty() ? null :
-                new MemoryPath(fs, parts, parts.size()-1, parts.size(), false);
+                new MemoryPath(fs, parts, parts.size() - 1, parts.size(), false);
     }
 
     @Override
@@ -100,7 +100,7 @@ public class MemoryPath implements Path {
         if (index == parts.size() - 1) {
             return this;
         }
-        return new MemoryPath(fs, parts, 0, index+1, absolute);
+        return new MemoryPath(fs, parts, 0, index + 1, absolute);
     }
 
     @Override
@@ -154,8 +154,7 @@ public class MemoryPath implements Path {
                     normalized.add(part);
             }
         }
-        return new MemoryPath(fs, normalized,0,normalized.size(),absolute);
-
+        return new MemoryPath(fs, normalized, 0, normalized.size(), absolute);
     }
 
     @Override
@@ -202,7 +201,7 @@ public class MemoryPath implements Path {
 
     @Override
     public Path toAbsolutePath() {
-        if(absolute){
+        if (absolute) {
             return this;
         }
         return new MemoryPath(fs, parts, 0, parts.size(), true);
@@ -247,10 +246,10 @@ public class MemoryPath implements Path {
         MemoryPath other = (MemoryPath) o;
 
         if (absolute != other.absolute) return false;
-        if(parts.size()!=other.parts.size()) return false;
+        if (parts.size() != other.parts.size()) return false;
 
-        for(int i=0;i<parts.size();i++){
-            if(!parts.get(i).equals(other.parts.get(i))) return false;
+        for (int i = 0; i < parts.size(); i++) {
+            if (!parts.get(i).equals(other.parts.get(i))) return false;
         }
 
         return true;
@@ -259,7 +258,7 @@ public class MemoryPath implements Path {
     @Override
     public int hashCode() {
         int result = 19;
-        result = 31 * result + ( absolute ? 1 : 0);
+        result = 31 * result + (absolute ? 1 : 0);
         for (String s : parts) {
             result = 31 * result + s.hashCode();
         }
