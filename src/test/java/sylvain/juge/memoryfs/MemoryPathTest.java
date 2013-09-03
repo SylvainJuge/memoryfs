@@ -165,7 +165,7 @@ public class MemoryPathTest {
 
     @Test
     public void normalizeNormalizedOrNonNormalizablePaths() {
-        for (String s : Arrays.asList("/a", "/a/b", "a", "a/b", "..", ".", "../a")) {
+        for (String s : Arrays.asList("/a", "/a/b", "a", "a/b", "..", ".", "../a","../..","../../..")) {
             checkNormalize(s, s);
         }
     }
@@ -176,6 +176,12 @@ public class MemoryPathTest {
         checkNormalize("/./a", "/a");
         checkNormalize("a/../b/../c", "c");
         checkNormalize("a/./b/.", "a/b");
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void outOfRootAbsolutePath(){
+        // thou shall not go upper than root !
+        createPath("/..");
     }
 
     private static void checkNormalize(String p, String expected) {
@@ -218,11 +224,16 @@ public class MemoryPathTest {
         }
     }
 
+    private static MemoryPath createAndCheckPath(String path, String expectedPath){
+        MemoryPath item = createPath(path);
+        String expectedItemPath = (item.isAbsolute() ? "": "/") + expectedPath;
+        assertThat(item.toUri().getPath()).isEqualTo(expectedItemPath);
+        return item;
+    }
+
     private static MemoryPath createPath(String path) {
         MemoryPath result = MemoryPath.create(createFs(), path);
         URI uri = result.toUri();
-        // TODO : check normalized and/or absolute paths, because removing slashes does not allow direct comparison
-        // assertThat(uri.getPath()).isEqualTo(path);
         assertThat(uri.getScheme()).isEqualTo("memory");
         assertThat(uri.getHost()).isNull();
         return result;

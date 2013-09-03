@@ -12,6 +12,8 @@ import java.util.List;
 public class MemoryPath implements Path {
 
     private static final String SEPARATOR = "/";
+    private static final String TWO_DOTS = "..";
+    private static final String ONE_DOT = ".";
     private final MemoryFileSystem fs;
     private final List<String> parts;
     private final boolean absolute;
@@ -20,13 +22,16 @@ public class MemoryPath implements Path {
         if (null == path || path.isEmpty()) {
             throw new IllegalArgumentException("path required not empty, got : " + path);
         }
+        boolean absolute = path.startsWith(SEPARATOR);
         List<String> parts = new ArrayList<>();
         for (String s : path.split(SEPARATOR)) {
             if (!s.isEmpty()) {
+                if (absolute && parts.isEmpty() && TWO_DOTS.equals(s)) {
+                    throw new IllegalArgumentException("invalid absolute path : can't go upper than root");
+                }
                 parts.add(s);
             }
         }
-        boolean absolute = path.startsWith(SEPARATOR);
         return new MemoryPath(fs, parts, 0, parts.size(), absolute);
     }
 
@@ -128,21 +133,22 @@ public class MemoryPath implements Path {
         List<String> normalized = new ArrayList<>();
         for (String part : parts) {
             switch (part) {
-                case ".":
-                    if(normalized.isEmpty()){
+                case ONE_DOT:
+                    if (normalized.isEmpty()) {
                         normalized.add(part);
                     }
                     break;
-                case "..":
+                case TWO_DOTS:
                     // drop previous normalized item (if any)
-                    if (normalized.isEmpty()) {
+                    int last = normalized.size() - 1;
+                    if (normalized.isEmpty() || TWO_DOTS.equals(normalized.get(last))) {
                         normalized.add(part);
                     } else {
-                        normalized.remove(normalized.size() - 1);
+                        normalized.remove(last);
                     }
                     break;
                 default:
-                    if(normalized.size()==1 && normalized.get(0).equals(".")){
+                    if (normalized.size() == 1 && ONE_DOT.equals(normalized.get(0))) {
                         normalized.clear();
                     }
                     normalized.add(part);
