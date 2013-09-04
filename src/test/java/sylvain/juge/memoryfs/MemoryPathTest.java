@@ -12,8 +12,8 @@ import static sylvain.juge.memoryfs.TestEquals.checkHashCodeEqualsConsistency;
 public class MemoryPathTest {
 
     @Test(expectedExceptions = IllegalArgumentException.class)
-    public void fileSystemRequired() {
-        new MemoryFileSystem(null, "/anypath", 0);
+    public void providerRequired() {
+        MemoryPath.create(null,"/anypath");
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
@@ -240,6 +240,6 @@ public class MemoryPathTest {
 
     private static MemoryFileSystem createFs() {
         MemoryFileSystemProvider provider = new MemoryFileSystemProvider();
-        return new MemoryFileSystem(provider, "", 0);
+        return MemoryFileSystem.builder(provider).build();
     }
 }

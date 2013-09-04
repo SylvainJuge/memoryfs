@@ -55,10 +55,20 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
                 throw new FileSystemAlreadyExistsException("file system already exists : " + id);
             }
             // TODO : retrieve fs capacity from options or through uri parameters
-            MemoryFileSystem fs = new MemoryFileSystem(this, id, 0);
+            MemoryFileSystem fs = MemoryFileSystem.builder(this).id(id).capacity(0).build();
             fileSystems.put(id, fs);
             return fs;
         }
+    }
+
+    private static Long getCapacity(Map<String,?> env){
+        Object o = env.get("capacity");
+        if( o == null){
+            return null;
+        } else if(!(o instanceof Long)){
+            throw new IllegalStateException("capacity parameter must be of type long");
+        }
+        return (Long)o;
     }
 
     @Override

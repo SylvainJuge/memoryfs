@@ -16,24 +16,25 @@ import static org.fest.assertions.api.Fail.fail;
 
 public class MemoryFileSystemTest {
 
-
-    private static final Map<String, ?> EMPTY_OPTIONS = new HashMap<>();
-
     // TODO : FileStore : difference between unallocated space and usable space ?
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void nullProviderNotAllowed() {
-        new MemoryFileSystem(null, "", 0);
+        MemoryFileSystem.builder(null);
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void nullIdNotAllowed() {
-        createFs(null, 0);
+        MemoryFileSystem
+                .builder(newProvider())
+                .id(null);
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void negativeCapacityNotAllowed() {
-        createFs("", -1);
+        MemoryFileSystem
+                .builder(newProvider())
+                .capacity(-1);
     }
 
     // TODO : test for concurrent access on open/close state
@@ -45,7 +46,11 @@ public class MemoryFileSystemTest {
         // - either through map of options, or through creation uri
         // - providing a URI builder on impl may be convenient
         int capacity = 100;
-        try (FileSystem fs = createFs("", capacity)) {
+
+        try (FileSystem fs = MemoryFileSystem
+                .builder(newProvider())
+                .capacity(capacity)
+                .build()) {
             assertThat(fs.getFileStores()).hasSize(1);
             for (FileStore store : fs.getFileStores()) {
                 assertThat(store.name()).isEqualTo("");
@@ -56,9 +61,34 @@ public class MemoryFileSystemTest {
         }
     }
 
-    private MemoryFileSystem createFs(String id, long capacity) {
-        MemoryFileSystemProvider provider = new MemoryFileSystemProvider();
-        return new MemoryFileSystem(provider, id, capacity);
+    // TODO : test that creating a readonly filesystem only contains readonly filestores
+    // TODO : create a filesystem with mixex readonly/readwrite stores
+    // TODO : allow to create runtime-configurable stores ?
+    // -> otherwise creating empty-read-only filestores seems quite useless
+
+    // TODO : multiple filestores in the same fs have different IDs
+    // when there is a single store, there is no need to explicitely provide its name
+
+    @Test
+    public void buildWithDefaultValues() throws IOException {
+        MemoryFileSystem fs = MemoryFileSystem
+                .builder(newProvider())
+                .build();
+
+        // default URI
+        assertThat(fs.getUri()).isEqualTo(URI.create("memory:///"));
+
+        // singlefile store by default or size zero
+        assertThat(fs.getFileStores()).hasSize(1);
+        for(FileStore store:fs.getFileStores()){
+            assertThat(store.getTotalSpace()).isEqualTo(0);
+            assertThat(store.getUnallocatedSpace()).isEqualTo(0);
+            assertThat(store.getUsableSpace()).isEqualTo(0);
+        }
+    }
+
+    private static MemoryFileSystemProvider newProvider(){
+        return new MemoryFileSystemProvider();
     }
 
 }

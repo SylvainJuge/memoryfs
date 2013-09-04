@@ -14,23 +14,57 @@ public class MemoryFileSystem extends FileSystem {
     public static final String SEPARATOR = "/";
     private final MemoryFileSystemProvider provider;
     private final String id;
+    private final FileStore store;
 
     private AtomicBoolean isOpen;
 
     // TODO : allow for more than one filestore
-    MemoryFileSystem(MemoryFileSystemProvider provider, String id, long capacity) {
-        if (null == provider) {
-            throw new IllegalArgumentException("provider must be provided");
-        }
-        if (null == id) {
-            throw new IllegalArgumentException("id is required");
-        }
-        if( capacity < 0){
-            throw new IllegalArgumentException("capacity can't be negative");
-        }
+    private MemoryFileSystem(MemoryFileSystemProvider provider, String id, long capacity) {
         this.provider = provider;
         this.id = id;
         this.isOpen = new AtomicBoolean(true);
+        this.store = MemoryFileStore.builder().capacity(capacity).build();
+    }
+
+    // TODO : should allow to build filestores with sane defaults
+    // - should allow to create more than one fileStore (with a "mount" path)
+    // - should allow to control available and usable space
+    // - shoudl allow to control if FS is readonly or not
+    static class Builder {
+        private final MemoryFileSystemProvider provider;
+        private long capacity = 0;
+        private String id = "";
+
+        private Builder(MemoryFileSystemProvider provider) {
+            this.provider = provider;
+        }
+
+        public Builder id(String id) {
+            if (null == id) {
+                throw new IllegalArgumentException("id is required");
+            }
+            this.id = id;
+            return this;
+        }
+
+        public Builder capacity(long capacity) {
+            if (capacity < 0) {
+                throw new IllegalArgumentException("capacity can't be negative");
+            }
+            this.capacity = capacity;
+            return this;
+        }
+
+        public MemoryFileSystem build() {
+            return new MemoryFileSystem(provider, id, capacity);
+        }
+    }
+
+    public static Builder builder(MemoryFileSystemProvider provider) {
+        if( provider == null ){
+            throw new IllegalArgumentException("provider must be provided");
+        }
+        return new Builder(provider);
     }
 
     URI getUri() {
@@ -73,7 +107,7 @@ public class MemoryFileSystem extends FileSystem {
 
     @Override
     public Iterable<FileStore> getFileStores() {
-        return Collections.emptyList();
+        return Collections.singletonList(store);
     }
 
     @Override
