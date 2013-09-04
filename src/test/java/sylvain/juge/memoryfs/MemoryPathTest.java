@@ -2,11 +2,12 @@ package sylvain.juge.memoryfs;
 
 import org.testng.annotations.Test;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URI;
-import java.nio.file.Path;
-import java.util.ArrayList;
+import java.nio.file.*;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Iterator;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 import static sylvain.juge.memoryfs.TestEquals.checkHashCodeEqualsConsistency;
@@ -186,8 +187,42 @@ public class MemoryPathTest {
     }
 
     @Test
-    public void startWith(){
-        assertThat(createPath("/"));
+    public void startWithAndEndWithItself(){
+        for (String s : Arrays.asList("/","/a", "/a/b", "a", "a/b", "..", ".", "../a", "../..", "../../..")) {
+            Path p = createPath(s);
+            assertThat(p.startsWith(p)).isTrue();
+            assertThat(p.endsWith(p)).isTrue();
+        }
+    }
+
+    @Test( expectedExceptions = ProviderMismatchException.class)
+    public void startsWithWrongPathType(){
+        createPath("/").startsWith(anotherPathType());
+    }
+
+    @Test( expectedExceptions = ProviderMismatchException.class)
+    public void endsWithWrongPathType(){
+        createPath("/").endsWith(anotherPathType());
+    }
+
+    @Test( expectedExceptions = ProviderMismatchException.class)
+    public void resolveWithWrongPathType(){
+        createPath("/").resolve(anotherPathType());
+    }
+
+    @Test( expectedExceptions = ProviderMismatchException.class)
+    public void resolveSiblingWithWrongPathType(){
+        createPath("/").resolve(anotherPathType());
+    }
+
+    @Test( expectedExceptions = ProviderMismatchException.class)
+    public void relativizeWithWrongPathType(){
+        createPath("/").relativize(anotherPathType());
+    }
+
+    @Test( expectedExceptions = ProviderMismatchException.class)
+    public void compareToWithWrongPathType(){
+        createPath("/").compareTo(anotherPathType());
     }
 
     private static void checkNormalize(String p, String expected) {
@@ -258,5 +293,139 @@ public class MemoryPathTest {
     private static MemoryFileSystem createFs() {
         MemoryFileSystemProvider provider = new MemoryFileSystemProvider();
         return MemoryFileSystem.builder(provider).build();
+    }
+
+    private static Path anotherPathType(){
+        return new Path() {
+            @Override
+            public FileSystem getFileSystem() {
+                return null;
+            }
+
+            @Override
+            public boolean isAbsolute() {
+                return false;
+            }
+
+            @Override
+            public Path getRoot() {
+                return null;
+            }
+
+            @Override
+            public Path getFileName() {
+                return null;
+            }
+
+            @Override
+            public Path getParent() {
+                return null;
+            }
+
+            @Override
+            public int getNameCount() {
+                return 0;
+            }
+
+            @Override
+            public Path getName(int index) {
+                return null;
+            }
+
+            @Override
+            public Path subpath(int beginIndex, int endIndex) {
+                return null;
+            }
+
+            @Override
+            public boolean startsWith(Path other) {
+                return false;
+            }
+
+            @Override
+            public boolean startsWith(String other) {
+                return false;
+            }
+
+            @Override
+            public boolean endsWith(Path other) {
+                return false;
+            }
+
+            @Override
+            public boolean endsWith(String other) {
+                return false;
+            }
+
+            @Override
+            public Path normalize() {
+                return null;
+            }
+
+            @Override
+            public Path resolve(Path other) {
+                return null;
+            }
+
+            @Override
+            public Path resolve(String other) {
+                return null;
+            }
+
+            @Override
+            public Path resolveSibling(Path other) {
+                return null;
+            }
+
+            @Override
+            public Path resolveSibling(String other) {
+                return null;
+            }
+
+            @Override
+            public Path relativize(Path other) {
+                return null;
+            }
+
+            @Override
+            public URI toUri() {
+                return null;
+            }
+
+            @Override
+            public Path toAbsolutePath() {
+                return null;
+            }
+
+            @Override
+            public Path toRealPath(LinkOption... options) throws IOException {
+                return null;
+            }
+
+            @Override
+            public File toFile() {
+                return null;
+            }
+
+            @Override
+            public WatchKey register(WatchService watcher, WatchEvent.Kind<?>[] events, WatchEvent.Modifier... modifiers) throws IOException {
+                return null;
+            }
+
+            @Override
+            public WatchKey register(WatchService watcher, WatchEvent.Kind<?>... events) throws IOException {
+                return null;
+            }
+
+            @Override
+            public Iterator<Path> iterator() {
+                return null;
+            }
+
+            @Override
+            public int compareTo(Path other) {
+                return 0;
+            }
+        };
     }
 }
