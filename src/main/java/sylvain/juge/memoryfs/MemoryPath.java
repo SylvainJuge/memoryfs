@@ -108,8 +108,19 @@ public class MemoryPath implements Path {
         throw new RuntimeException("TODO : implement subpath");
     }
 
+    private static MemoryPath toMemoryPath(Path path){
+        if(!(path instanceof MemoryPath)){
+            throw new ProviderMismatchException("only memory path supported");
+        }
+        return (MemoryPath)path;
+    }
+
     @Override
     public boolean startsWith(Path other) {
+        if(other == this){
+            return true;
+        }
+        toMemoryPath(other);
         return false;
     }
 
@@ -120,6 +131,10 @@ public class MemoryPath implements Path {
 
     @Override
     public boolean endsWith(Path other) {
+        if( other == this){
+            return true;
+        }
+        toMemoryPath(other);
         return false;
     }
 
@@ -158,6 +173,7 @@ public class MemoryPath implements Path {
 
     @Override
     public Path resolve(Path other) {
+        toMemoryPath(other);
         return null;
     }
 
@@ -168,6 +184,7 @@ public class MemoryPath implements Path {
 
     @Override
     public Path resolveSibling(Path other) {
+        toMemoryPath(other);
         return null;
     }
 
@@ -178,6 +195,7 @@ public class MemoryPath implements Path {
 
     @Override
     public Path relativize(Path other) {
+        toMemoryPath(other);
         return null;
     }
 
@@ -234,6 +252,7 @@ public class MemoryPath implements Path {
 
     @Override
     public int compareTo(Path other) {
+        toMemoryPath(other);
         return 0;
     }
 
