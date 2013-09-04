@@ -44,6 +44,11 @@ public class MemoryFileSystemProviderTest {
         }
     }
 
+    @Test(expectedExceptions = FileSystemNotFoundException.class)
+    public void getBeforeCreateThrowsException(){
+        FileSystems.getFileSystem(URI.create("memory:/"));
+    }
+
     // non-static properties of provider : we use a dedicated instance for each test
 
     @Test

@@ -90,7 +90,7 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
         synchronized (fileSystems) {
             FileSystem fs = fileSystems.get(id);
             if (null == fs) {
-                throw new RuntimeException("no filesystem exists with this ID : " + id);
+                throw new FileSystemNotFoundException("no filesystem exists with this ID : " + id);
             }
             return fs;
         }
