@@ -4,7 +4,9 @@ import org.testng.annotations.Test;
 
 import java.net.URI;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 import static sylvain.juge.memoryfs.TestEquals.checkHashCodeEqualsConsistency;
@@ -36,7 +38,7 @@ public class MemoryPathTest {
         assertThat(path.getRoot()).isNull(); // relative path does not have root
         // TODO : get relative path parent
 
-        checkParents(path,
+        checkParts(path,
                 "relative",
                 "relative/path");
     }
@@ -49,7 +51,7 @@ public class MemoryPathTest {
         assertThat(path.isAbsolute()).isTrue();
         assertThat(path.getRoot()).isEqualTo(createPath("/"));
 
-        checkParents(path,
+        checkParts(path,
                 "/absolute",
                 "/absolute/path");
     }
@@ -183,33 +185,48 @@ public class MemoryPathTest {
         createPath("/..");
     }
 
+    @Test
+    public void startWith(){
+        assertThat(createPath("/"));
+    }
+
     private static void checkNormalize(String p, String expected) {
         assertThat(createPath(p).normalize()).isEqualTo(createPath(expected));
     }
 
-    private static void checkParents(Path p, String... expectedParents) {
-        assertThat(p.getNameCount()).isEqualTo(expectedParents.length);
-        for (int i = 0; i < expectedParents.length; i++) {
-            Path parent = p.getName(i);
+    private static void checkParts(Path p, String... expectedParts) {
+        assertThat(p.getNameCount()).isEqualTo(expectedParts.length);
+
+        // check parents through iterable interface
+        Path[] expectedPaths = new Path[expectedParts.length];
+        int i=0;
+        for (String part : expectedParts) {
+            expectedPaths[i++] = createPath(part);
+        }
+        assertThat(p).containsSequence(expectedPaths);
+
+        // test each of them through getName
+        i=0;
+        for (Path part:expectedPaths) {
+            assertThat(part).isEqualTo(p.getName(i));
             if (i == 0) {
                 // getName(0) return identity;
-                assertThat(p.getParent()).isEqualTo(parent);
+                assertThat(p.getParent()).isEqualTo(part);
             }
+            i++;
 
             // toUri converts to absolute path, thus we can't test a lot more than suffix
-            assertThat(p.toUri().getPath()).startsWith(parent.toUri().getPath());
+            assertThat(p.toUri().getPath()).startsWith(part.toUri().getPath());
 
-            // if child path is absolute, then its parent path must be absolute
+            // if path is absolute, then its parts path must be absolute
             // also, both paths must have the same root
             if (p.isAbsolute()) {
-                assertThat(parent.isAbsolute()).isTrue();
-                assertThat(parent.getRoot()).isEqualTo(p.getRoot());
+                assertThat(part.isAbsolute()).isTrue();
+                assertThat(part.getRoot()).isEqualTo(p.getRoot());
             } else {
-                assertThat(parent.isAbsolute()).isFalse();
-                assertThat(parent.getRoot()).isNull();
+                assertThat(part.isAbsolute()).isFalse();
+                assertThat(part.getRoot()).isNull();
             }
-            // TODO : check that all sub-paths or this path are parent of p
-            // using startsWith, endsWith, and other parenting-related methods
         }
     }
 

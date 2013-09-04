@@ -139,7 +139,6 @@ public class MemoryPath implements Path {
                     }
                     break;
                 case TWO_DOTS:
-                    // drop previous normalized item (if any)
                     int last = normalized.size() - 1;
                     if (normalized.isEmpty() || TWO_DOTS.equals(normalized.get(last))) {
                         normalized.add(part);
@@ -230,7 +229,7 @@ public class MemoryPath implements Path {
 
     @Override
     public Iterator<Path> iterator() {
-        return null;
+        return new PathIterator(this);
     }
 
     @Override
@@ -268,5 +267,29 @@ public class MemoryPath implements Path {
     @Override
     public String toString() {
         return toUri().toString();
+    }
+
+    private static class PathIterator implements Iterator<Path>{
+
+        private int i;
+        private Path path;
+        private PathIterator(Path path){
+            this.path = path;
+            this.i = 0;
+        }
+        @Override
+        public boolean hasNext() {
+            return i < path.getNameCount();
+        }
+
+        @Override
+        public Path next() {
+            return path.getName(i++);
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException("not supported");
+        }
     }
 }
