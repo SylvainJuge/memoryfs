@@ -67,8 +67,27 @@ public class MemoryFileSystem extends FileSystem {
         return new Builder(provider);
     }
 
+    URI toUri(String path){
+        if(!path.startsWith("/")){
+            throw new InvalidPathException(path.toString(), "path must be absolute for URI conversion");
+        }
+        StringBuilder sb = new StringBuilder("memory:");
+        if(!id.isEmpty()){
+            sb.append("/").append(id);
+        }
+        sb.append(path);
+        return URI.create(sb.toString());
+    }
+
+    // TODO : see how we can remove this package-private method
+    // testing should focus on actual FS id, not really on it's URI representation
+    // URI is more important at MemoryPath level
     URI getUri() {
-        return URI.create("memory://" + id + "/");
+        return URI.create("memory:/" + id);
+    }
+
+    String getId(){
+        return id;
     }
 
     @Override

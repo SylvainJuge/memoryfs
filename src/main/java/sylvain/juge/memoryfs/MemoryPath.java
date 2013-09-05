@@ -202,18 +202,43 @@ public class MemoryPath implements Path {
     // TODO : performance : we may cache uri since path is immutable
     @Override
     public URI toUri() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(fs.getUri());
-        if (!absolute) {
-            sb.append(SEPARATOR);
+
+        return fs.toUri((absolute ? "" : SEPARATOR )+getPath());
+
+        // note :
+        // - when fs path is "memory:/"
+        //    root path is the same as fs path
+        // - when fs path is memory:/id
+        //    root path is memory:/id/
+        // - when file store is provided
+        // - default id : / -> memory:/fs1/
+        // - explicit id : / -> memory:/id/fs1/
+        //
+        // using an empty id is not suitable due to constraints in URI format
+        // memory://<host> would match with an empty id
+
+        // ===> do we really need file store here ?
+        // -> path : represents any path
+        // -> fs knows how to translate this path to file system and file store
+        // --> actual path in file system & file store is a subpath of total path
+        //
+    }
+
+    // path with simple caching (safe since class is immutable)
+    private String path = null;
+    public String getPath(){
+        if( null != path){
+            return path;
         }
-        for (int i = 0; i < parts.size(); i++) {
-            if (0 < i) {
+        StringBuilder sb = new StringBuilder();
+        for (String part:parts) {
+            if(0 < sb.length()){
                 sb.append(SEPARATOR);
             }
-            sb.append(parts.get(i));
+            sb.append(part);
         }
-        return URI.create(sb.toString());
+        path = (absolute ? SEPARATOR : "") + sb.toString();
+        return path;
     }
 
     @Override

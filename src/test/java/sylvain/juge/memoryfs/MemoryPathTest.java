@@ -10,12 +10,13 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 import static org.fest.assertions.api.Assertions.assertThat;
+import static org.fest.assertions.api.Assertions.fail;
 import static sylvain.juge.memoryfs.TestEquals.checkHashCodeEqualsConsistency;
 
 public class MemoryPathTest {
 
     @Test(expectedExceptions = IllegalArgumentException.class)
-    public void providerRequired() {
+    public void fileSystemRequired() {
         MemoryPath.create(null,"/anypath");
     }
 
@@ -99,7 +100,7 @@ public class MemoryPathTest {
             Path toAbsolute = path.toAbsolutePath();
             assertThat(toAbsolute.isAbsolute()).isTrue();
             // TODO : check that resuling path endsWith 'relative' as suffix
-            assertThat(toAbsolute.toUri().toString()).isEqualTo("memory:///" + relative);
+            assertThat(toAbsolute.toUri().toString()).isEqualTo("memory:/" + relative);
         }
         // TODO : relative path without normalization
     }
@@ -195,6 +196,52 @@ public class MemoryPathTest {
         }
     }
 
+    @Test(enabled = false)
+    public void startWithPaths(){
+
+        Path root = createPath("/");
+        Path absoluteA = createPath("/a");
+        Path absoluteAb = createPath("/a/b");
+        Path relativeA = createPath("a");
+        Path relativeAb = createPath("a/b");
+        Path relativeB = createPath("b");
+
+        checkStartsWith(true, root, root);
+        checkStartsWith(false, root, absoluteA, absoluteAb, relativeA, relativeAb, relativeB);
+
+        fail("wip");
+        checkStartsWith(true, absoluteA, root );
+
+
+        assertThat(absoluteA.startsWith(root)).isTrue();
+        assertThat(absoluteAb.startsWith(root)).isTrue();
+        assertThat(absoluteAb.startsWith(absoluteA)).isTrue();
+
+        assertThat(absoluteA.startsWith(relativeA));
+
+        // same but absoluteness
+        assertThat(createPath("/a/b").startsWith(createPath("a/b"))).isFalse();
+        assertThat(createPath("a/b").startsWith("a")).isTrue();
+    }
+
+    private static void checkStartsWith(boolean shouldMatch, Path p, Path... others){
+        for(Path other:others){
+            assertThat(p.startsWith(other)).isEqualTo(shouldMatch);
+        }
+    }
+
+    private static void checkStartsWith(boolean shouldMatch, Path p, String... prefixes){
+        for(String prefix:prefixes){
+            assertThat(p.startsWith(prefix)).isEqualTo(shouldMatch);
+        }
+    }
+
+    private static void checkEndsWith(boolean shouldMatch, Path p, Path... others){
+        for(Path other:others){
+            assertThat(p.endsWith(other)).isEqualTo(shouldMatch);
+        }
+    }
+
     @Test( expectedExceptions = ProviderMismatchException.class)
     public void startsWithWrongPathType(){
         createPath("/").startsWith(anotherPathType());
@@ -286,7 +333,6 @@ public class MemoryPathTest {
         MemoryPath result = MemoryPath.create(createFs(), path);
         URI uri = result.toUri();
         assertThat(uri.getScheme()).isEqualTo("memory");
-        assertThat(uri.getHost()).isNull();
         return result;
     }
 

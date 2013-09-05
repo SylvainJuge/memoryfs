@@ -35,21 +35,27 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
         }
     }
 
-    private static void checkFileSystemUri(URI uri) {
+    private static String checkAndGetFileSystemId(URI uri) {
         if (!uri.isAbsolute()) {
             throw new IllegalArgumentException("invalid URI : must be absolute : " + uri);
         }
         String path = uri.getPath();
-        if (!"/".equals(path)) {
-            throw new IllegalArgumentException("invalid URI, fs root path must be / : " + uri);
+        if( null == path || path.length() < 1 || null != uri.getHost()){
+            throw new IllegalArgumentException("invalid URI, fs root path must be in the form : 'memory:/[ID]' where [ID] is the filesystem ID");
         }
+        for(String part:path.split("/")){
+            if(!part.isEmpty()){
+                return part;
+            }
+        }
+        // default ID is an empty string
+        return "";
     }
 
     @Override
     public FileSystem newFileSystem(URI uri, Map<String, ?> env) throws IOException {
         checkMemoryScheme(uri);
-        checkFileSystemUri(uri);
-        String id = getFileSystemIdentifier(uri);
+        String id = checkAndGetFileSystemId(uri);
         synchronized (fileSystems) {
             if (fileSystems.containsKey(id)) {
                 throw new FileSystemAlreadyExistsException("file system already exists : " + id);
@@ -77,16 +83,10 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
         return newFileSystem(uri, env);
     }
 
-    private static String getFileSystemIdentifier(URI uri) {
-        String host = uri.getHost();
-        return null == host ? "" : host;
-    }
-
     @Override
     public FileSystem getFileSystem(URI uri) {
         checkMemoryScheme(uri);
-        checkFileSystemUri(uri);
-        String id = getFileSystemIdentifier(uri);
+        String id = checkAndGetFileSystemId(uri);
         synchronized (fileSystems) {
             FileSystem fs = fileSystems.get(id);
             if (null == fs) {
@@ -114,11 +114,11 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
     @Override
     public Path getPath(URI uri) {
         checkMemoryScheme(uri);
-        String id = getFileSystemIdentifier(uri);
+        String id = checkAndGetFileSystemId(uri);
         synchronized (fileSystems) {
             MemoryFileSystem fs = fileSystems.get(id);
             if (null == fs) {
-                throw new IllegalArgumentException("non existing filesystem : " + id);
+                throw new IllegalArgumentException("non existing filesystem : '" + id+"'");
             }
             return MemoryPath.create(fs, uri.getPath());
         }

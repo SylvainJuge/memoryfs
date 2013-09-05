@@ -37,6 +37,35 @@ public class MemoryFileSystemTest {
                 .capacity(-1);
     }
 
+    @Test
+    public void defaultIdInUri(){
+        MemoryFileSystemProvider provider = newProvider();
+        MemoryFileSystem fs = MemoryFileSystem
+                .builder(provider)
+                .build();
+        assertThat(fs.getUri()).isEqualTo(URI.create("memory:/"));
+    }
+
+    @Test
+    public void buildThroughBuilderWithExplicitIdInUri(){
+        MemoryFileSystemProvider provider = newProvider();
+        MemoryFileSystem fs = MemoryFileSystem
+                .builder(provider)
+                .id("id")
+                .build();
+        assertThat(fs.getUri()).isEqualTo(URI.create("memory:/id"));
+    }
+
+    @Test
+    public void buildThroughUriWithExplicitIdInUri() throws IOException {
+        MemoryFileSystemProvider provider = newProvider();
+        URI uri = URI.create("memory:/fsId");
+        MemoryFileSystem fs = (MemoryFileSystem)provider.newFileSystem(uri, null);
+        assertThat(fs.getUri()).isEqualTo(uri);
+    }
+
+    // TODO : create FS through Path ?
+    // TODO : create FS with URI and with explicit parameters
     // TODO : test for concurrent access on open/close state
 
     @Test(enabled = false) // failing test disabled yet
