@@ -8,15 +8,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import static sylvain.juge.memoryfs.MemoryFileSystem.SEPARATOR;
 
 public class MemoryPath implements Path {
 
-    private static final String SEPARATOR = "/";
     private static final String TWO_DOTS = "..";
     private static final String ONE_DOT = ".";
     private final MemoryFileSystem fs;
     private final List<String> parts;
     private final boolean absolute;
+
+    // cached values (safe since class is immutable)
+    private URI uri = null;
+    private String path = null;
 
     static MemoryPath create(MemoryFileSystem fs, String path) {
         if (null == path || path.isEmpty()) {
@@ -199,11 +203,12 @@ public class MemoryPath implements Path {
         return null;
     }
 
-    // TODO : performance : we may cache uri since path is immutable
     @Override
     public URI toUri() {
-
-        return fs.toUri((absolute ? "" : SEPARATOR )+getPath());
+        if( null == uri){
+            uri = fs.toUri((absolute ? "" : SEPARATOR )+getPath());
+        }
+        return uri;
 
         // note :
         // - when fs path is "memory:/"
@@ -224,8 +229,6 @@ public class MemoryPath implements Path {
         //
     }
 
-    // path with simple caching (safe since class is immutable)
-    private String path = null;
     public String getPath(){
         if( null != path){
             return path;

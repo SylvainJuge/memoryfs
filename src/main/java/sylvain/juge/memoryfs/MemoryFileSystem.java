@@ -11,7 +11,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MemoryFileSystem extends FileSystem {
 
-    public static final String SEPARATOR = "/";
+    static final String SEPARATOR = "/";
+    static final String SCHEME = "memory";
+
     private final MemoryFileSystemProvider provider;
     private final String id;
     private final FileStore store;
@@ -68,12 +70,12 @@ public class MemoryFileSystem extends FileSystem {
     }
 
     URI toUri(String path){
-        if(!path.startsWith("/")){
-            throw new InvalidPathException(path.toString(), "path must be absolute for URI conversion");
+        if(!path.startsWith(SEPARATOR)){
+            throw new InvalidPathException(path, "path must be absolute for URI conversion");
         }
-        StringBuilder sb = new StringBuilder("memory:");
+        StringBuilder sb = new StringBuilder(SCHEME).append(":");
         if(!id.isEmpty()){
-            sb.append("/").append(id);
+            sb.append(SEPARATOR).append(id);
         }
         sb.append(path);
         return URI.create(sb.toString());
@@ -83,7 +85,7 @@ public class MemoryFileSystem extends FileSystem {
     // testing should focus on actual FS id, not really on it's URI representation
     // URI is more important at MemoryPath level
     URI getUri() {
-        return URI.create("memory:/" + id);
+        return URI.create(SCHEME +":/" + id);
     }
 
     String getId(){
