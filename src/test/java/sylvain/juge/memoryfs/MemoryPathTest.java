@@ -196,43 +196,56 @@ public class MemoryPathTest {
         }
     }
 
-    @Test(enabled = false)
+    @Test
     public void startWithPaths(){
 
         Path root = createPath("/");
         Path absoluteA = createPath("/a");
         Path absoluteAb = createPath("/a/b");
         Path relativeA = createPath("a");
-        Path relativeAb = createPath("a/b");
         Path relativeB = createPath("b");
+        Path relativeAb = createPath("a/b");
 
         checkStartsWith(true, root, root);
-        checkStartsWith(false, root, absoluteA, absoluteAb, relativeA, relativeAb, relativeB);
+        checkStartsWith(false, root, absoluteA, absoluteAb, relativeA, relativeB, relativeAb);
 
-        fail("wip");
-        checkStartsWith(true, absoluteA, root );
+        checkStartsWith(true, absoluteA, absoluteA, root);
+        checkStartsWith(false, absoluteA, absoluteAb, relativeA, relativeB, relativeAb);
+
+        checkStartsWith(true, absoluteAb, absoluteAb, absoluteA, root);
+        checkStartsWith(false, absoluteAb, relativeA, relativeB, relativeAb);
+
+        checkStartsWith(true, relativeA, relativeA);
+        checkStartsWith(false, relativeA, root, absoluteA, absoluteAb, relativeB, relativeAb);
+
+        checkStartsWith(true, relativeB, relativeB);
+        checkStartsWith(false, relativeB, root, absoluteA, absoluteAb, relativeA, relativeAb);
+
+        checkStartsWith(true, relativeAb, relativeAb, relativeA);
+        checkStartsWith(false, relativeAb, root, absoluteA, absoluteAb, relativeB);
 
 
-        assertThat(absoluteA.startsWith(root)).isTrue();
-        assertThat(absoluteAb.startsWith(root)).isTrue();
-        assertThat(absoluteAb.startsWith(absoluteA)).isTrue();
+        checkStartsWith(true, root, "/", "");
+        checkStartsWith(false, root, "/a", "a");
 
-        assertThat(absoluteA.startsWith(relativeA));
+        checkStartsWith(true, absoluteA, "/", "/a");
+        checkStartsWith(false, absoluteA, "a", "b", "a/b");
 
-        // same but absoluteness
-        assertThat(createPath("/a/b").startsWith(createPath("a/b"))).isFalse();
-        assertThat(createPath("a/b").startsWith("a")).isTrue();
+        checkStartsWith(true, absoluteAb, "/", "/a", "/a/b");
+        checkStartsWith(false, absoluteAb, "a/b", "a");
     }
 
     private static void checkStartsWith(boolean shouldMatch, Path p, Path... others){
         for(Path other:others){
-            assertThat(p.startsWith(other)).isEqualTo(shouldMatch);
+            String msg = String.format("%s should %s start with %s", p, shouldMatch ? "" : "not", other);
+            assertThat(p.startsWith(other)).describedAs(msg).isEqualTo(shouldMatch);
         }
     }
 
-    private static void checkStartsWith(boolean shouldMatch, Path p, String... prefixes){
-        for(String prefix:prefixes){
-            assertThat(p.startsWith(prefix)).isEqualTo(shouldMatch);
+    private static void checkStartsWith(boolean shouldMatch, Path p, String... prefixes) {
+        for (String prefix : prefixes) {
+            String msg = String.format("%s should %s start with %s", p, shouldMatch ? "" : "not", prefix);
+            assertThat(p.startsWith(prefix)).describedAs(msg).isEqualTo(shouldMatch);
         }
     }
 
