@@ -150,14 +150,15 @@ public class MemoryPath implements Path {
         if( parts.size() < path.parts.size()){
             return false;
         }
-        int i = parts.size()-1;
-        int j = path.parts.size() -1;
-        while ( i<=0 && j<=0){
-            if(!parts.get(i--).equals(path.parts.get(j--))){
+        int i = path.parts.size()-1;
+        int offset = parts.size() - path.parts.size();
+        while ( 0 <= i){
+            if(!parts.get(i+offset).equals(path.parts.get(i))){
                 return false;
             }
+            i--;
         }
-        return j < 0 && !(path.absolute && !absolute);
+        return i < 0 && !(path.absolute && !absolute);
     }
 
     @Override
