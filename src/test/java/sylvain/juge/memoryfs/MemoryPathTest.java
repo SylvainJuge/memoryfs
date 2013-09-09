@@ -253,6 +253,15 @@ public class MemoryPathTest {
         assertThat(abcd.startsWith(ab.getPath())).isTrue();
     }
 
+    @Test
+    public void startsAndEndsWithDoesNotNormalize(){
+        MemoryPath a = createPath("a");
+        MemoryPath bDotDotA = createPath("b/../a");
+        assertThat(bDotDotA.normalize()).isEqualTo(a);
+        assertThat(bDotDotA.startsWith(a)).isFalse();
+        assertThat(bDotDotA.endsWith(a)).isFalse();
+    }
+
 
     @Test(enabled = false)
     public void startEndWith(){
