@@ -332,7 +332,7 @@ public class MemoryPath implements Path {
 
     @Override
     public String toString() {
-        return toUri().toString();
+        return "memory: "+getPath();
     }
 
     private static class PathIterator implements Iterator<Path>{
