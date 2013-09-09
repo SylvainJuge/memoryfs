@@ -185,29 +185,22 @@ public class MemoryPathTest {
         createPath("/..");
     }
 
-    @Test
-    public void startWithAndEndWithItself(){
-        for (String s : Arrays.asList("/","/a", "/a/b", "a", "a/b", "..", ".", "../a", "../..", "../../..")) {
-            Path p = createPath(s);
-            assertThat(p.startsWith(p)).isTrue();
-            assertThat(p.endsWith(p)).isTrue();
-        }
-    }
-
     private final static List<MemoryPath> samplePaths;
     static {
         samplePaths = new ArrayList<>();
-        List<String> paths = Arrays.asList("/", "/a", "/a/b/c", "a", "a/b");
+        List<String> paths = Arrays.asList("/","/a", "/a/b", "a", "a/b", "..", ".", "../a", "../..", "../../..");
         for (String path : paths) {
             samplePaths.add(createPath(path));
         }
     }
 
     @Test
-    public void startsWithItself(){
+    public void startsAndEndsWithItself(){
         for (MemoryPath p :samplePaths) {
-            assertThat(p.startsWith(p.getPath())).isTrue();
             assertThat(p.startsWith(p)).isTrue();
+            assertThat(p.startsWith(p.getPath())).isTrue();
+            assertThat(p.endsWith(p)).isTrue();
+            assertThat(p.endsWith(p.getPath())).isTrue();
         }
     }
 
