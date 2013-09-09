@@ -146,13 +146,23 @@ public class MemoryPath implements Path {
         if( other == this){
             return true;
         }
-        toMemoryPath(other);
-        return false;
+        MemoryPath path = toMemoryPath(other);
+        if( parts.size() < path.parts.size()){
+            return false;
+        }
+        int i = parts.size()-1;
+        int j = path.parts.size() -1;
+        while ( i<=0 && j<=0){
+            if(!parts.get(i--).equals(path.parts.get(j--))){
+                return false;
+            }
+        }
+        return j < 0 && !(path.absolute && !absolute);
     }
 
     @Override
     public boolean endsWith(String other) {
-        return false;
+        return getPath().endsWith(other);
     }
 
     @Override

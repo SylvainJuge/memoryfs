@@ -265,8 +265,9 @@ public class MemoryPathTest {
 
     @Test
     public void startsAndEndsWithDoesNotNormalize(){
-        MemoryPath a = createPath("a");
-        MemoryPath bDotDotA = createPath("b/../a");
+        // Note : we take absolute paths otherwise second paths ends with a
+        MemoryPath a = createPath("/a");
+        MemoryPath bDotDotA = createPath("/b/../a");
         assertThat(bDotDotA.normalize()).isEqualTo(a);
         assertThat(bDotDotA.startsWith(a)).isFalse();
         assertThat(bDotDotA.endsWith(a)).isFalse();
