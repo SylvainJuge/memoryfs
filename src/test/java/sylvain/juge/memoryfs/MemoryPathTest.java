@@ -212,7 +212,8 @@ public class MemoryPathTest {
         Path root = createPath(rootPath);
         for(MemoryPath p: samplePaths){
             if(p.isAbsolute()){
-                assertThat(p.startsWith(root));
+                assertThat(p.startsWith(root)).isTrue();
+                assertThat(p.startsWith(rootPath)).isTrue();
             }
         }
     }
@@ -246,7 +247,7 @@ public class MemoryPathTest {
 
     @Test
     public void startsWithStringPrefix(){
-        // a/bc/c starts with a/b (which is not true for paths)
+        // a/bc/d starts with a/b (which is not true for paths)
         MemoryPath abcd = createPath("a/bc/d");
         MemoryPath ab = createPath("a/b");
         assertThat(abcd.startsWith(ab)).isFalse();
