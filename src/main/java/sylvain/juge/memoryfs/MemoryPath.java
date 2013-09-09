@@ -159,7 +159,13 @@ public class MemoryPath implements Path {
             }
             i--;
         }
-        return i < 0 && !(path.absolute && !absolute);
+        if (0 < offset) {
+            // there is an offset, path must be non-absolute to match
+            return !path.absolute;
+        } else {
+            // there is not offset, if this is absolute, then
+            return absolute || !path.absolute;
+        }
     }
 
     @Override
