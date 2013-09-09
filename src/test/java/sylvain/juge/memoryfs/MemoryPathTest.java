@@ -6,11 +6,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.*;
-import java.util.Arrays;
-import java.util.Iterator;
+import java.util.*;
 
 import static org.fest.assertions.api.Assertions.assertThat;
-import static org.fest.assertions.api.Assertions.fail;
 import static sylvain.juge.memoryfs.TestEquals.checkHashCodeEqualsConsistency;
 
 public class MemoryPathTest {
@@ -196,63 +194,238 @@ public class MemoryPathTest {
         }
     }
 
-    @Test
-    public void startWithPaths(){
-
-        Path root = createPath("/");
-        Path absoluteA = createPath("/a");
-        Path absoluteAb = createPath("/a/b");
-        Path relativeA = createPath("a");
-        Path relativeB = createPath("b");
-        Path relativeAb = createPath("a/b");
-
-        checkStartsWith(true, root, root);
-        checkStartsWith(false, root, absoluteA, absoluteAb, relativeA, relativeB, relativeAb);
-
-        checkStartsWith(true, absoluteA, absoluteA, root);
-        checkStartsWith(false, absoluteA, absoluteAb, relativeA, relativeB, relativeAb);
-
-        checkStartsWith(true, absoluteAb, absoluteAb, absoluteA, root);
-        checkStartsWith(false, absoluteAb, relativeA, relativeB, relativeAb);
-
-        checkStartsWith(true, relativeA, relativeA);
-        checkStartsWith(false, relativeA, root, absoluteA, absoluteAb, relativeB, relativeAb);
-
-        checkStartsWith(true, relativeB, relativeB);
-        checkStartsWith(false, relativeB, root, absoluteA, absoluteAb, relativeA, relativeAb);
-
-        checkStartsWith(true, relativeAb, relativeAb, relativeA);
-        checkStartsWith(false, relativeAb, root, absoluteA, absoluteAb, relativeB);
-
-
-        checkStartsWith(true, root, "/", "");
-        checkStartsWith(false, root, "/a", "a");
-
-        checkStartsWith(true, absoluteA, "/", "/a");
-        checkStartsWith(false, absoluteA, "a", "b", "a/b");
-
-        checkStartsWith(true, absoluteAb, "/", "/a", "/a/b");
-        checkStartsWith(false, absoluteAb, "a/b", "a");
+    private final static List<MemoryPath> samplePaths;
+    static {
+        samplePaths = new ArrayList<>();
+        List<String> paths = Arrays.asList("/", "/a", "/a/b/c", "a", "a/b");
+        for (String path : paths) {
+            samplePaths.add(createPath(path));
+        }
     }
+
+    @Test
+    public void startsWithItself(){
+        for (MemoryPath p :samplePaths) {
+            assertThat(p.startsWith(p.getPath())).isTrue();
+            assertThat(p.startsWith(p)).isTrue();
+        }
+    }
+
+    // TODO : make test shorter using a collection of MemoryPath (allow to get path)
+
+    @Test
+    public void absolutePathStartsWithRoot(){
+        String rootPath = "/";
+        Path root = createPath(rootPath);
+        for(MemoryPath p: samplePaths){
+            if(p.isAbsolute()){
+                assertThat(p.startsWith(root));
+            }
+        }
+    }
+
+    @Test
+    public void startsWithPrefixPaths(){
+        for(MemoryPath p:samplePaths){
+            for(int i =0;i<p.getNameCount();i++){
+                MemoryPath prefix = (MemoryPath) p.getName(i);
+                assertThat(p.startsWith(prefix)).isTrue();
+                assertThat(p.startsWith(prefix.getPath())).isTrue();
+            }
+        }
+    }
+
+    @Test
+    public void startsWithSameElementsButAbsoluteness(){
+        MemoryPath absoluteAbc = createPath("/a/b/c");
+        MemoryPath relativeAbc = createPath("a/b/c");
+        assertThat(absoluteAbc.startsWith(relativeAbc)).isFalse();
+        assertThat(absoluteAbc.startsWith(relativeAbc.getPath())).isFalse();
+    }
+
+    @Test
+    public void endsWithSameElementsButAbsoluteness(){
+        MemoryPath absoluteAbc = createPath("/a/b/c");
+        MemoryPath relativeAbc = createPath("a/b/c");
+        assertThat(absoluteAbc.endsWith(relativeAbc)).isTrue();
+        assertThat(absoluteAbc.endsWith(relativeAbc.getPath())).isTrue();
+    }
+
+    @Test
+    public void startsWithStringPrefix(){
+        // a/bc/c starts with a/b (which is not true for paths)
+        MemoryPath abcd = createPath("a/bc/d");
+        MemoryPath ab = createPath("a/b");
+        assertThat(abcd.startsWith(ab)).isFalse();
+        assertThat(abcd.startsWith(ab.getPath())).isTrue();
+    }
+
+
+    @Test(enabled = false)
+    public void startEndWith(){
+
+        String pathRoot = "/";
+        Path root = createPath(pathRoot);
+
+        String pathAbsoluteA = "/a";
+        Path absoluteA = createPath(pathAbsoluteA);
+
+        String pathAbsoluteB = "/b";
+        Path absoluteB = createPath(pathAbsoluteB);
+
+        String pathAbsoluteAb = "/a/b";
+        Path absoluteAb = createPath(pathAbsoluteAb);
+
+        String pathRelativeA = "a";
+        Path relativeA = createPath(pathRelativeA);
+
+        String pathRelativeB = "b";
+        Path relativeB = createPath(pathRelativeB);
+
+        String pathRelativeAb = "a/b";
+        Path relativeAb = createPath(pathRelativeAb);
+
+        String pathRelativeAbcd = "a/bc/d";
+        Path relativeAbcd = createPath(pathRelativeAbcd);
+
+        String pathRelativeCd = "c/d";
+        Path relativeCd = createPath(pathRelativeCd);
+
+        // check starts with path
+        Set<Path> allPaths = new HashSet<>(Arrays.asList(root, absoluteA, absoluteB, absoluteAb, relativeA, relativeB, relativeAb, relativeCd));
+
+        checkPathPart(allPaths, pathStartsWithPath, root);
+        checkPathPart(allPaths, pathStartsWithPath, absoluteA, root);
+        checkPathPart(allPaths, pathStartsWithPath, absoluteB, root);
+
+
+        checkPathPart(allPaths, pathStartsWithPath, absoluteAb, absoluteA, root);
+        checkPathPart(allPaths, pathStartsWithPath, relativeA);
+        checkPathPart(allPaths, pathStartsWithPath, relativeB);
+        checkPathPart(allPaths, pathStartsWithPath, relativeAb, relativeA);
+
+        /// check starts with string
+
+        Set<String> allPathsStrings = new HashSet<>(Arrays.asList(pathRoot, pathAbsoluteA, pathAbsoluteAb, pathRelativeA, pathRelativeB, pathRelativeAb, pathRelativeCd, pathRelativeAbcd));
+
+        checkPathPart(allPathsStrings, pathStartsWithString, absoluteA, pathRoot, pathAbsoluteA);
+        checkPathPart(allPathsStrings, pathStartsWithString, absoluteB, pathRoot, pathAbsoluteB);
+        checkPathPart(allPathsStrings, pathStartsWithString, absoluteAb, pathRoot, pathAbsoluteA, pathAbsoluteAb);
+        checkPathPart(allPathsStrings, pathStartsWithString, relativeA, pathRelativeA);
+        checkPathPart(allPathsStrings, pathStartsWithString, relativeB, pathRelativeB);
+
+        checkPathPart(allPathsStrings, pathStartsWithString, relativeAbcd, pathRelativeAbcd, pathRelativeA, pathRelativeAb);
+
+        // TODO : test assert that relativeAbcd.endsWith("c/d");
+
+        // ends with path
+        checkPathPart(allPaths, pathEndsWithPath, root);
+        checkPathPart(allPaths, pathEndsWithPath, absoluteA, root);
+        checkPathPart(allPaths, pathEndsWithPath, absoluteB, root);
+        checkPathPart(allPaths, pathEndsWithPath, absoluteAb, root, absoluteAb, relativeAb, relativeB);
+        checkPathPart(allPaths, pathEndsWithPath, relativeA);
+        checkPathPart(allPaths, pathEndsWithPath, relativeB);
+        checkPathPart(allPaths, pathEndsWithPath, relativeAb, relativeB);
+        checkPathPart(allPaths, pathEndsWithPath, relativeCd);
+
+        // ends with string
+
+        checkPathPart(allPathsStrings, pathEndsWithString, root, pathRoot);
+        checkPathPart(allPathsStrings, pathEndsWithString, absoluteA, pathRelativeA);
+
+    }
+
+
+    @SafeVarargs
+    private static  <T> void checkPathPart(Set<T> all, PathPartStrategy<T> strategy, Path p, T... matching){
+        Set<T> matchingItems = new HashSet<>(Arrays.asList(matching));
+        if( matching.length > 0){
+            assertThat(all).contains(matching);
+        }
+        for (T item : all) {
+            boolean shouldMatch = matchingItems.contains(item) || item.equals(p);
+            String msg = startEndWithMsg(shouldMatch, true, p, item);
+            assertThat(strategy.matches(p,item)).describedAs(msg).isEqualTo(shouldMatch);
+        }
+    }
+    @SafeVarargs
+    private static  <T> void checkPathPart(PathPartStrategy<T> strategy, Path p, T... matching){
+        Set<T> matchingItems = new HashSet<>(Arrays.asList(matching));
+        for (T item : matching) {
+            boolean shouldMatch = matchingItems.contains(item) || item.equals(p);
+            String msg = startEndWithMsg(shouldMatch, true, p, item);
+            assertThat(strategy.matches(p,item)).describedAs(msg).isEqualTo(shouldMatch);
+        }
+    }
+
+    private static abstract class PathPartStrategy<X> {
+        private final boolean shouldMatch;
+        private PathPartStrategy(boolean shouldMatch){
+            this.shouldMatch = shouldMatch;
+        }
+        abstract boolean matches(Path path, X other);
+
+
+    }
+    private final static PathPartStrategy<String> pathStartsWithString = new PathPartStrategy<String>(true) {
+        @Override
+        public boolean matches(Path path, String other) {
+            return path.startsWith(other);
+        }
+    };
+    private final static PathPartStrategy<Path> pathStartsWithPath = new PathPartStrategy<Path>(true) {
+        @Override
+        public boolean matches(Path path, Path other) {
+            // starts with path means property is the same as string (reverse is not true)
+            return path.startsWith(other) && ((MemoryPath)path).getPath().equals(((MemoryPath)other).getPath());
+        }
+    };
+    private final static PathPartStrategy<Path> pathEndsWithPath = new PathPartStrategy<Path>(true){
+        @Override
+        public boolean matches(Path path, Path other) {
+            // ends with path means property is the same as string (reverse is not true)
+            return path.endsWith(other) && ((MemoryPath)path).getPath().endsWith(((MemoryPath)other).getPath());
+        }
+    };
+    private final static PathPartStrategy<String> pathEndsWithString = new PathPartStrategy<String>(true) {
+        @Override
+        public boolean matches(Path path, String other) {
+            return path.endsWith(other);
+        }
+    };
+
+
+
 
     private static void checkStartsWith(boolean shouldMatch, Path p, Path... others){
         for(Path other:others){
-            String msg = String.format("%s should %s start with %s", p, shouldMatch ? "" : "not", other);
+            String msg = startEndWithMsg(shouldMatch, true, p, other);
             assertThat(p.startsWith(other)).describedAs(msg).isEqualTo(shouldMatch);
         }
     }
 
     private static void checkStartsWith(boolean shouldMatch, Path p, String... prefixes) {
         for (String prefix : prefixes) {
-            String msg = String.format("%s should %s start with %s", p, shouldMatch ? "" : "not", prefix);
+            String msg = startEndWithMsg(shouldMatch, true, p, prefix);
             assertThat(p.startsWith(prefix)).describedAs(msg).isEqualTo(shouldMatch);
         }
     }
 
     private static void checkEndsWith(boolean shouldMatch, Path p, Path... others){
         for(Path other:others){
+            String msg = startEndWithMsg(shouldMatch, false, p, other);
             assertThat(p.endsWith(other)).isEqualTo(shouldMatch);
         }
+    }
+    private static void checkEndsWith(boolean shouldMatch, Path p, String... suffixes){
+        for(String suffix:suffixes){
+            String msg = startEndWithMsg(shouldMatch, false, p, suffix);
+            assertThat(p.endsWith(suffix)).isEqualTo(shouldMatch);
+        }
+    }
+
+    private static String startEndWithMsg(boolean shouldMatch, boolean isStart, Path p, Object other){
+        return String.format("%s should %s %s with %s", p, shouldMatch ? "" : "not", isStart ? "start":"end", other);
     }
 
     @Test( expectedExceptions = ProviderMismatchException.class)
@@ -488,3 +661,4 @@ public class MemoryPathTest {
         };
     }
 }
+
