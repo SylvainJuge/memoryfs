@@ -197,14 +197,14 @@ public class MemoryPathTest {
     @Test
     public void startsAndEndsWithItself(){
         for (MemoryPath p :samplePaths) {
-            assertThat(p.startsWith(p)).isTrue();
-            assertThat(p.startsWith(p.getPath())).isTrue();
-            assertThat(p.endsWith(p)).isTrue();
-            assertThat(p.endsWith(p.getPath())).isTrue();
+            String msg = String.format("%s should start with %s", p, p);
+            assertThat(p.startsWith(p)).describedAs(msg).isTrue();
+            assertThat(p.startsWith(p.getPath())).describedAs(msg).isTrue();
+            msg = String.format("%s should end with %s", p, p);
+            assertThat(p.endsWith(p)).describedAs(msg).isTrue();
+            assertThat(p.endsWith(p.getPath())).describedAs(msg).isTrue();
         }
     }
-
-    // TODO : make test shorter using a collection of MemoryPath (allow to get path)
 
     @Test
     public void absolutePathStartsWithRoot(){
