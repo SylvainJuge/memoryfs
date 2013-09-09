@@ -63,18 +63,18 @@ public class MemoryFileSystem extends FileSystem {
     }
 
     public static Builder builder(MemoryFileSystemProvider provider) {
-        if( provider == null ){
+        if (provider == null) {
             throw new IllegalArgumentException("provider must be provided");
         }
         return new Builder(provider);
     }
 
-    URI toUri(String path){
-        if(!path.startsWith(SEPARATOR)){
+    URI toUri(String path) {
+        if (!path.startsWith(SEPARATOR)) {
             throw new InvalidPathException(path, "path must be absolute for URI conversion");
         }
         StringBuilder sb = new StringBuilder(SCHEME).append(":");
-        if(!id.isEmpty()){
+        if (!id.isEmpty()) {
             sb.append(SEPARATOR).append(id);
         }
         sb.append(path);
@@ -85,10 +85,10 @@ public class MemoryFileSystem extends FileSystem {
     // testing should focus on actual FS id, not really on it's URI representation
     // URI is more important at MemoryPath level
     URI getUri() {
-        return URI.create(SCHEME +":/" + id);
+        return URI.create(SCHEME + ":/" + id);
     }
 
-    String getId(){
+    String getId() {
         return id;
     }
 

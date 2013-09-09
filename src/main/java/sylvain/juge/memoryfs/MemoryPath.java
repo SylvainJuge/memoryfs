@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+
 import static sylvain.juge.memoryfs.MemoryFileSystem.SEPARATOR;
 
 public class MemoryPath implements Path {
@@ -112,24 +113,24 @@ public class MemoryPath implements Path {
         throw new RuntimeException("TODO : implement subpath");
     }
 
-    private static MemoryPath toMemoryPath(Path path){
-        if(!(path instanceof MemoryPath)){
+    private static MemoryPath toMemoryPath(Path path) {
+        if (!(path instanceof MemoryPath)) {
             throw new ProviderMismatchException("only memory path supported");
         }
-        return (MemoryPath)path;
+        return (MemoryPath) path;
     }
 
     @Override
     public boolean startsWith(Path other) {
-        if(other == this){
+        if (other == this) {
             return true;
         }
         MemoryPath path = toMemoryPath(other);
-        if(absolute != path.isAbsolute() || parts.size() < path.parts.size() ){
+        if (absolute != path.isAbsolute() || parts.size() < path.parts.size()) {
             return false;
         }
-        for(int i=0;i<path.parts.size();i++){
-            if(!parts.get(i).equals(path.parts.get(i))){
+        for (int i = 0; i < path.parts.size(); i++) {
+            if (!parts.get(i).equals(path.parts.get(i))) {
                 return false;
             }
         }
@@ -143,17 +144,17 @@ public class MemoryPath implements Path {
 
     @Override
     public boolean endsWith(Path other) {
-        if( other == this){
+        if (other == this) {
             return true;
         }
         MemoryPath path = toMemoryPath(other);
-        if( parts.size() < path.parts.size()){
+        if (parts.size() < path.parts.size()) {
             return false;
         }
-        int i = path.parts.size()-1;
+        int i = path.parts.size() - 1;
         int offset = parts.size() - path.parts.size();
-        while ( 0 <= i){
-            if(!parts.get(i+offset).equals(path.parts.get(i))){
+        while (0 <= i) {
+            if (!parts.get(i + offset).equals(path.parts.get(i))) {
                 return false;
             }
             i--;
@@ -224,8 +225,8 @@ public class MemoryPath implements Path {
 
     @Override
     public URI toUri() {
-        if( null == uri){
-            uri = fs.toUri((absolute ? "" : SEPARATOR )+getPath());
+        if (null == uri) {
+            uri = fs.toUri((absolute ? "" : SEPARATOR) + getPath());
         }
         return uri;
 
@@ -248,13 +249,13 @@ public class MemoryPath implements Path {
         //
     }
 
-    public String getPath(){
-        if( null != path){
+    public String getPath() {
+        if (null != path) {
             return path;
         }
         StringBuilder sb = new StringBuilder();
-        for (String part:parts) {
-            if(0 < sb.length()){
+        for (String part : parts) {
+            if (0 < sb.length()) {
                 sb.append(SEPARATOR);
             }
             sb.append(part);
@@ -332,17 +333,19 @@ public class MemoryPath implements Path {
 
     @Override
     public String toString() {
-        return "memory: "+getPath();
+        return "memory: " + getPath();
     }
 
-    private static class PathIterator implements Iterator<Path>{
+    private static class PathIterator implements Iterator<Path> {
 
         private int i;
         private Path path;
-        private PathIterator(Path path){
+
+        private PathIterator(Path path) {
             this.path = path;
             this.i = 0;
         }
+
         @Override
         public boolean hasNext() {
             return i < path.getNameCount();
