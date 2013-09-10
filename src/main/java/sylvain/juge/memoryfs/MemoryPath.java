@@ -316,7 +316,7 @@ public class MemoryPath implements Path {
         if (o == null || getClass() != o.getClass()) return false;
 
         MemoryPath other = (MemoryPath) o;
-
+        if(fs != other.fs) return false;
         if (absolute != other.absolute) return false;
         if (parts.size() != other.parts.size()) return false;
 
@@ -330,6 +330,10 @@ public class MemoryPath implements Path {
     @Override
     public int hashCode() {
         int result = 19;
+        // note : we rely on default hashcode implementation, which should return
+        // a different value for each instance, and it is consistent with implementation
+        // of equals method.
+        result = 32 * result + fs.hashCode();
         result = 31 * result + (absolute ? 1 : 0);
         for (String s : parts) {
             result = 31 * result + s.hashCode();
@@ -339,7 +343,7 @@ public class MemoryPath implements Path {
 
     @Override
     public String toString() {
-        return "memory: " + getPath();
+        return fs.toString()+" " + getPath();
     }
 
     private static class PathIterator implements Iterator<Path> {

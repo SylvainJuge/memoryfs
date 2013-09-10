@@ -85,11 +85,15 @@ public class MemoryFileSystem extends FileSystem {
     // testing should focus on actual FS id, not really on it's URI representation
     // URI is more important at MemoryPath level
     URI getUri() {
-        return URI.create(SCHEME + ":/" + id);
+        return URI.create(idString());
     }
 
     String getId() {
         return id;
+    }
+
+    private String idString(){
+        return SCHEME + ":/" + id;
     }
 
     @Override
@@ -156,5 +160,10 @@ public class MemoryFileSystem extends FileSystem {
     @Override
     public WatchService newWatchService() throws IOException {
         throw new UnsupportedOperationException("not supported");
+    }
+
+    @Override
+    public String toString() {
+        return idString();
     }
 }

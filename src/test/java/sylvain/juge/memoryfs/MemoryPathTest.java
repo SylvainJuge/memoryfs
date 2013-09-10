@@ -2,20 +2,24 @@ package sylvain.juge.memoryfs;
 
 import org.testng.annotations.Test;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.URI;
-import java.nio.file.*;
-import java.util.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.ProviderMismatchException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 import static sylvain.juge.memoryfs.TestEquals.checkHashCodeEqualsConsistency;
 
 public class MemoryPathTest {
 
+    private static final MemoryFileSystem defaultFs = createFs();
+
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void fileSystemRequired() {
-        MemoryPath.create(null,"/anypath");
+        MemoryPath.create(null, "/anypath");
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
@@ -120,6 +124,21 @@ public class MemoryPathTest {
     }
 
     @Test
+    public void pathEqualityWorksOnlyWithIdenticalFileSystemInstance() {
+        // similar paths but not in the same file system are not equal
+        String path = "/a/b/c";
+        MemoryFileSystem fs1 = createFs();
+        MemoryFileSystem fs2 = createFs();
+        MemoryPath path1 = MemoryPath.create(fs1, path);
+        MemoryPath path2 = MemoryPath.create(fs2, path);
+        assertThat(path1.getPath()).isEqualTo(path2.getPath());
+        assertThat(path1.getFileSystem()).isNotSameAs(path2.getFileSystem());
+        assertThat(path1).isNotEqualTo(path2);
+        assertThat(path1.hashCode()).isNotEqualTo(path2.hashCode());
+    }
+
+
+    @Test
     public void equalsHashCodeWithItself() {
         Path p;
         p = createPath("/absolute");
@@ -186,17 +205,18 @@ public class MemoryPathTest {
     }
 
     private final static List<MemoryPath> samplePaths;
+
     static {
         samplePaths = new ArrayList<>();
-        List<String> paths = Arrays.asList("/","/a", "/a/b", "a", "a/b", "..", ".", "../a", "../..", "../../..");
+        List<String> paths = Arrays.asList("/", "/a", "/a/b", "a", "a/b", "..", ".", "../a", "../..", "../../..");
         for (String path : paths) {
             samplePaths.add(createPath(path));
         }
     }
 
     @Test
-    public void startsAndEndsWithItself(){
-        for (MemoryPath p :samplePaths) {
+    public void startsAndEndsWithItself() {
+        for (MemoryPath p : samplePaths) {
             String msg = String.format("%s should start with %s", p, p);
             assertThat(p.startsWith(p)).describedAs(msg).isTrue();
             assertThat(p.startsWith(p.getPath())).describedAs(msg).isTrue();
@@ -207,11 +227,11 @@ public class MemoryPathTest {
     }
 
     @Test
-    public void absolutePathStartsWithRoot(){
+    public void absolutePathStartsWithRoot() {
         String rootPath = "/";
         Path root = createPath(rootPath);
-        for(MemoryPath p: samplePaths){
-            if(p.isAbsolute()){
+        for (MemoryPath p : samplePaths) {
+            if (p.isAbsolute()) {
                 assertThat(p.startsWith(root)).isTrue();
                 assertThat(p.startsWith(rootPath)).isTrue();
             }
@@ -219,9 +239,9 @@ public class MemoryPathTest {
     }
 
     @Test
-    public void startsWithPrefixPaths(){
-        for(MemoryPath p:samplePaths){
-            for(int i =0;i<p.getNameCount();i++){
+    public void startsWithPrefixPaths() {
+        for (MemoryPath p : samplePaths) {
+            for (int i = 0; i < p.getNameCount(); i++) {
                 MemoryPath prefix = (MemoryPath) p.getName(i);
                 assertThat(p.startsWith(prefix)).isTrue();
                 assertThat(p.startsWith(prefix.getPath())).isTrue();
@@ -230,7 +250,7 @@ public class MemoryPathTest {
     }
 
     @Test
-    public void startsWithSameElementsButAbsoluteness(){
+    public void startsWithSameElementsButAbsoluteness() {
         MemoryPath absoluteAbc = createPath("/a/b/c");
         MemoryPath relativeAbc = createPath("a/b/c");
         assertThat(absoluteAbc.startsWith(relativeAbc)).isFalse();
@@ -238,7 +258,7 @@ public class MemoryPathTest {
     }
 
     @Test
-    public void endsWithSameElementsButAbsoluteness(){
+    public void endsWithSameElementsButAbsoluteness() {
         MemoryPath absoluteAbc = createPath("/a/b/c");
         MemoryPath relativeAbc = createPath("a/b/c");
         assertThat(absoluteAbc.endsWith(relativeAbc)).isTrue();
@@ -246,7 +266,7 @@ public class MemoryPathTest {
     }
 
     @Test
-    public void startsWithStringPrefix(){
+    public void startsWithStringPrefix() {
         // a/bc/d starts with a/b (which is not true for paths)
         MemoryPath abcd = createPath("a/bc/d");
         MemoryPath ab = createPath("a/b");
@@ -255,7 +275,7 @@ public class MemoryPathTest {
     }
 
     @Test
-    public void endsWithStringPrefix(){
+    public void endsWithStringPrefix() {
         // a/bc/d ends with c/d (which is not true for paths)
         MemoryPath abcd = createPath("a/bc/d");
         MemoryPath cd = createPath("c/d");
@@ -264,7 +284,7 @@ public class MemoryPathTest {
     }
 
     @Test
-    public void startsAndEndsWithDoesNotNormalize(){
+    public void startsAndEndsWithDoesNotNormalize() {
         // Note : we take absolute paths otherwise second paths ends with a
         MemoryPath a = createPath("/a");
         MemoryPath bDotDotA = createPath("/b/../a");
@@ -273,33 +293,33 @@ public class MemoryPathTest {
         assertThat(bDotDotA.endsWith(a)).isFalse();
     }
 
-    @Test( expectedExceptions = ProviderMismatchException.class)
-    public void startsWithWrongPathType(){
+    @Test(expectedExceptions = ProviderMismatchException.class)
+    public void startsWithWrongPathType() {
         createPath("/").startsWith(anotherPathType());
     }
 
-    @Test( expectedExceptions = ProviderMismatchException.class)
-    public void endsWithWrongPathType(){
+    @Test(expectedExceptions = ProviderMismatchException.class)
+    public void endsWithWrongPathType() {
         createPath("/").endsWith(anotherPathType());
     }
 
-    @Test( expectedExceptions = ProviderMismatchException.class)
-    public void resolveWithWrongPathType(){
+    @Test(expectedExceptions = ProviderMismatchException.class)
+    public void resolveWithWrongPathType() {
         createPath("/").resolve(anotherPathType());
     }
 
-    @Test( expectedExceptions = ProviderMismatchException.class)
-    public void resolveSiblingWithWrongPathType(){
+    @Test(expectedExceptions = ProviderMismatchException.class)
+    public void resolveSiblingWithWrongPathType() {
         createPath("/").resolve(anotherPathType());
     }
 
-    @Test( expectedExceptions = ProviderMismatchException.class)
-    public void relativizeWithWrongPathType(){
+    @Test(expectedExceptions = ProviderMismatchException.class)
+    public void relativizeWithWrongPathType() {
         createPath("/").relativize(anotherPathType());
     }
 
-    @Test( expectedExceptions = ProviderMismatchException.class)
-    public void compareToWithWrongPathType(){
+    @Test(expectedExceptions = ProviderMismatchException.class)
+    public void compareToWithWrongPathType() {
         createPath("/").compareTo(anotherPathType());
     }
 
@@ -312,15 +332,15 @@ public class MemoryPathTest {
 
         // check parents through iterable interface
         Path[] expectedPaths = new Path[expectedParts.length];
-        int i=0;
+        int i = 0;
         for (String part : expectedParts) {
             expectedPaths[i++] = createPath(part);
         }
         assertThat(p).containsSequence(expectedPaths);
 
         // test each of them through getName
-        i=0;
-        for (Path part:expectedPaths) {
+        i = 0;
+        for (Path part : expectedPaths) {
             assertThat(part).isEqualTo(p.getName(i));
             if (i == 0) {
                 // getName(0) return identity;
@@ -361,7 +381,7 @@ public class MemoryPathTest {
     }
 
     private static MemoryPath createPath(String path) {
-        MemoryPath result = MemoryPath.create(createFs(), path);
+        MemoryPath result = MemoryPath.create(defaultFs, path);
         URI uri = result.toUri();
         assertThat(uri.getScheme()).isEqualTo("memory");
         return result;
@@ -372,7 +392,7 @@ public class MemoryPathTest {
         return MemoryFileSystem.builder(provider).build();
     }
 
-    private static Path anotherPathType(){
+    private static Path anotherPathType() {
         Path path = Paths.get("/dummy/path/in/default/fs");
         assertThat(path).isNotInstanceOf(MemoryPath.class);
         return path;
