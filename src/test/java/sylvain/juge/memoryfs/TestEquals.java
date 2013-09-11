@@ -4,7 +4,7 @@ import static org.fest.assertions.api.Assertions.assertThat;
 
 public final class TestEquals {
 
-    private TestEquals(){
+    private TestEquals() {
         // uncallable constructor
     }
 

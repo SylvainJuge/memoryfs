@@ -20,7 +20,7 @@ public class MemoryFileStoreTest {
     }
 
     @Test
-    public void createReadOnly(){
+    public void createReadOnly() {
         MemoryFileStore store = MemoryFileStore.builder()
                 .readOnly(true)
                 .build();

@@ -7,7 +7,10 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.*;
 import java.nio.file.spi.FileSystemProvider;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ServiceLoader;
+import java.util.Set;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.fest.assertions.api.Fail.fail;
@@ -46,7 +49,7 @@ public class MemoryFileSystemProviderTest {
     }
 
     @Test(expectedExceptions = FileSystemNotFoundException.class)
-    public void getBeforeCreateThrowsException(){
+    public void getBeforeCreateThrowsException() {
         FileSystems.getFileSystem(URI.create("memory:/"));
     }
 
@@ -196,7 +199,7 @@ public class MemoryFileSystemProviderTest {
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
-    public void hostNameInUriShouldNotBeAllowed(){
+    public void hostNameInUriShouldNotBeAllowed() {
         createAndGet(getNewProvider(), URI.create("memory://id/"));
     }
 
@@ -242,7 +245,7 @@ public class MemoryFileSystemProviderTest {
         assertThat(provider.registeredFileSystems().get(id)).isSameAs(fs);
         assertThat(provider.getFileSystem(uri)).isSameAs(fs);
 
-        return (MemoryFileSystem)fs;
+        return (MemoryFileSystem) fs;
     }
 
 

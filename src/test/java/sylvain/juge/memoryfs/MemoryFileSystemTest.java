@@ -6,13 +6,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.fest.assertions.api.Assertions.assertThat;
-import static org.fest.assertions.api.Fail.fail;
 
 public class MemoryFileSystemTest {
 
@@ -38,7 +33,7 @@ public class MemoryFileSystemTest {
     }
 
     @Test
-    public void defaultIdInUri(){
+    public void defaultIdInUri() {
         MemoryFileSystemProvider provider = newProvider();
         MemoryFileSystem fs = MemoryFileSystem
                 .builder(provider)
@@ -47,7 +42,7 @@ public class MemoryFileSystemTest {
     }
 
     @Test
-    public void buildThroughBuilderWithExplicitIdInUri(){
+    public void buildThroughBuilderWithExplicitIdInUri() {
         MemoryFileSystemProvider provider = newProvider();
         MemoryFileSystem fs = MemoryFileSystem
                 .builder(provider)
@@ -60,7 +55,7 @@ public class MemoryFileSystemTest {
     public void buildThroughUriWithExplicitIdInUri() throws IOException {
         MemoryFileSystemProvider provider = newProvider();
         URI uri = URI.create("memory:/fsId");
-        MemoryFileSystem fs = (MemoryFileSystem)provider.newFileSystem(uri, null);
+        MemoryFileSystem fs = (MemoryFileSystem) provider.newFileSystem(uri, null);
         assertThat(fs.getUri()).isEqualTo(uri);
     }
 
@@ -109,14 +104,14 @@ public class MemoryFileSystemTest {
 
         // singlefile store by default or size zero
         assertThat(fs.getFileStores()).hasSize(1);
-        for(FileStore store:fs.getFileStores()){
+        for (FileStore store : fs.getFileStores()) {
             assertThat(store.getTotalSpace()).isEqualTo(0);
             assertThat(store.getUnallocatedSpace()).isEqualTo(0);
             assertThat(store.getUsableSpace()).isEqualTo(0);
         }
     }
 
-    private static MemoryFileSystemProvider newProvider(){
+    private static MemoryFileSystemProvider newProvider() {
         return new MemoryFileSystemProvider();
     }
 
