@@ -306,7 +306,7 @@ public class MemoryPath implements Path {
 
     @Override
     public int compareTo(Path other) {
-        MemoryPath path = toMemoryPath(other);
+        MemoryPath path = (MemoryPath)other;
         if (absolute && !path.absolute) {
             return -1;
         } else if (!absolute && path.absolute) {

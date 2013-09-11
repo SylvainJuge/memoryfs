@@ -318,7 +318,7 @@ public class MemoryPathTest {
         createPath("/").relativize(anotherPathType());
     }
 
-    @Test(expectedExceptions = ProviderMismatchException.class)
+    @Test(expectedExceptions = ClassCastException.class)
     public void compareToWithWrongPathType() {
         createPath("/").compareTo(anotherPathType());
     }
