@@ -344,7 +344,7 @@ public class MemoryPath implements Path {
     public int hashCode() {
         int result = 19;
         // note : we rely on default hashcode implementation, which should return
-        // a different value for each instance, and it is consistent with implementation
+        // a different value for each fs instance, and it is consistent with implementation
         // of equals method.
         result = 32 * result + fs.hashCode();
         result = 31 * result + (absolute ? 1 : 0);
