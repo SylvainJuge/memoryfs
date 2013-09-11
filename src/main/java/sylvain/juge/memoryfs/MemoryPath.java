@@ -285,8 +285,7 @@ public class MemoryPath implements Path {
 
     @Override
     public File toFile() {
-        // TODO : how to create file instance that is mapped to memory for legacy ?
-        return null;
+        throw new  UnsupportedOperationException("not supported");
     }
 
     @Override

@@ -365,6 +365,11 @@ public class MemoryPathTest {
         createPath("/").register(null, null, new WatchEvent.Modifier[0]);
     }
 
+    @Test(expectedExceptions = UnsupportedOperationException.class)
+    public void toFileNotSupported(){
+        createPath("/").toFile();
+    }
+
     private static void checkCompareToStrictOrder(String... paths) {
         if (paths.length < 2) {
             throw new IllegalArgumentException("at least 2 paths expected");
