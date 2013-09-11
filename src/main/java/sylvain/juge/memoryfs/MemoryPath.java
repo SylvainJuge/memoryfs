@@ -45,7 +45,7 @@ public class MemoryPath implements Path {
             throw new IllegalArgumentException("filesytem required");
         }
         if (start < 0 || parts.size() < end || end < start) {
-            throw new IllegalArgumentException(String.format("invalid range [%d,%d[ in list %s", start, end, Arrays.toString(parts.toArray())));
+            throw new IllegalArgumentException(String.format("invalid range [%d,%d[ in interval [0,%d[ %s", start, end, parts.size()));
         }
         this.fs = fs;
         this.parts = parts.subList(start, end);
@@ -110,7 +110,7 @@ public class MemoryPath implements Path {
 
     @Override
     public Path subpath(int beginIndex, int endIndex) {
-        throw new RuntimeException("TODO : implement subpath");
+        return new MemoryPath(fs, parts, beginIndex, endIndex, false);
     }
 
     private static MemoryPath toMemoryPath(Path path) {

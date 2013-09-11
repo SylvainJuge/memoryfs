@@ -355,6 +355,39 @@ public class MemoryPathTest {
         checkCompareToStrictOrder("a/b", "a/b/c");
     }
 
+    @Test
+    public void subPathReturnsRelativePath() {
+        // get all items of a path
+        // check that resulting path is the same as original, but in relative
+        // we also check that start is inclusive, and end is exclusive
+        MemoryPath path = createPath("/a/b/c");
+        assertThat(path.isAbsolute()).isTrue();
+        assertThat(path.subpath(0, path.getNameCount())).isEqualTo(createPath("a/b/c"));
+        assertThat(path.subpath(0, 1)).isEqualTo(createPath("a"));
+        assertThat(path.subpath(1, 2)).isEqualTo(createPath("b"));
+        assertThat(path.subpath(2, 3)).isEqualTo(createPath("c"));
+        assertThat(path.subpath(0, 2)).isEqualTo(createPath("a/b"));
+        assertThat(path.subpath(1, 3)).isEqualTo(createPath("b/c"));
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void subPathWithoutElementsAskMoreThanAvailable(){
+        MemoryPath path = createPath("/");
+        assertThat(path.getNameCount()).isEqualTo(0);
+        path.subpath(0,1);
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void subPathNegativeStart(){
+        createPath("/a").subpath(-1, 0);
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void subPathStartAfterEnd(){
+        createPath("/a/b").subpath(2,1);
+    }
+
+
     @Test(expectedExceptions = UnsupportedOperationException.class)
     public void watchRegisterNotSupported1() throws IOException {
         createPath("/").register(null, new WatchEvent.Kind[0]);
