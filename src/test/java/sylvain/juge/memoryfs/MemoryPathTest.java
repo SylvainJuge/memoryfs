@@ -186,16 +186,16 @@ public class MemoryPathTest {
     @Test
     public void normalizeNormalizedOrNonNormalizablePaths() {
         for (String s : Arrays.asList("/a", "/a/b", "a", "a/b", "..", ".", "../a", "../..", "../../..")) {
-            checkNormalize(s, s);
+            checkAlreadyNormalized(s, s);
         }
     }
 
     @Test
     public void normalizeNormalizablePaths() {
-        checkNormalize("/a/../b", "/b");
-        checkNormalize("/./a", "/a");
-        checkNormalize("a/../b/../c", "c");
-        checkNormalize("a/./b/.", "a/b");
+        checkAlreadyNormalized("/a/../b", "/b");
+        checkAlreadyNormalized("/./a", "/a");
+        checkAlreadyNormalized("a/../b/../c", "c");
+        checkAlreadyNormalized("a/./b/.", "a/b");
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
@@ -323,7 +323,57 @@ public class MemoryPathTest {
         createPath("/").compareTo(anotherPathType());
     }
 
-    private static void checkNormalize(String p, String expected) {
+    @Test
+    public void compareWithItselfAndEqualInstance(){
+        MemoryPath path = createPath("/a/b/c");
+        assertThat(path.compareTo(path)).isEqualTo(0);
+
+        MemoryPath other = createPath(path.getPath());
+        assertThat(path.compareTo(other)).isEqualTo(0);
+    }
+
+    @Test
+    public void compareToUsesNaturalOrder(){
+        checkCompareToStrictOrder("/a", "/b", "/c");
+    }
+
+    @Test
+    public void compareToAbsolutesFirst(){
+        checkCompareToStrictOrder("/a", "/b", "/c", "a", "b", "c");
+    }
+
+    @Test
+    public void compareToDepthFirstOrdering(){
+        // sub-paths of X are before paths that are after X
+        checkCompareToStrictOrder("a", "a/b", "ab");
+    }
+
+    @Test
+    public void compareToShortestFirst(){
+        checkCompareToStrictOrder("a/b", "a/b/c");
+    }
+
+    private static void checkCompareToStrictOrder(String... paths){
+        if(paths.length <2){
+            throw new IllegalArgumentException("at least 2 paths expected");
+        }
+        for(int i=1;i<paths.length;i++){
+            checkCompareIsBefore(createPath(paths[i-1]),createPath(paths[i]));
+        }
+    }
+
+    private static void checkCompareIsBefore(MemoryPath first, MemoryPath second){
+        int firstToSecond = first.compareTo(second);
+        int secondToFirst = second.compareTo(first);
+        if(first.equals(second)){
+           assertThat(firstToSecond).isEqualTo(secondToFirst).isEqualTo(0);
+        } else {
+            assertThat(firstToSecond).describedAs(first + " must be before " + second).isLessThan(0);
+            assertThat(secondToFirst).describedAs(second +" must be after "+first).isGreaterThan(0);
+        }
+    }
+
+    private static void checkAlreadyNormalized(String p, String expected) {
         assertThat(createPath(p).normalize()).isEqualTo(createPath(expected));
     }
 

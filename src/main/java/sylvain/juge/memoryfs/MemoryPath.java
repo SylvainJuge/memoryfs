@@ -306,8 +306,21 @@ public class MemoryPath implements Path {
 
     @Override
     public int compareTo(Path other) {
-        toMemoryPath(other);
-        return 0;
+        MemoryPath path = toMemoryPath(other);
+        if (absolute && !path.absolute) {
+            return -1;
+        } else if (!absolute && path.absolute) {
+            return 1;
+        }
+        int max = Math.min(path.parts.size(), parts.size());
+        for (int i = 0; i < max; i++) {
+            int itemCompare = parts.get(i).compareTo(path.parts.get(i));
+            if (itemCompare != 0) {
+                return itemCompare;
+            }
+        }
+        // shortest first
+        return parts.size() - path.parts.size();
     }
 
     @Override
