@@ -291,12 +291,12 @@ public class MemoryPath implements Path {
 
     @Override
     public WatchKey register(WatchService watcher, WatchEvent.Kind<?>[] events, WatchEvent.Modifier... modifiers) throws IOException {
-        return null;
+        throw new UnsupportedOperationException("not supported yet");
     }
 
     @Override
     public WatchKey register(WatchService watcher, WatchEvent.Kind<?>... events) throws IOException {
-        return null;
+        throw new UnsupportedOperationException("not supported yet");
     }
 
     @Override

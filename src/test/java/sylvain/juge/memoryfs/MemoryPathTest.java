@@ -2,10 +2,12 @@ package sylvain.juge.memoryfs;
 
 import org.testng.annotations.Test;
 
+import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.ProviderMismatchException;
+import java.nio.file.WatchEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -351,6 +353,16 @@ public class MemoryPathTest {
     @Test
     public void compareToShortestFirst() {
         checkCompareToStrictOrder("a/b", "a/b/c");
+    }
+
+    @Test(expectedExceptions = UnsupportedOperationException.class)
+    public void watchRegisterNotSupported1() throws IOException {
+        createPath("/").register(null, new WatchEvent.Kind[0]);
+    }
+
+    @Test(expectedExceptions = UnsupportedOperationException.class)
+    public void watchRegisterNotSupported2() throws IOException {
+        createPath("/").register(null, null, new WatchEvent.Modifier[0]);
     }
 
     private static void checkCompareToStrictOrder(String... paths) {
