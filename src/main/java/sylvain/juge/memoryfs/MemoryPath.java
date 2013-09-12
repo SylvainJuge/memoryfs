@@ -214,13 +214,24 @@ public class MemoryPath implements Path {
 
     @Override
     public Path resolveSibling(Path other) {
-        toMemoryPath(other);
-        return null;
+        MemoryPath path = toMemoryPath(other);
+        if(path.isAbsolute() || parts.size() < 2){
+            return path;
+        }
+        return toSibling(parts.size()-1, path);
+    }
+
+    private Path toSibling(int end, MemoryPath sibling){
+        List<String> newParts = parts.subList(0,parts.size()-1);
+        for(String s:sibling.parts){
+            newParts.add(s);
+        }
+        return new MemoryPath(fs, newParts, 0, newParts.size(), absolute);
     }
 
     @Override
     public Path resolveSibling(String other) {
-        return null;
+        return resolveSibling(create(fs, other));
     }
 
     @Override

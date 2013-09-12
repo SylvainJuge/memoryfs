@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.fest.assertions.api.Assertions.assertThat;
+import static org.fest.assertions.api.Assertions.fail;
 import static sylvain.juge.memoryfs.TestEquals.checkHashCodeEqualsConsistency;
 
 public class MemoryPathTest {
@@ -387,7 +388,6 @@ public class MemoryPathTest {
         createPath("/a/b").subpath(2,1);
     }
 
-
     @Test(expectedExceptions = UnsupportedOperationException.class)
     public void watchRegisterNotSupported1() throws IOException {
         createPath("/").register(null, new WatchEvent.Kind[0]);
@@ -401,6 +401,53 @@ public class MemoryPathTest {
     @Test(expectedExceptions = UnsupportedOperationException.class)
     public void toFileNotSupported(){
         createPath("/").toFile();
+    }
+
+    @Test
+    public void resolvePath(){
+        // ? resolve ( /a ) -> /a
+        // ? resolve ( / ) -> /
+        // a resolve ( b ) -> a/b
+        // /a resolve ( b ) -> /a/b
+        // /a resolve ( b/c ) -> /a/b/c
+        fail("TOOD : resolve(Path)");
+    }
+
+    @Test
+    public void resolveString(){
+        fail("TOOD : resolve(Path)");
+    }
+
+    @Test
+    public void relativize(){
+        fail("TOOD : relativize)");
+    }
+
+    @Test
+    public void resolveSiblingPath(){
+        // base case
+        checkResolveSiblingPath("a/b","c","a/c");
+
+        // absolute siblings
+        checkResolveSiblingPath("a/b","/","/");
+        checkResolveSiblingPath("a/b","/b","/b");
+
+        // a has no parent
+        checkResolveSiblingPath("a","b","b");
+        checkResolveSiblingPath("a","/b","/b");
+        checkResolveSiblingPath("/","c","c");
+
+        // Note : we don't allow empty paths (even if javadoc seems to allow it)
+    }
+
+    @Test
+    public void resolveSiblingString(){
+        assertThat(createPath("a/b").resolveSibling("c/d")).isEqualTo(createPath("a/c/d"));
+        assertThat(createPath("a").resolveSibling("/b")).isEqualTo(createPath("/b"));
+    }
+
+    private static void checkResolveSiblingPath(String base, String sibling, String expected){
+        assertThat(createPath(base).resolveSibling(createPath(sibling))).isEqualTo(createPath(expected));
     }
 
     private static void checkCompareToStrictOrder(String... paths) {
