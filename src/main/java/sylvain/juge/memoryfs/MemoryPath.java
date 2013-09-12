@@ -203,13 +203,16 @@ public class MemoryPath implements Path {
 
     @Override
     public Path resolve(Path other) {
-        toMemoryPath(other);
-        return null;
+        MemoryPath path = toMemoryPath(other);
+        if (other.isAbsolute()) {
+            return path;
+        }
+        return toSibling(parts.size(), path);
     }
 
     @Override
     public Path resolve(String other) {
-        return null;
+        return resolve(create(fs, other));
     }
 
     @Override
@@ -222,7 +225,7 @@ public class MemoryPath implements Path {
     }
 
     private Path toSibling(int end, MemoryPath sibling){
-        List<String> newParts = parts.subList(0,parts.size()-1);
+        List<String> newParts = parts.subList(0,end);
         for(String s:sibling.parts){
             newParts.add(s);
         }

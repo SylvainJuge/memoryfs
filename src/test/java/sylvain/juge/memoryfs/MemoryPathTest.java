@@ -405,17 +405,22 @@ public class MemoryPathTest {
 
     @Test
     public void resolvePath(){
-        // ? resolve ( /a ) -> /a
-        // ? resolve ( / ) -> /
-        // a resolve ( b ) -> a/b
-        // /a resolve ( b ) -> /a/b
-        // /a resolve ( b/c ) -> /a/b/c
-        fail("TOOD : resolve(Path)");
+        checkResolvePath("a/b", "/a", "/a");
+        checkResolvePath("a/b", "/", "/");
+        checkResolvePath("/a", "/b", "/b");
+
+        checkResolvePath("a", "b", "a/b");
+        checkResolvePath("/a", "b/c", "/a/b/c");
+        checkResolvePath("/", "a/b", "/a/b");
     }
+
+    // TODO : InvalidPathException when string is not a valid path
 
     @Test
     public void resolveString(){
-        fail("TOOD : resolve(Path)");
+        assertThat(createPath("a/b").resolve("c/d")).isEqualTo(createPath("a/b/c/d"));
+        assertThat(createPath("a/b").resolve("/c")).isEqualTo(createPath("/c"));
+        assertThat(createPath("/").resolve("c")).isEqualTo(createPath("/c"));
     }
 
     @Test
@@ -444,6 +449,10 @@ public class MemoryPathTest {
     public void resolveSiblingString(){
         assertThat(createPath("a/b").resolveSibling("c/d")).isEqualTo(createPath("a/c/d"));
         assertThat(createPath("a").resolveSibling("/b")).isEqualTo(createPath("/b"));
+    }
+
+    private static void checkResolvePath(String path, String toResolve, String expected){
+        assertThat(createPath(path).resolve(createPath(toResolve))).isEqualTo(createPath(expected));
     }
 
     private static void checkResolveSiblingPath(String base, String sibling, String expected){
