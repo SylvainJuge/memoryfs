@@ -425,6 +425,23 @@ public class MemoryPathTest {
 
     @Test
     public void relativize(){
+        // a/b relativize( a/b/c/d ) -> c/d
+        // /a/b relativize( /a/b/c/d -> c/d
+        // /a/b relativize( /c/d ) -> ../../c/d
+
+        // -> relatize is the inverse of resolve <-
+        // for two normalized paths p,q
+        // p.relativize(p.resolve(q)).equals(q)
+
+        // empty path when paths are equal ?
+        // -> we don't allow for "empty" paths
+
+        // -> nothing in common : IllegalArgumentException
+        // when not in the same FS instance
+        // a relativize( / )
+        // /a relativize( b )
+        // a/b relativize( c/d )
+
         fail("TOOD : relativize)");
     }
 
