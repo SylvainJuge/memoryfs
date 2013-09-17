@@ -91,6 +91,29 @@ public class MemorySeekableByteChannelTest {
     // - write when position is at the end of buffer -> exception ?
     // - write should increase position
     //
+
+    @Test
+    public void setPosition() throws IOException {
+        MemorySeekableByteChannel c = create(10);
+        assertThat(c.position()).isEqualTo(0);
+        assertThat(c.position(5)).isSameAs(c);
+        assertThat(c.position()).isEqualTo(5);
+        assertThat(c.position(0)).isSameAs(c);
+        assertThat(c.position(9)).isSameAs(c);
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void netagivePositionNotAllowed() throws IOException {
+        MemorySeekableByteChannel c = create(0);
+        c.position(-1);
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void outOfBoundPositionNotAllowed() throws IOException {
+        MemorySeekableByteChannel c = create(1);
+        c.position(1);
+    }
+
     // set & get position
     // - set position then get it
     // - set position <0 -> exception

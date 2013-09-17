@@ -36,12 +36,16 @@ public class MemorySeekableByteChannel implements SeekableByteChannel {
 
     @Override
     public long position() throws IOException {
-        return 0;
+        return position;
     }
 
     @Override
     public SeekableByteChannel position(long newPosition) throws IOException {
-        return null;
+        if( newPosition < 0 || size <= newPosition){
+            throw new IllegalArgumentException("position out of bounds : "+newPosition);
+        }
+        this.position = newPosition;
+        return this;
     }
 
     @Override
