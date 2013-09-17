@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -239,8 +238,40 @@ public class MemoryPath implements Path {
 
     @Override
     public Path relativize(Path other) {
-        toMemoryPath(other);
-        return null;
+        if (equals(other)) {
+            return create(fs, ONE_DOT);
+        }
+        MemoryPath path = toMemoryPath(other);
+        if (absolute != path.absolute) {
+            return path;
+        }
+        // a/b a/b/c/d -> test if first path is prefix of other, return suffix
+        int i = 0;
+        while (i < parts.size() && i < path.parts.size() && parts.get(i).equals(path.parts.get(i))) {
+            i++;
+        }
+
+        // with absolute paths, we can always compute a relative path since they share the root
+        boolean relativePathBetweenAbsolutes = (i == 0 && absolute);
+
+        // no prefix in common
+        if (i <= 0 && !relativePathBetweenAbsolutes) {
+            return other;
+        }
+        // we have some prefix in common
+        if (0 < i && i <= parts.size()) {
+            // other path is longer
+            // this path is a prefix, we return remaining part of other path
+            return path.subpath(i, path.getNameCount());
+        }
+        // this path is longer or same length -> we have to add .. to remove all trailing levels
+        int trailingCount = relativePathBetweenAbsolutes ? parts.size() : parts.size() - path.parts.size();
+        List<String> relativePath = new ArrayList<>();
+        for (int j = 0; j < trailingCount; j++) {
+            relativePath.add(TWO_DOTS);
+        }
+        relativePath.addAll(path.parts.subList(i, parts.size()));
+        return new MemoryPath(fs, relativePath, 0, relativePath.size(), false);
     }
 
     @Override

@@ -4,10 +4,7 @@ import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.net.URI;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.ProviderMismatchException;
-import java.nio.file.WatchEvent;
+import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -424,25 +421,29 @@ public class MemoryPathTest {
     }
 
     @Test
-    public void relativize(){
-        // a/b relativize( a/b/c/d ) -> c/d
-        // /a/b relativize( /a/b/c/d -> c/d
-        // /a/b relativize( /c/d ) -> ../../c/d
+    public void relativize() {
 
-        // -> relatize is the inverse of resolve <-
-        // for two normalized paths p,q
-        // p.relativize(p.resolve(q)).equals(q)
+        checkRelativize("a/b", "a/b/c/d", "c/d");
+        checkRelativize("/a/b", "/a/b/c/d", "c/d");
+        checkRelativize("/a/b", "/c/d", "../../c/d");
 
-        // empty path when paths are equal ?
-        // -> we don't allow for "empty" paths
+        // equal paths : return the path itself
+        checkRelativize("a/b", "a/b", ".");
 
-        // -> nothing in common : IllegalArgumentException
-        // when not in the same FS instance
-        // a relativize( / )
-        // /a relativize( b )
-        // a/b relativize( c/d )
+        // not possible to compute relative path, return direct path
+        // not really intuitive, returning null may be more meaningful since we
+        // can't return a "relative" path, between those paths.
+        // as user, we have to check result of relativize to check if
+        // result equals second argument.
+        checkRelativize("a", "/", "/");
+        checkRelativize("/a", "b", "b");
+        checkRelativize("a/b","c/d", "c/d");
 
-        fail("TOOD : relativize)");
+        // TODO : add some tests with relative paths : ..
+    }
+
+    private static void checkRelativize(String first, String toRelativize, String expected){
+        assertThat(createPath(first).relativize(createPath(toRelativize))).isEqualTo(createPath(expected));
     }
 
     @Test
