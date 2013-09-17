@@ -20,11 +20,17 @@ public class MemorySeekableByteChannel implements SeekableByteChannel {
 
     @Override
     public int read(ByteBuffer dst) throws IOException {
+        if(!open){
+            throw new ClosedChannelException();
+        }
         return 0;
     }
 
     @Override
     public int write(ByteBuffer src) throws IOException {
+        if(!open){
+            throw new ClosedChannelException();
+        }
         return 0;
     }
 

@@ -41,6 +41,20 @@ public class MemorySeekableByteChannelTest {
         c.close();
     }
 
+    @Test(expectedExceptions = ClosedChannelException.class)
+    public void readClosed() throws IOException {
+        MemorySeekableByteChannel c = create(0);
+        c.close();
+        c.read(null);
+    }
+
+    @Test(expectedExceptions = ClosedChannelException.class)
+    public void writeClosed() throws IOException {
+        MemorySeekableByteChannel c = create(0);
+        c.close();
+        c.write(null);
+    }
+
     private static MemorySeekableByteChannel create(int size) {
         MemorySeekableByteChannel c = new MemorySeekableByteChannel(size);
         assertThat(c.isOpen()).isTrue();
@@ -58,14 +72,13 @@ public class MemorySeekableByteChannelTest {
     // operations to test
     //
     // create
-    // - with valid parameters
-    // - negative size -> exception
+    // x with valid parameters
+    // x negative size -> exception
     //
     // open & close
-    // - should be open by default
-    // - should be closed once closed() have been called
-    // - should throw exception when invoking any method once closed
-    //
+    // x should be open by default
+    // x should be closed once closed() have been called
+    // x should throw exception when invoking any method once closed
     //
     // read
     // - read known data
