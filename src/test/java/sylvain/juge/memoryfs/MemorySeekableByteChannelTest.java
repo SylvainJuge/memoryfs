@@ -67,16 +67,23 @@ public class MemorySeekableByteChannelTest {
         c.write(null);
     }
 
-    private static MemorySeekableByteChannel create(int size) {
-        MemorySeekableByteChannel c = new MemorySeekableByteChannel(size);
-        assertThat(c.isOpen()).isTrue();
-        try {
-            assertThat(c.position()).isEqualTo(0);
-            assertThat(c.size()).isEqualTo(size);
-        } catch (IOException e) {
-            fail(e.getMessage());
-        }
-        return c;
+    @Test(enabled=false)
+    public void readKnownData() {
+        byte[] data = randomBytes(100);
+
+        // TODO : how to define a byte buffer instance for test
+        // => subclassing requires a lot of work
+        // --> using a mock is probably appropriate, but probably very implementation-dependant
+        // --> since we are testing implementation, being tied to it does not seem so stupid after all
+
+        throw new RuntimeException("TODO : implement readKnownData");
+    }
+
+    private static SecureRandom rand = new SecureRandom();
+    private static byte[] randomBytes(int size){
+        byte[] result = new byte[size];
+        rand.nextBytes(result);
+        return result;
     }
 
     // TODO : test close thread safety
