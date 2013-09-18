@@ -125,10 +125,10 @@ public class MemorySeekableByteChannelTest {
     // - identical as when created
     //
     // truncate
-    // - effect on size ??
-    // - truncate to <0 -> exception
-    // - truncate to >=size -> exception
-    // - impact on position w
+    // x effect on size ??
+    // x truncate to <0 -> exception
+    // x truncate to >=size -> do nothing
+    // x impact on position w : depending on position
     //
     // thread safety
     // - open/close state
