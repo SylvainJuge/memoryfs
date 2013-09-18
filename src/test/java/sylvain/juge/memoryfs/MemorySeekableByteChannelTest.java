@@ -5,7 +5,6 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
-import java.nio.channels.SeekableByteChannel;
 import java.security.SecureRandom;
 
 import static org.fest.assertions.api.Assertions.assertThat;
@@ -15,22 +14,35 @@ public class MemorySeekableByteChannelTest {
 
     @Test
     public void buildEmptyChannel() throws IOException {
-        create(0);
+        new MemorySeekableByteChannel(0);
     }
 
     @Test
     public void buildNonEmptyChannel() {
-        create(42);
+        new MemorySeekableByteChannel(42);
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void buildInvalidSizeChannel() {
-        create(-1);
+        int size = -1;
+        new MemorySeekableByteChannel(size);
+    }
+
+    @Test
+    public void openByDefault() {
+        MemorySeekableByteChannel c = new MemorySeekableByteChannel(0);
+        assertThat(c.isOpen()).isTrue();
+    }
+
+    @Test
+    public void sizeAsExpected() throws IOException {
+        MemorySeekableByteChannel c = new MemorySeekableByteChannel(42);
+        assertThat(c.size()).isEqualTo(42);
     }
 
     @Test
     public void openCloseChannel() throws IOException {
-        MemorySeekableByteChannel c = create(0);
+        MemorySeekableByteChannel c = new MemorySeekableByteChannel(0);
         assertThat(c.isOpen()).isTrue();
         c.close();
         assertThat(c.isOpen()).isFalse();
@@ -38,21 +50,21 @@ public class MemorySeekableByteChannelTest {
 
     @Test(expectedExceptions = ClosedChannelException.class)
     public void closeTwice() throws IOException {
-        MemorySeekableByteChannel c = create(0);
+        MemorySeekableByteChannel c = new MemorySeekableByteChannel(0);
         c.close();
         c.close();
     }
 
     @Test(expectedExceptions = ClosedChannelException.class)
     public void readClosed() throws IOException {
-        MemorySeekableByteChannel c = create(0);
+        MemorySeekableByteChannel c = new MemorySeekableByteChannel(0);
         c.close();
         c.read(null);
     }
 
     @Test(expectedExceptions = ClosedChannelException.class)
     public void writeClosed() throws IOException {
-        MemorySeekableByteChannel c = create(0);
+        MemorySeekableByteChannel c = new MemorySeekableByteChannel(0);
         c.close();
         c.write(null);
     }
@@ -96,7 +108,7 @@ public class MemorySeekableByteChannelTest {
 
     @Test
     public void setPosition() throws IOException {
-        MemorySeekableByteChannel c = create(10);
+        MemorySeekableByteChannel c = new MemorySeekableByteChannel(10);
         assertThat(c.position()).isEqualTo(0);
         assertThat(c.position(5)).isSameAs(c);
         assertThat(c.position()).isEqualTo(5);
@@ -106,13 +118,13 @@ public class MemorySeekableByteChannelTest {
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void netagivePositionNotAllowed() throws IOException {
-        MemorySeekableByteChannel c = create(0);
+        MemorySeekableByteChannel c = new MemorySeekableByteChannel(0);
         c.position(-1);
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void outOfBoundPositionNotAllowed() throws IOException {
-        MemorySeekableByteChannel c = create(1);
+        MemorySeekableByteChannel c = new MemorySeekableByteChannel(1);
         c.position(1);
     }
 
@@ -122,7 +134,7 @@ public class MemorySeekableByteChannelTest {
     // x set position >=size -> exception
     //
     // get size
-    // - identical as when created
+    // x identical as when created
     //
     // truncate
     // x effect on size ??
@@ -138,13 +150,13 @@ public class MemorySeekableByteChannelTest {
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void truncateNegative() throws IOException {
-        create(1).truncate(-1);
+        new MemorySeekableByteChannel(1).truncate(-1);
     }
 
     @Test
     public void truncateOutOfBounds() throws IOException {
         int initialSize = 2;
-        MemorySeekableByteChannel c = create(initialSize);
+        MemorySeekableByteChannel c = new MemorySeekableByteChannel(initialSize);
         c.position(1);
         c.truncate(c.size() + 1);
         // size & posiiton not altered, doe not allow to grow size
@@ -154,7 +166,7 @@ public class MemorySeekableByteChannelTest {
 
     @Test
     public void truncateToGivenSize() throws IOException {
-        MemorySeekableByteChannel c = create(10);
+        MemorySeekableByteChannel c = new MemorySeekableByteChannel(10);
         assertThat(c.size()).isEqualTo(10);
         assertThat(c.position(4).position()).isEqualTo(4);
 
@@ -182,7 +194,7 @@ public class MemorySeekableByteChannelTest {
 
     @Test(expectedExceptions = ClosedChannelException.class)
     public void truncateClosed() throws IOException {
-        MemorySeekableByteChannel c = create(0);
+        MemorySeekableByteChannel c = new MemorySeekableByteChannel(0);
         c.close();
         c.truncate(0);
     }
