@@ -126,8 +126,19 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
         }
     }
 
+    // gives access to file bytes storage
     @Override
     public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
+
+        // SeekableByteChannel
+        // -> see which byte buffer we can use to store file
+        // -> something that is not fixed-size and is automatically increased/decreased when needed
+
+        // ByteBuffer allows to map external memory (out of heap)
+        // HeapByteBuffer (private in java.nio) seems to do this with storage on the heap
+        // -> extending ByteBuffer seems possible by duplicating some of HeapByteBuffer
+        // -> capacity seems to be fixed, I haven't seen any automatic rezise operation
+
         throw new UnsupportedOperationException("TODO : implement this");
     }
 

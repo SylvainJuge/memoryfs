@@ -325,6 +325,7 @@ public class MemoryPath implements Path {
 
     @Override
     public Path toRealPath(LinkOption... options) throws IOException {
+        // TODO : what does "real" path means ?
         return null;
     }
 
@@ -384,6 +385,8 @@ public class MemoryPath implements Path {
         return true;
     }
 
+    // TODO : does computing hashcode in a lazy way is relevant here ?
+    // TODO : do test to check if it is relevant or not, and see if volative is required
     @Override
     public int hashCode() {
         int result = 19;

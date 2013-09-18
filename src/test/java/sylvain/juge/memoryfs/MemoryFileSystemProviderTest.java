@@ -23,6 +23,15 @@ public class MemoryFileSystemProviderTest {
 
     // TODO : check creating FS instances with capacity
 
+    // TODO : see zip fs jdk demo
+    // Path jar = Paths.get("jarfile.jar");
+    // FileSystem fs = FileSystems.newFileSystem(jar,...);
+    // --> fs path is resolved at runtime
+    // -> how does the provider responds to such Path ??
+    // --> there is no scheme provided, and FS type is not explicit
+    // -> see when FsProvider.getPath(URI uri) and FsProvider.uriToPath(..) are called
+    // ZipFsProvider seems to contain explanation about how it works for "legacy URI syntax"used in demo
+
     @AfterTest
     public void checkStaticFileSystemProviderState() {
         // there is a static provider instance that may be used by tests when creating fs instance without explicit

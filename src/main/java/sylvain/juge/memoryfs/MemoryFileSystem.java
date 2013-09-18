@@ -20,6 +20,26 @@ public class MemoryFileSystem extends FileSystem {
 
     private AtomicBoolean isOpen;
 
+    // URI design
+    //
+    // memory:/
+    //
+    // use cases :
+    // - allow to have a dedicated FS instance for testing purpose
+    // - code under test should access to this FS through
+    //
+    // - a path that is handled by memory fs (static)
+    // --> how is FS instance created if it does not exists yet ?
+    //
+    // --> how to allow using isolated FS instances in the same provider ?
+    // ---> maybe using specific paths
+    // ---> use a random identifier
+
+    //
+    // - a provided instance of fileSystem (IoC)
+    // --> providing a comprehensive API is useful here
+
+
     // TODO : allow for more than one filestore
     private MemoryFileSystem(MemoryFileSystemProvider provider, String id, long capacity) {
         this.provider = provider;

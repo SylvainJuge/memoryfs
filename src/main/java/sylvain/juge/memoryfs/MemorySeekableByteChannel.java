@@ -11,6 +11,11 @@ public class MemorySeekableByteChannel implements SeekableByteChannel {
     private boolean open;
     private long position;
 
+    // TODO : define where is data stored
+    // using a very large byte array can be a solution
+    // -> appending to a file may be quite hard
+    // -> a kind of linked list with blocks for storage can also be a good idea
+    // - fs metadata have to be stored separately from files
 
     public MemorySeekableByteChannel(long size) {
         if( size <0){
