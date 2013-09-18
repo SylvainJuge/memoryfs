@@ -8,7 +8,6 @@ import java.nio.channels.ClosedChannelException;
 import java.security.SecureRandom;
 
 import static org.fest.assertions.api.Assertions.assertThat;
-import static org.fest.assertions.api.Assertions.fail;
 
 public class MemorySeekableByteChannelTest {
 
@@ -24,8 +23,7 @@ public class MemorySeekableByteChannelTest {
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void buildInvalidSizeChannel() {
-        int size = -1;
-        new MemorySeekableByteChannel(size);
+        new MemorySeekableByteChannel(-1);
     }
 
     @Test
