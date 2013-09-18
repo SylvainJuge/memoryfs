@@ -7,8 +7,10 @@ import java.nio.channels.SeekableByteChannel;
 
 public class MemorySeekableByteChannel implements SeekableByteChannel {
 
-    private final long size;
+    private long size;
     private boolean open;
+    private long position;
+
 
     public MemorySeekableByteChannel(long size) {
         if( size <0){
@@ -20,17 +22,13 @@ public class MemorySeekableByteChannel implements SeekableByteChannel {
 
     @Override
     public int read(ByteBuffer dst) throws IOException {
-        if(!open){
-            throw new ClosedChannelException();
-        }
+        checkOpen();
         return 0;
     }
 
     @Override
     public int write(ByteBuffer src) throws IOException {
-        if(!open){
-            throw new ClosedChannelException();
-        }
+        checkOpen();
         return 0;
     }
 
@@ -54,8 +52,18 @@ public class MemorySeekableByteChannel implements SeekableByteChannel {
     }
 
     @Override
-    public SeekableByteChannel truncate(long size) throws IOException {
-        return null;
+    public SeekableByteChannel truncate(long newSize) throws IOException {
+        checkOpen();
+        if (newSize < 0) {
+            throw new IllegalArgumentException("can't truncate to negative size");
+        }
+        if (newSize < size) {
+            size = newSize;
+            if (size < position) {
+                position = size;
+            }
+        }
+        return this;
     }
 
     @Override
@@ -65,9 +73,13 @@ public class MemorySeekableByteChannel implements SeekableByteChannel {
 
     @Override
     public void close() throws IOException {
+        checkOpen();
+        this.open = false;
+    }
+
+    private void checkOpen() throws ClosedChannelException {
         if(!open){
             throw new ClosedChannelException();
         }
-        this.open = false;
     }
 }

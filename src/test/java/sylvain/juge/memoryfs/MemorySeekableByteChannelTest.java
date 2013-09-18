@@ -5,6 +5,8 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
+import java.nio.channels.SeekableByteChannel;
+import java.security.SecureRandom;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.fest.assertions.api.Assertions.fail;
@@ -115,34 +117,74 @@ public class MemorySeekableByteChannelTest {
     }
 
     // set & get position
-    // - set position then get it
-    // - set position <0 -> exception
-    // - set position >=size -> exception
+    // x set position then get it
+    // x set position <0 -> exception
+    // x set position >=size -> exception
     //
     // get size
     // - identical as when created
     //
     // truncate
     // - effect on size ??
-    // truncate to <0 -> exception
-    // truncate to >=size -> exception
+    // - truncate to <0 -> exception
+    // - truncate to >=size -> exception
+    // - impact on position w
+    //
+    // thread safety
+    // - open/close state
+    // - multiple readers allowed
+    // - single writer allowed
+    // - or any other concurrency policy
 
-    @Test
-    public void truncateNegative() {
-        // TODO
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void truncateNegative() throws IOException {
+        create(1).truncate(-1);
     }
 
     @Test
-    public void truncateOutOfBounds() {
-        //TODO
+    public void truncateOutOfBounds() throws IOException {
+        int initialSize = 2;
+        MemorySeekableByteChannel c = create(initialSize);
+        c.position(1);
+        c.truncate(c.size() + 1);
+        // size & posiiton not altered, doe not allow to grow size
+        assertThat(c.size()).isEqualTo(initialSize);
+        assertThat(c.position()).isEqualTo(1);
     }
 
     @Test
-    public void truncateToGivenSize() {
-        // TODO
-        // truncate to max size
-        // truncate to non-zero value
-        // truncate to 0
+    public void truncateToGivenSize() throws IOException {
+        MemorySeekableByteChannel c = create(10);
+        assertThat(c.size()).isEqualTo(10);
+        assertThat(c.position(4).position()).isEqualTo(4);
+
+        // truncate to same size does not alter size nor position
+        assertThat(c.truncate(c.size())).isSameAs(c);
+        assertThat(c.size()).isEqualTo(10);
+        assertThat(c.position()).isEqualTo(4);
+
+        // truncate after position : position not altered
+        c.truncate(6);
+        assertThat(c.size()).isEqualTo(6);
+        assertThat(c.position()).isEqualTo(4);
+
+        // truncate before position : position set to size
+        c.truncate(3);
+        assertThat(c.size()).isEqualTo(3);
+        assertThat(c.position()).isEqualTo(3);
+
+        // truncate to zero : position reset to 0
+        assertThat(c.position(1).position()).isEqualTo(1);
+        c.truncate(0);
+        assertThat(c.size()).isEqualTo(0);
+        assertThat(c.position()).isEqualTo(0);
+    }
+
+    @Test(expectedExceptions = ClosedChannelException.class)
+    public void truncateClosed() throws IOException {
+        MemorySeekableByteChannel c = create(0);
+        c.close();
+        c.truncate(0);
     }
 
     @Test
