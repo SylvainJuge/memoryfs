@@ -3,44 +3,48 @@ package sylvain.juge.memoryfs;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
+import java.nio.*;
 import java.nio.channels.ClosedChannelException;
+import java.nio.channels.NonReadableChannelException;
+import java.nio.channels.NonWritableChannelException;
 import java.security.SecureRandom;
 
 import static org.fest.assertions.api.Assertions.assertThat;
+import static sylvain.juge.memoryfs.MemorySeekableByteChannel.newReadChannel;
+import static sylvain.juge.memoryfs.MemorySeekableByteChannel.newWriteChannel;
 
 public class MemorySeekableByteChannelTest {
 
     @Test
     public void buildEmptyChannel() throws IOException {
-        new MemorySeekableByteChannel(0);
+        newReadChannel(0);
     }
 
     @Test
     public void buildNonEmptyChannel() {
-        new MemorySeekableByteChannel(42);
+        newReadChannel(42);
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void buildInvalidSizeChannel() {
-        new MemorySeekableByteChannel(-1);
+        newReadChannel(-1);
     }
 
     @Test
     public void openByDefault() {
-        MemorySeekableByteChannel c = new MemorySeekableByteChannel(0);
+        MemorySeekableByteChannel c = newReadChannel(0);
         assertThat(c.isOpen()).isTrue();
     }
 
     @Test
     public void sizeAsExpected() throws IOException {
-        MemorySeekableByteChannel c = new MemorySeekableByteChannel(42);
+        MemorySeekableByteChannel c = newReadChannel(42);
         assertThat(c.size()).isEqualTo(42);
     }
 
     @Test
     public void openCloseChannel() throws IOException {
-        MemorySeekableByteChannel c = new MemorySeekableByteChannel(0);
+        MemorySeekableByteChannel c = newReadChannel(0);
         assertThat(c.isOpen()).isTrue();
         c.close();
         assertThat(c.isOpen()).isFalse();
@@ -48,33 +52,59 @@ public class MemorySeekableByteChannelTest {
 
     @Test(expectedExceptions = ClosedChannelException.class)
     public void closeTwice() throws IOException {
-        MemorySeekableByteChannel c = new MemorySeekableByteChannel(0);
+        MemorySeekableByteChannel c = newReadChannel(0);
         c.close();
         c.close();
     }
 
     @Test(expectedExceptions = ClosedChannelException.class)
     public void readClosed() throws IOException {
-        MemorySeekableByteChannel c = new MemorySeekableByteChannel(0);
+        MemorySeekableByteChannel c = newReadChannel(0);
         c.close();
         c.read(null);
     }
 
     @Test(expectedExceptions = ClosedChannelException.class)
     public void writeClosed() throws IOException {
-        MemorySeekableByteChannel c = new MemorySeekableByteChannel(0);
+        MemorySeekableByteChannel c = newWriteChannel(0);
         c.close();
         c.write(null);
     }
 
+    @Test(expectedExceptions = NonWritableChannelException.class)
+    public void writeInReadChannel() throws IOException {
+        newReadChannel(0).write(null);
+    }
+
+    @Test(expectedExceptions = NonWritableChannelException.class)
+    public void truncateReadChannel() throws IOException {
+        newReadChannel(0).truncate(0);
+    }
+
+    @Test(expectedExceptions = NonReadableChannelException.class)
+    public void readInWriteChannel() throws IOException {
+        newWriteChannel(0).read(null);
+    }
+
+    @Test
+    public void writeShouldAdvancePosition() throws IOException {
+        MemorySeekableByteChannel c = newReadChannel(10);
+        ByteBuffer buffer = null;
+
+        c.write(null);
+    }
+
     @Test(enabled=false)
-    public void readKnownData() {
+    public void writeKnownData() {
         byte[] data = randomBytes(100);
+
 
         // TODO : how to define a byte buffer instance for test
         // => subclassing requires a lot of work
         // --> using a mock is probably appropriate, but probably very implementation-dependant
         // --> since we are testing implementation, being tied to it does not seem so stupid after all
+
+        // ByteBuffer does not seem overridable since there are abstract package-private methods in it
 
         throw new RuntimeException("TODO : implement readKnownData");
     }
@@ -113,7 +143,7 @@ public class MemorySeekableByteChannelTest {
 
     @Test
     public void setPosition() throws IOException {
-        MemorySeekableByteChannel c = new MemorySeekableByteChannel(10);
+        MemorySeekableByteChannel c = newReadChannel(10);
         assertThat(c.position()).isEqualTo(0);
         assertThat(c.position(5)).isSameAs(c);
         assertThat(c.position()).isEqualTo(5);
@@ -123,15 +153,17 @@ public class MemorySeekableByteChannelTest {
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void netagivePositionNotAllowed() throws IOException {
-        MemorySeekableByteChannel c = new MemorySeekableByteChannel(0);
+        MemorySeekableByteChannel c = newReadChannel(0);
         c.position(-1);
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void outOfBoundPositionNotAllowed() throws IOException {
-        MemorySeekableByteChannel c = new MemorySeekableByteChannel(1);
+        MemorySeekableByteChannel c = newReadChannel(1);
         c.position(1);
     }
+
+    // TODO : set position on a closed channel : shoudl throw an exception
 
     // set & get position
     // x set position then get it
@@ -155,13 +187,13 @@ public class MemorySeekableByteChannelTest {
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void truncateNegative() throws IOException {
-        new MemorySeekableByteChannel(1).truncate(-1);
+        newWriteChannel(1).truncate(-1);
     }
 
     @Test
     public void truncateOutOfBounds() throws IOException {
         int initialSize = 2;
-        MemorySeekableByteChannel c = new MemorySeekableByteChannel(initialSize);
+        MemorySeekableByteChannel c = newWriteChannel(initialSize);
         c.position(1);
         c.truncate(c.size() + 1);
         // size & posiiton not altered, doe not allow to grow size
@@ -171,7 +203,7 @@ public class MemorySeekableByteChannelTest {
 
     @Test
     public void truncateToGivenSize() throws IOException {
-        MemorySeekableByteChannel c = new MemorySeekableByteChannel(10);
+        MemorySeekableByteChannel c = newWriteChannel(10);
         assertThat(c.size()).isEqualTo(10);
         assertThat(c.position(4).position()).isEqualTo(4);
 
@@ -199,19 +231,19 @@ public class MemorySeekableByteChannelTest {
 
     @Test(expectedExceptions = ClosedChannelException.class)
     public void truncateClosed() throws IOException {
-        MemorySeekableByteChannel c = new MemorySeekableByteChannel(0);
+        MemorySeekableByteChannel c = newWriteChannel(0);
         c.close();
         c.truncate(0);
     }
 
-    @Test
-    public void truncateReadOnly() {
-        // TODO
+    @Test(expectedExceptions = NonWritableChannelException.class)
+    public void truncateReadOnly() throws IOException {
+        newReadChannel(10).truncate(4);
     }
 
-    @Test
-    public void writeReadOnly() {
-        // TODO
+    @Test(expectedExceptions = NonWritableChannelException.class)
+    public void writeReadOnly() throws IOException {
+        newReadChannel(10).write(null);
     }
 
     // TODO : how to handle file open read/write modes
