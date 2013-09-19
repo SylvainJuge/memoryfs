@@ -1,19 +1,28 @@
 package sylvain.juge.memoryfs;
 
-import java.io.IOException;
+import java.io.*;
 import java.nio.ByteBuffer;
-import java.nio.channels.ClosedChannelException;
-import java.nio.channels.NonReadableChannelException;
-import java.nio.channels.NonWritableChannelException;
-import java.nio.channels.SeekableByteChannel;
+import java.nio.channels.*;
 
+// TODO : rename to MemoryByteChannel ??
 public class MemorySeekableByteChannel implements SeekableByteChannel {
 
     private long size;
     private boolean open;
     private long position;
 
-    private boolean readOnly;
+    private final WritableByteChannel writeChannel;
+    private final ReadableByteChannel readChannel;
+
+    private final byte[] data;
+
+    // truncate-existing : truncate if exists
+    // append : append to end of file
+    //
+    // create : create file if it does not exists
+    // create-new : create file if it does not exists, fails if it exists
+
+    // ==> reading has only a single option, thus let's try with it first
 
     // TODO : define where is data stored
     // using a very large byte array can be a solution
@@ -25,7 +34,14 @@ public class MemorySeekableByteChannel implements SeekableByteChannel {
         if( size <0){
             throw new IllegalArgumentException("size must be >= 0");
         }
-        this.readOnly = readOnly;
+        if( size > Integer.MAX_VALUE){
+            throw new IllegalArgumentException("can't handle such large sizes yet !");
+        }
+        data = new byte[(int)size]; // TODO : find a way to allow more than 2^32 bytes of storage
+        InputStream input = new ByteArrayInputStream(data);
+        OutputStream output = new ByteArrayOutputStream(0);
+        readChannel = readOnly ? Channels.newChannel(input) : null;
+        writeChannel = readOnly ? null : Channels.newChannel(output);
         this.size = size;
         this.open = true;
     }
@@ -45,21 +61,29 @@ public class MemorySeekableByteChannel implements SeekableByteChannel {
     @Override
     public int read(ByteBuffer dst) throws IOException {
         checkOpen();
-        if(!readOnly){
-            throw new NonReadableChannelException();
-        }
-        return 0;
+        checkCanRead();
+        int read =  readChannel.read(dst);
+        position += read;
+        return read;
     }
 
     @Override
     public int write(ByteBuffer src) throws IOException {
         checkOpen();
         checkCanWrite();
-        return 0;
+        int written =  writeChannel.write(src);
+        position += written;
+        return written;
+    }
+
+    private void checkCanRead() {
+        if (null == readChannel) {
+            throw new NonReadableChannelException();
+        }
     }
 
     private void checkCanWrite(){
-        if(readOnly){
+        if(null == writeChannel){
             throw new NonWritableChannelException();
         }
     }

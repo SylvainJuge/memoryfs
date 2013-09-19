@@ -88,14 +88,41 @@ public class MemorySeekableByteChannelTest {
 
     @Test
     public void writeShouldAdvancePosition() throws IOException {
-        MemorySeekableByteChannel c = newReadChannel(10);
-        ByteBuffer buffer = null;
+        MemorySeekableByteChannel c = newWriteChannel(10);
+        ByteBuffer buffer = ByteBuffer.wrap(randomBytes(5));
+        assertThat(c.position()).isEqualTo(0);
 
-        c.write(null);
+        assertThat(c.write(buffer)).isEqualTo(5);
+
+        assertThat(c.position()).isEqualTo(5);
     }
 
-    @Test(enabled=false)
-    public void writeKnownData() {
+    @Test
+    public void readShouldAdvancePosition() throws IOException {
+        MemorySeekableByteChannel c = newReadChannel(10);
+        ByteBuffer buffer = ByteBuffer.wrap(new byte[10]);
+
+        // remaining space limits how much data is read
+        buffer.position(1).limit(9);
+        assertThat(buffer.remaining()).isEqualTo(8);
+
+        assertThat(c.read(buffer)).isEqualTo(8);
+
+        assertThat(c.position()).isEqualTo(8);
+    }
+
+    // TODO : read when channel reaches end (EOL) should return -1
+
+    @Test(enabled =  false)
+    public void readWrite() {
+        // test from 1 to slighly less than 10Mb
+        int limit = 1024 * 1024 * 10; // 10mb
+        for (int size = 1; size <= limit; size *= 2) {
+            readWriteData(size);
+        }
+    }
+
+    public void readWriteData(int size) {
         byte[] data = randomBytes(100);
 
 
