@@ -4,8 +4,7 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 
-// TODO : rename to MemoryByteChannel ??
-public class MemorySeekableByteChannel implements SeekableByteChannel {
+public class MemoryByteChannel implements SeekableByteChannel {
 
     private long size;
     private boolean open;
@@ -30,7 +29,7 @@ public class MemorySeekableByteChannel implements SeekableByteChannel {
     // -> a kind of linked list with blocks for storage can also be a good idea
     // - fs metadata have to be stored separately from files
 
-    private MemorySeekableByteChannel(long size, boolean readOnly) {
+    private MemoryByteChannel(long size, boolean readOnly) {
         if( size <0){
             throw new IllegalArgumentException("size must be >= 0");
         }
@@ -46,13 +45,13 @@ public class MemorySeekableByteChannel implements SeekableByteChannel {
         this.open = true;
     }
 
-    public static MemorySeekableByteChannel newReadChannel(long size){
-        return new MemorySeekableByteChannel(size, true);
+    public static MemoryByteChannel newReadChannel(long size){
+        return new MemoryByteChannel(size, true);
     }
 
     // TODO : add parameters to allow more than one mode
-    public static MemorySeekableByteChannel newWriteChannel(long size){
-        return new MemorySeekableByteChannel(size, false);
+    public static MemoryByteChannel newWriteChannel(long size){
+        return new MemoryByteChannel(size, false);
     }
 
     // TODO : defining a buildder to handle all options may be a good idea after all
