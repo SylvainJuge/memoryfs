@@ -56,8 +56,9 @@ public class MemoryByteChannelTest {
 
     @Test(expectedExceptions = ClosedChannelException.class)
     public void writeClosed() throws IOException {
-        MemoryByteChannel c = newWriteChannel(FileData.newEmpty());
+        MemoryByteChannel c = newWriteChannel(FileData.newEmpty(), false);
         c.close();
+        assertThat(c.isOpen()).isFalse();
         c.write(null);
     }
 
@@ -73,12 +74,12 @@ public class MemoryByteChannelTest {
 
     @Test(expectedExceptions = NonReadableChannelException.class)
     public void readInWriteChannel() throws IOException {
-        newWriteChannel(FileData.newEmpty()).read(null);
+        newWriteChannel(FileData.newEmpty(),false).read(null);
     }
 
     @Test
     public void writeShouldAdvancePosition() throws IOException {
-        MemoryByteChannel c = newWriteChannel(zeroFileData(10));
+        MemoryByteChannel c = newWriteChannel(zeroFileData(10), false);
         ByteBuffer buffer = ByteBuffer.wrap(new byte[5]);
         assertThat(c.position()).isEqualTo(0);
 
@@ -112,6 +113,26 @@ public class MemoryByteChannelTest {
         // there is space in read buffer, but channel should reach EOL
         assertThat(c.read(buffer)).isLessThan(0);
     }
+
+    @Test
+    public void writeAppendInitialPositionAtEnd() throws IOException {
+        MemoryByteChannel c = newWriteChannel(zeroFileData(2), true);
+        assertThat(c.position()).isEqualTo(2);
+    }
+
+    // TODO : while not appending, writing more than initial size should grow entity
+    // TODO : fits current implementation, but truncating entity seems a better choice
+    // -> truncating may be done at FS level rather than at byte channel level
+    // -> however, allow writing in the middle of the file without rewriting it fully seems convenient.
+    // -> zip fs demo just copies initial data when appending, and discards otherwise
+    @Test
+    public void writingWithoutAppendDoesNotTruncate() throws IOException {
+        MemoryByteChannel c = newWriteChannel(zeroFileData(5), false);
+        assertThat(c.size()).isEqualTo(5);
+        assertThat(c.position()).isEqualTo(0);
+    }
+
+
 
     @Test(enabled =  false)
     public void readWrite() {
@@ -193,6 +214,12 @@ public class MemoryByteChannelTest {
         c.position(0);
     }
 
+    // TODO : prevent truncation for write-append channels ?
+
+    // TODO : prevent to set position on write channels ?
+    // TODO : (if no) writing (append) to a file should not allow to set it's position before initial position
+
+
     // set & get position
     // x set position then get it
     // x set position <0 -> exception
@@ -215,23 +242,23 @@ public class MemoryByteChannelTest {
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void truncateNegative() throws IOException {
-        newWriteChannel(randomFileData(1)).truncate(-1);
+        newWriteChannel(randomFileData(1), false).truncate(-1);
     }
 
     @Test
     public void truncateOutOfBounds() throws IOException {
         int initialSize = 2;
-        MemoryByteChannel c = newWriteChannel(zeroFileData(initialSize));
+        MemoryByteChannel c = newWriteChannel(zeroFileData(initialSize), false);
         c.position(1);
         c.truncate(c.size() + 1);
-        // size & posiiton not altered, doe not allow to grow size
+        // size & posiiton not altered, does not allow to grow size
         assertThat(c.size()).isEqualTo(initialSize);
         assertThat(c.position()).isEqualTo(1);
     }
 
     @Test
     public void truncateToGivenSize() throws IOException {
-        MemoryByteChannel c = newWriteChannel(zeroFileData(10));
+        MemoryByteChannel c = newWriteChannel(zeroFileData(10), false);
         assertThat(c.size()).isEqualTo(10);
         assertThat(c.position(4).position()).isEqualTo(4);
 
@@ -259,7 +286,7 @@ public class MemoryByteChannelTest {
 
     @Test(expectedExceptions = ClosedChannelException.class)
     public void truncateClosed() throws IOException {
-        MemoryByteChannel c = newWriteChannel(FileData.newEmpty());
+        MemoryByteChannel c = newWriteChannel(FileData.newEmpty(),false);
         c.close();
         c.truncate(0);
     }
@@ -282,10 +309,7 @@ public class MemoryByteChannelTest {
         return FileData.fromData(new byte[size]);
     }
 
-    // TODO : how to handle file open read/write modes
-    // StandardOpenOption
-
-    // Concurrency ??
+    // TODO Concurrency ??
     // -> FileChannel seems to partially deal with it
     @Test
     public void sandbox() {

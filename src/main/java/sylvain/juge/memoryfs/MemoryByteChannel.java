@@ -46,27 +46,32 @@ public class MemoryByteChannel implements SeekableByteChannel {
     // -> a kind of linked list with blocks for storage can also be a good idea
     // - fs metadata have to be stored separately from files
 
-    private MemoryByteChannel(FileData data, boolean readOnly){
+    private MemoryByteChannel(FileData data, boolean readOnly, boolean append){
         if( null == data){
             throw new IllegalArgumentException("file data storage is required");
         }
         this.data = data;
-        readChannel = readOnly ? Channels.newChannel(data.asInputStream()) : null;
-        writeChannel = readOnly ? null : Channels.newChannel(data);
         this.open = true;
+        if( readOnly ){
+            writeChannel = null;
+            readChannel = Channels.newChannel(data.asInputStream());
+        } else {
+            readChannel = null;
+            data.asOutputStream();
+            if( append ){
+                position = data.size();
+            }
+            writeChannel = Channels.newChannel(data.asOutputStream());
+        }
     }
 
     public static MemoryByteChannel newReadChannel(FileData data){
-        return new MemoryByteChannel(data, true);
+        return new MemoryByteChannel(data, true, false);
     }
 
-    // TODO : add parameters to allow more than one mode
-    public static MemoryByteChannel newWriteChannel(FileData data){
-        return new MemoryByteChannel(data, false);
+    public static MemoryByteChannel newWriteChannel(FileData data, boolean append){
+        return new MemoryByteChannel(data, false, append);
     }
-
-    // TODO : defining a buildder to handle all options may be a good idea after all
-    // -> builder should ensure that we don't try to use an invalid combination of parameters
 
     @Override
     public int read(ByteBuffer dst) throws IOException {
