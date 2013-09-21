@@ -105,6 +105,7 @@ public class MemoryByteChannel implements SeekableByteChannel {
 
     @Override
     public SeekableByteChannel position(long newPosition) throws IOException {
+        checkOpen();
         if( newPosition < 0 || data.size() <= newPosition){
             throw new IllegalArgumentException("position out of bounds : "+newPosition);
         }

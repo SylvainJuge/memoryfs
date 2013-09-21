@@ -185,7 +185,13 @@ public class MemoryByteChannelTest {
         c.position(1);
     }
 
-    // TODO : set position on a closed channel : shoudl throw an exception
+    @Test(expectedExceptions = ClosedChannelException.class)
+    public void setPositionOnClosedChannel() throws IOException {
+        MemoryByteChannel c = newReadChannel(zeroFileData(1));
+        c.close();
+        assertThat(c.isOpen()).isFalse();
+        c.position(0);
+    }
 
     // set & get position
     // x set position then get it
