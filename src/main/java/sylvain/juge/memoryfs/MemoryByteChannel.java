@@ -6,14 +6,14 @@ import java.nio.channels.*;
 
 public class MemoryByteChannel implements SeekableByteChannel {
 
-    private long size;
     private boolean open;
     private long position;
 
     private final WritableByteChannel writeChannel;
     private final ReadableByteChannel readChannel;
+    private final FileData data;
 
-    private final byte[] data;
+    // channel open modes :
 
     // truncate-existing : truncate if exists
     // append : append to end of file
@@ -21,7 +21,24 @@ public class MemoryByteChannel implements SeekableByteChannel {
     // create : create file if it does not exists
     // create-new : create file if it does not exists, fails if it exists
 
-    // ==> reading has only a single option, thus let's try with it first
+    // FS Storage :
+    //
+    // - folders structure
+    // - file content storage
+    // - file and folder attributes
+    //
+    // ==> here, we only deal with file content
+
+    // input : Path + file open mode (read/write + options)
+    // output : channel on this file
+
+    // draft implementation :
+    // -> use a byte array for each file, and copy to a larger one when we need to.
+    // -> channel must use a shared data structure with fs to hold data
+    //
+    // final implementation :
+    // -> use a structure that allows to append efficiently, like a linked-list of "blocks"
+
 
     // TODO : define where is data stored
     // using a very large byte array can be a solution
@@ -29,29 +46,23 @@ public class MemoryByteChannel implements SeekableByteChannel {
     // -> a kind of linked list with blocks for storage can also be a good idea
     // - fs metadata have to be stored separately from files
 
-    private MemoryByteChannel(long size, boolean readOnly) {
-        if( size <0){
-            throw new IllegalArgumentException("size must be >= 0");
+    private MemoryByteChannel(FileData data, boolean readOnly){
+        if( null == data){
+            throw new IllegalArgumentException("file data storage is required");
         }
-        if( size > Integer.MAX_VALUE){
-            throw new IllegalArgumentException("can't handle such large sizes yet !");
-        }
-        data = new byte[(int)size]; // TODO : find a way to allow more than 2^32 bytes of storage
-        InputStream input = new ByteArrayInputStream(data);
-        OutputStream output = new ByteArrayOutputStream(0);
-        readChannel = readOnly ? Channels.newChannel(input) : null;
-        writeChannel = readOnly ? null : Channels.newChannel(output);
-        this.size = size;
+        this.data = data;
+        readChannel = readOnly ? Channels.newChannel(data.asInputStream()) : null;
+        writeChannel = readOnly ? null : Channels.newChannel(data);
         this.open = true;
     }
 
-    public static MemoryByteChannel newReadChannel(long size){
-        return new MemoryByteChannel(size, true);
+    public static MemoryByteChannel newReadChannel(FileData data){
+        return new MemoryByteChannel(data, true);
     }
 
     // TODO : add parameters to allow more than one mode
-    public static MemoryByteChannel newWriteChannel(long size){
-        return new MemoryByteChannel(size, false);
+    public static MemoryByteChannel newWriteChannel(FileData data){
+        return new MemoryByteChannel(data, false);
     }
 
     // TODO : defining a buildder to handle all options may be a good idea after all
@@ -94,7 +105,7 @@ public class MemoryByteChannel implements SeekableByteChannel {
 
     @Override
     public SeekableByteChannel position(long newPosition) throws IOException {
-        if( newPosition < 0 || size <= newPosition){
+        if( newPosition < 0 || data.size() <= newPosition){
             throw new IllegalArgumentException("position out of bounds : "+newPosition);
         }
         this.position = newPosition;
@@ -103,7 +114,7 @@ public class MemoryByteChannel implements SeekableByteChannel {
 
     @Override
     public long size() throws IOException {
-        return size;
+        return data.size();
     }
 
     @Override
@@ -113,11 +124,9 @@ public class MemoryByteChannel implements SeekableByteChannel {
         if (newSize < 0) {
             throw new IllegalArgumentException("can't truncate to negative size");
         }
-        if (newSize < size) {
-            size = newSize;
-            if (size < position) {
-                position = size;
-            }
+        data.truncate((int)newSize);
+        if( data.size() < position ){
+            position = data.size();
         }
         return this;
     }

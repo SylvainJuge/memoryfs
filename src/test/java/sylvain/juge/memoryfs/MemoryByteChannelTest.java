@@ -15,36 +15,26 @@ import static sylvain.juge.memoryfs.MemoryByteChannel.newWriteChannel;
 
 public class MemoryByteChannelTest {
 
-    @Test
-    public void buildEmptyChannel() throws IOException {
-        newReadChannel(0);
-    }
-
-    @Test
-    public void buildNonEmptyChannel() {
-        newReadChannel(42);
-    }
-
     @Test(expectedExceptions = IllegalArgumentException.class)
-    public void buildInvalidSizeChannel() {
-        newReadChannel(-1);
+    public void buildNullFileData() {
+        newReadChannel(null);
     }
 
     @Test
     public void openByDefault() {
-        MemoryByteChannel c = newReadChannel(0);
+        MemoryByteChannel c = newReadChannel(FileData.newEmpty());
         assertThat(c.isOpen()).isTrue();
     }
 
     @Test
     public void sizeAsExpected() throws IOException {
-        MemoryByteChannel c = newReadChannel(42);
+        MemoryByteChannel c = newReadChannel(zeroFileData(42));
         assertThat(c.size()).isEqualTo(42);
     }
 
     @Test
     public void openCloseChannel() throws IOException {
-        MemoryByteChannel c = newReadChannel(0);
+        MemoryByteChannel c = newReadChannel(FileData.newEmpty());
         assertThat(c.isOpen()).isTrue();
         c.close();
         assertThat(c.isOpen()).isFalse();
@@ -52,44 +42,44 @@ public class MemoryByteChannelTest {
 
     @Test(expectedExceptions = ClosedChannelException.class)
     public void closeTwice() throws IOException {
-        MemoryByteChannel c = newReadChannel(0);
+        MemoryByteChannel c = newReadChannel(FileData.newEmpty());
         c.close();
         c.close();
     }
 
     @Test(expectedExceptions = ClosedChannelException.class)
     public void readClosed() throws IOException {
-        MemoryByteChannel c = newReadChannel(0);
+        MemoryByteChannel c = newReadChannel(FileData.newEmpty());
         c.close();
         c.read(null);
     }
 
     @Test(expectedExceptions = ClosedChannelException.class)
     public void writeClosed() throws IOException {
-        MemoryByteChannel c = newWriteChannel(0);
+        MemoryByteChannel c = newWriteChannel(FileData.newEmpty());
         c.close();
         c.write(null);
     }
 
     @Test(expectedExceptions = NonWritableChannelException.class)
     public void writeInReadChannel() throws IOException {
-        newReadChannel(0).write(null);
+        newReadChannel(FileData.newEmpty()).write(null);
     }
 
     @Test(expectedExceptions = NonWritableChannelException.class)
     public void truncateReadChannel() throws IOException {
-        newReadChannel(0).truncate(0);
+        newReadChannel(FileData.newEmpty()).truncate(0);
     }
 
     @Test(expectedExceptions = NonReadableChannelException.class)
     public void readInWriteChannel() throws IOException {
-        newWriteChannel(0).read(null);
+        newWriteChannel(FileData.newEmpty()).read(null);
     }
 
     @Test
     public void writeShouldAdvancePosition() throws IOException {
-        MemoryByteChannel c = newWriteChannel(10);
-        ByteBuffer buffer = ByteBuffer.wrap(randomBytes(5));
+        MemoryByteChannel c = newWriteChannel(zeroFileData(10));
+        ByteBuffer buffer = ByteBuffer.wrap(new byte[5]);
         assertThat(c.position()).isEqualTo(0);
 
         assertThat(c.write(buffer)).isEqualTo(5);
@@ -99,7 +89,7 @@ public class MemoryByteChannelTest {
 
     @Test
     public void readShouldAdvancePosition() throws IOException {
-        MemoryByteChannel c = newReadChannel(10);
+        MemoryByteChannel c = newReadChannel(randomFileData(10));
         ByteBuffer buffer = ByteBuffer.wrap(new byte[10]);
 
         // remaining space limits how much data is read
@@ -111,29 +101,34 @@ public class MemoryByteChannelTest {
         assertThat(c.position()).isEqualTo(8);
     }
 
-    // TODO : read when channel reaches end (EOL) should return -1
+    @Test
+    public void readTillEOL() throws IOException {
+        MemoryByteChannel c = newReadChannel(randomFileData(10));
+        ByteBuffer buffer = ByteBuffer.wrap(new byte[10]);
+        buffer.mark();
+        assertThat(c.read(buffer)).isEqualTo(10);
+        buffer.reset();
+
+        // there is space in read buffer, but channel should reach EOL
+        assertThat(c.read(buffer)).isLessThan(0);
+    }
 
     @Test(enabled =  false)
     public void readWrite() {
         // test from 1 to slighly less than 10Mb
         int limit = 1024 * 1024 * 10; // 10mb
         for (int size = 1; size <= limit; size *= 2) {
-            readWriteData(size);
+            testReadWriteData(size);
         }
     }
 
-    public void readWriteData(int size) {
-        byte[] data = randomBytes(100);
+    public void testReadWriteData(int size) {
+        byte[] bytes = randomBytes(size);
+        FileData data = FileData.fromData(bytes);
+
+        // TODO : check that read data is the same as expected
 
 
-        // TODO : how to define a byte buffer instance for test
-        // => subclassing requires a lot of work
-        // --> using a mock is probably appropriate, but probably very implementation-dependant
-        // --> since we are testing implementation, being tied to it does not seem so stupid after all
-
-        // ByteBuffer does not seem overridable since there are abstract package-private methods in it
-
-        throw new RuntimeException("TODO : implement readKnownData");
     }
 
     private static SecureRandom rand = new SecureRandom();
@@ -170,7 +165,7 @@ public class MemoryByteChannelTest {
 
     @Test
     public void setPosition() throws IOException {
-        MemoryByteChannel c = newReadChannel(10);
+        MemoryByteChannel c = newReadChannel(zeroFileData(10));
         assertThat(c.position()).isEqualTo(0);
         assertThat(c.position(5)).isSameAs(c);
         assertThat(c.position()).isEqualTo(5);
@@ -180,13 +175,13 @@ public class MemoryByteChannelTest {
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void netagivePositionNotAllowed() throws IOException {
-        MemoryByteChannel c = newReadChannel(0);
+        MemoryByteChannel c = newReadChannel(FileData.newEmpty());
         c.position(-1);
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void outOfBoundPositionNotAllowed() throws IOException {
-        MemoryByteChannel c = newReadChannel(1);
+        MemoryByteChannel c = newReadChannel(randomFileData(1));
         c.position(1);
     }
 
@@ -214,13 +209,13 @@ public class MemoryByteChannelTest {
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void truncateNegative() throws IOException {
-        newWriteChannel(1).truncate(-1);
+        newWriteChannel(randomFileData(1)).truncate(-1);
     }
 
     @Test
     public void truncateOutOfBounds() throws IOException {
         int initialSize = 2;
-        MemoryByteChannel c = newWriteChannel(initialSize);
+        MemoryByteChannel c = newWriteChannel(zeroFileData(initialSize));
         c.position(1);
         c.truncate(c.size() + 1);
         // size & posiiton not altered, doe not allow to grow size
@@ -230,7 +225,7 @@ public class MemoryByteChannelTest {
 
     @Test
     public void truncateToGivenSize() throws IOException {
-        MemoryByteChannel c = newWriteChannel(10);
+        MemoryByteChannel c = newWriteChannel(zeroFileData(10));
         assertThat(c.size()).isEqualTo(10);
         assertThat(c.position(4).position()).isEqualTo(4);
 
@@ -258,19 +253,27 @@ public class MemoryByteChannelTest {
 
     @Test(expectedExceptions = ClosedChannelException.class)
     public void truncateClosed() throws IOException {
-        MemoryByteChannel c = newWriteChannel(0);
+        MemoryByteChannel c = newWriteChannel(FileData.newEmpty());
         c.close();
         c.truncate(0);
     }
 
     @Test(expectedExceptions = NonWritableChannelException.class)
     public void truncateReadOnly() throws IOException {
-        newReadChannel(10).truncate(4);
+        newReadChannel(zeroFileData(10)).truncate(4);
     }
 
     @Test(expectedExceptions = NonWritableChannelException.class)
     public void writeReadOnly() throws IOException {
-        newReadChannel(10).write(null);
+        newReadChannel(zeroFileData(10)).write(null);
+    }
+
+    private FileData randomFileData(int size){
+        return FileData.fromData(randomBytes(size));
+    }
+
+    private FileData zeroFileData(int size){
+        return FileData.fromData(new byte[size]);
     }
 
     // TODO : how to handle file open read/write modes
