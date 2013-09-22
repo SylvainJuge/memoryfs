@@ -120,36 +120,96 @@ public class MemoryByteChannelTest {
         assertThat(c.position()).isEqualTo(2);
     }
 
-    // TODO : while not appending, writing more than initial size should grow entity
-    // TODO : fits current implementation, but truncating entity seems a better choice
-    // -> truncating may be done at FS level rather than at byte channel level
-    // -> however, allow writing in the middle of the file without rewriting it fully seems convenient.
-    // -> zip fs demo just copies initial data when appending, and discards otherwise
     @Test
-    public void writingWithoutAppendDoesNotTruncate() throws IOException {
+    public void writingWithoutAppendTruncates() throws IOException {
         MemoryByteChannel c = newWriteChannel(zeroFileData(5), false);
-        assertThat(c.size()).isEqualTo(5);
+        assertThat(c.size()).isEqualTo(0);
         assertThat(c.position()).isEqualTo(0);
     }
 
+    @Test(enabled = false)
+    public void writeInExistingData() throws IOException {
+        FileData data = zeroFileData(3);
+        MemoryByteChannel write = newWriteChannel(data, true);
+        assertThat(write.position()).isEqualTo(3);
+        assertThat(write.size()).isEqualTo(3);
 
+        // rewrite the middle byte
+        write.position(1);
+        write.write(ByteBuffer.wrap(new byte[]{1}));
+        assertThat(write.position()).isEqualTo(2);
 
-    @Test(enabled =  false)
-    public void readWrite() {
-        // test from 1 to slighly less than 10Mb
-        int limit = 1024 * 1024 * 10; // 10mb
-        for (int size = 1; size <= limit; size *= 2) {
-            testReadWriteData(size);
-        }
+        assertThat(write.size()).isEqualTo(3);
+        MemoryByteChannel read = newReadChannel(data);
+        readsExpected(read, new byte[]{0, 1, 0});
+
+        // writing more data is allowed and grows entity
+        write.position(2);
+        write.write(ByteBuffer.wrap(new byte[]{2, 3}));
+
+        read.position(0);
+        readsExpected(read, new byte[]{0, 1, 2, 3});
+
     }
 
-    public void testReadWriteData(int size) {
-        byte[] bytes = randomBytes(size);
-        FileData data = FileData.fromData(bytes);
 
-        // TODO : check that read data is the same as expected
+    @Test
+    public void readWrite() throws IOException {
+        testReadWrite(1024); // 1kb
+        testReadWrite(1024*1024); // 1Mb
+    }
+
+    @Test
+    public void writeAppend() throws IOException {
+        byte[] beforeAppend = randomBytes(5);
+        byte[] toAppend = randomBytes(5);
+
+        FileData data = FileData.fromData(beforeAppend);
+
+        MemoryByteChannel channel = newWriteChannel(data, true);
+        assertThat(channel.write(ByteBuffer.wrap(toAppend))).isEqualTo(toAppend.length);
+
+        byte[] expected = append(beforeAppend, toAppend);
+        readsExpected(newReadChannel(data), expected);
 
 
+    }
+
+    private byte[] append(byte[] first,byte[] second){
+        byte[] result = new byte[first.length+second.length];
+        System.arraycopy(first,0,result,0,first.length);
+        System.arraycopy(second,0,result,second.length,second.length);
+        return result;
+    }
+
+
+
+    public void testReadWrite(int size) throws IOException {
+        byte[] expected = randomBytes(size);
+        FileData data = FileData.fromData(expected);
+
+        // reading existing data
+        MemoryByteChannel read = newReadChannel(data);
+        readsExpected(read, expected);
+        read.close();
+
+        byte[] expectedWrite = randomBytes(size);
+        MemoryByteChannel write = newWriteChannel(data,false);
+        ByteBuffer toWrite = ByteBuffer.wrap(expectedWrite);
+        assertThat(write.write(toWrite)).isEqualTo(size);
+        write.close();
+
+        read = newReadChannel(data);
+        readsExpected(read, expectedWrite);
+        read.close();
+
+    }
+
+    private static void readsExpected(MemoryByteChannel channel, byte[] expected) throws IOException {
+        byte[] readBytes = new byte[expected.length];
+        ByteBuffer readData = ByteBuffer.wrap(readBytes);
+        assertThat(channel.read(readData)).isEqualTo(expected.length);
+        assertThat(readBytes).isEqualTo(expected);
     }
 
     private static SecureRandom rand = new SecureRandom();
@@ -248,7 +308,7 @@ public class MemoryByteChannelTest {
     @Test
     public void truncateOutOfBounds() throws IOException {
         int initialSize = 2;
-        MemoryByteChannel c = newWriteChannel(zeroFileData(initialSize), false);
+        MemoryByteChannel c = newWriteChannel(zeroFileData(initialSize), true);
         c.position(1);
         c.truncate(c.size() + 1);
         // size & posiiton not altered, does not allow to grow size
@@ -258,7 +318,7 @@ public class MemoryByteChannelTest {
 
     @Test
     public void truncateToGivenSize() throws IOException {
-        MemoryByteChannel c = newWriteChannel(zeroFileData(10), false);
+        MemoryByteChannel c = newWriteChannel(zeroFileData(10), true);
         assertThat(c.size()).isEqualTo(10);
         assertThat(c.position(4).position()).isEqualTo(4);
 

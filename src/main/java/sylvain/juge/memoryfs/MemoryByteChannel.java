@@ -60,6 +60,8 @@ public class MemoryByteChannel implements SeekableByteChannel {
             data.asOutputStream();
             if( append ){
                 position = data.size();
+            } else {
+                data.truncate(0);
             }
             writeChannel = Channels.newChannel(data.asOutputStream());
         }
