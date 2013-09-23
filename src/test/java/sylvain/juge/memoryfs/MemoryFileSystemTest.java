@@ -11,8 +11,6 @@ import static org.fest.assertions.api.Assertions.assertThat;
 
 public class MemoryFileSystemTest {
 
-    // TODO : FileStore : difference between unallocated space and usable space ?
-
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void nullProviderNotAllowed() {
         MemoryFileSystem.builder(null);
@@ -33,30 +31,35 @@ public class MemoryFileSystemTest {
     }
 
     @Test
-    public void defaultIdInUri() {
+    public void defaultId() {
         MemoryFileSystemProvider provider = newProvider();
         MemoryFileSystem fs = MemoryFileSystem
                 .builder(provider)
                 .build();
-        assertThat(fs.getUri()).isEqualTo(URI.create("memory:/"));
+        assertThat(fs.getId()).isEqualTo("");
     }
 
     @Test
-    public void buildThroughBuilderWithExplicitIdInUri() {
-        MemoryFileSystemProvider provider = newProvider();
+    public void buildThroughBuilderWithExplicitId() {
         MemoryFileSystem fs = MemoryFileSystem
-                .builder(provider)
+                .builder(newProvider())
                 .id("id")
                 .build();
-        assertThat(fs.getUri()).isEqualTo(URI.create("memory:/id"));
+        assertThat(fs.getId()).isEqualTo("id");
     }
 
     @Test
     public void buildThroughUriWithExplicitIdInUri() throws IOException {
-        MemoryFileSystemProvider provider = newProvider();
         URI uri = URI.create("memory:/fsId");
-        MemoryFileSystem fs = (MemoryFileSystem) provider.newFileSystem(uri, null);
-        assertThat(fs.getUri()).isEqualTo(uri);
+        MemoryFileSystem fs = (MemoryFileSystem) newProvider().newFileSystem(uri, null);
+        assertThat(fs.getId()).isEqualTo("fsId");
+    }
+
+    @Test
+    public void buildThroughUriWithoutExplicitId() throws IOException {
+        URI uri = URI.create("memory:/");
+        MemoryFileSystem fs = (MemoryFileSystem)newProvider().newFileSystem(uri, null);
+        assertThat(fs.getId()).isEqualTo("");
     }
 
     @Test
@@ -65,7 +68,7 @@ public class MemoryFileSystemTest {
         assertThat(provider.registeredFileSystems()).isEmpty();
 
         MemoryFileSystem fs = MemoryFileSystem.builder(provider).build();
-        assertThat(provider.getFileSystem(fs.getUri())).isSameAs(fs);
+        assertThat(provider.getFileSystem(URI.create("memory:/"))).isSameAs(fs);
         assertThat(provider.registeredFileSystems().get("")).isSameAs(fs);
 
         fs.close();
@@ -110,8 +113,7 @@ public class MemoryFileSystemTest {
                 .builder(newProvider())
                 .build();
 
-        // default URI
-        assertThat(fs.getUri()).isEqualTo(URI.create("memory:///"));
+        assertThat(fs.getId()).isEqualTo("");
 
         // singlefile store by default or size zero
         assertThat(fs.getFileStores()).hasSize(1);

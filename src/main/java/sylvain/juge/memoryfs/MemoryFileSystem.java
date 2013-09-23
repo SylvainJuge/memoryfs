@@ -101,13 +101,6 @@ public class MemoryFileSystem extends FileSystem {
         return URI.create(sb.toString());
     }
 
-    // TODO : see how we can remove this package-private method
-    // testing should focus on actual FS id, not really on it's URI representation
-    // URI is more important at MemoryPath level
-    URI getUri() {
-        return URI.create(idString());
-    }
-
     String getId() {
         return id;
     }
