@@ -4,13 +4,15 @@ import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.net.URI;
-import java.nio.file.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.ProviderMismatchException;
+import java.nio.file.WatchEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.fest.assertions.api.Assertions.assertThat;
-import static org.fest.assertions.api.Assertions.fail;
 import static sylvain.juge.memoryfs.TestEquals.checkHashCodeEqualsConsistency;
 
 public class MemoryPathTest {
@@ -369,20 +371,20 @@ public class MemoryPathTest {
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
-    public void subPathWithoutElementsAskMoreThanAvailable(){
+    public void subPathWithoutElementsAskMoreThanAvailable() {
         MemoryPath path = createPath("/");
         assertThat(path.getNameCount()).isEqualTo(0);
-        path.subpath(0,1);
+        path.subpath(0, 1);
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
-    public void subPathNegativeStart(){
+    public void subPathNegativeStart() {
         createPath("/a").subpath(-1, 0);
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
-    public void subPathStartAfterEnd(){
-        createPath("/a/b").subpath(2,1);
+    public void subPathStartAfterEnd() {
+        createPath("/a/b").subpath(2, 1);
     }
 
     @Test(expectedExceptions = UnsupportedOperationException.class)
@@ -396,12 +398,12 @@ public class MemoryPathTest {
     }
 
     @Test(expectedExceptions = UnsupportedOperationException.class)
-    public void toFileNotSupported(){
+    public void toFileNotSupported() {
         createPath("/").toFile();
     }
 
     @Test
-    public void resolvePath(){
+    public void resolvePath() {
         checkResolvePath("a/b", "/a", "/a");
         checkResolvePath("a/b", "/", "/");
         checkResolvePath("/a", "/b", "/b");
@@ -414,7 +416,7 @@ public class MemoryPathTest {
     // TODO : InvalidPathException when string is not a valid path
 
     @Test
-    public void resolveString(){
+    public void resolveString() {
         assertThat(createPath("a/b").resolve("c/d")).isEqualTo(createPath("a/b/c/d"));
         assertThat(createPath("a/b").resolve("/c")).isEqualTo(createPath("/c"));
         assertThat(createPath("/").resolve("c")).isEqualTo(createPath("/c"));
@@ -437,43 +439,43 @@ public class MemoryPathTest {
         // result equals second argument.
         checkRelativize("a", "/", "/");
         checkRelativize("/a", "b", "b");
-        checkRelativize("a/b","c/d", "c/d");
+        checkRelativize("a/b", "c/d", "c/d");
 
         // TODO : add some tests with relative paths : ..
     }
 
-    private static void checkRelativize(String first, String toRelativize, String expected){
+    private static void checkRelativize(String first, String toRelativize, String expected) {
         assertThat(createPath(first).relativize(createPath(toRelativize))).isEqualTo(createPath(expected));
     }
 
     @Test
-    public void resolveSiblingPath(){
+    public void resolveSiblingPath() {
         // base case
-        checkResolveSiblingPath("a/b","c","a/c");
+        checkResolveSiblingPath("a/b", "c", "a/c");
 
         // absolute siblings
-        checkResolveSiblingPath("a/b","/","/");
-        checkResolveSiblingPath("a/b","/b","/b");
+        checkResolveSiblingPath("a/b", "/", "/");
+        checkResolveSiblingPath("a/b", "/b", "/b");
 
         // a has no parent
-        checkResolveSiblingPath("a","b","b");
-        checkResolveSiblingPath("a","/b","/b");
-        checkResolveSiblingPath("/","c","c");
+        checkResolveSiblingPath("a", "b", "b");
+        checkResolveSiblingPath("a", "/b", "/b");
+        checkResolveSiblingPath("/", "c", "c");
 
         // Note : we don't allow empty paths (even if javadoc seems to allow it)
     }
 
     @Test
-    public void resolveSiblingString(){
+    public void resolveSiblingString() {
         assertThat(createPath("a/b").resolveSibling("c/d")).isEqualTo(createPath("a/c/d"));
         assertThat(createPath("a").resolveSibling("/b")).isEqualTo(createPath("/b"));
     }
 
-    private static void checkResolvePath(String path, String toResolve, String expected){
+    private static void checkResolvePath(String path, String toResolve, String expected) {
         assertThat(createPath(path).resolve(createPath(toResolve))).isEqualTo(createPath(expected));
     }
 
-    private static void checkResolveSiblingPath(String base, String sibling, String expected){
+    private static void checkResolveSiblingPath(String base, String sibling, String expected) {
         assertThat(createPath(base).resolveSibling(createPath(sibling))).isEqualTo(createPath(expected));
     }
 
