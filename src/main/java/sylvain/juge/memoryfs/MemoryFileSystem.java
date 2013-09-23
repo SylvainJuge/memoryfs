@@ -78,7 +78,7 @@ public class MemoryFileSystem extends FileSystem {
         }
 
         public MemoryFileSystem build() {
-            return new MemoryFileSystem(provider, id, capacity);
+            return provider.registerFileSystem(new MemoryFileSystem(provider, id, capacity));
         }
     }
 

@@ -2,7 +2,6 @@ package sylvain.juge.memoryfs;
 
 import java.io.IOException;
 import java.net.URI;
-import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -53,20 +52,25 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
         return "";
     }
 
+    // TODO : retrieve fs store structure & capacity from options or through uri parameters
+    // TODO : allow to create FS with a random ID (distinct from other instances handled by this provider)
+
     @Override
     public FileSystem newFileSystem(URI uri, Map<String, ?> env) throws IOException {
         checkMemoryScheme(uri);
         String id = checkAndGetFileSystemId(uri);
+        return MemoryFileSystem.builder(this).id(id).capacity(0).build();
+    }
+
+    public MemoryFileSystem registerFileSystem(MemoryFileSystem fs){
+        String id = fs.getId();
         synchronized (fileSystems) {
             if (fileSystems.containsKey(id)) {
                 throw new FileSystemAlreadyExistsException("file system already exists : " + id);
             }
-            // TODO : retrieve fs store structure & capacity from options or through uri parameters
-            // TODO : allow to create FS with a random ID (distinct from other instances handled by this provider)
-            MemoryFileSystem fs = MemoryFileSystem.builder(this).id(id).capacity(0).build();
             fileSystems.put(id, fs);
-            return fs;
         }
+        return fs;
     }
 
     private static Long getCapacity(Map<String, ?> env) {

@@ -59,16 +59,27 @@ public class MemoryFileSystemTest {
         assertThat(fs.getUri()).isEqualTo(uri);
     }
 
+    @Test
+    public void fsRegistrationInProvider() throws IOException {
+        MemoryFileSystemProvider provider = newProvider();
+        assertThat(provider.registeredFileSystems()).isEmpty();
+
+        MemoryFileSystem fs = MemoryFileSystem.builder(provider).build();
+        assertThat(provider.getFileSystem(fs.getUri())).isSameAs(fs);
+        assertThat(provider.registeredFileSystems().get("")).isSameAs(fs);
+
+        fs.close();
+
+        assertThat(provider.registeredFileSystems()).isEmpty();
+    }
+
     // TODO : create FS through Path ?
     // TODO : create FS with URI and with explicit parameters
     // TODO : test for concurrent access on open/close state
 
-    @Test(enabled = false) // failing test disabled yet
+    @Test
     public void createFsWithCapacity() throws IOException {
 
-        // TODO : allow to pass capacity when creating filesystem
-        // - either through map of options, or through creation uri
-        // - providing a URI builder on impl may be convenient
         int capacity = 100;
 
         try (FileSystem fs = MemoryFileSystem
