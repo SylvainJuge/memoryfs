@@ -124,6 +124,19 @@ public class MemoryFileSystemTest {
         }
     }
 
+    @Test
+    public void getPathFromParts() {
+        MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
+        assertThat(fs.getPath("/absoluteSingle")).isEqualTo(MemoryPath.create(fs,"/absoluteSingle"));
+        assertThat(fs.getPath("relative")).isEqualTo(MemoryPath.create(fs,"relative"));
+
+        assertThat(fs.getPath("/a","path")).isEqualTo(MemoryPath.create(fs,"/a/path"));
+        assertThat(fs.getPath("a","relative")).isEqualTo(MemoryPath.create(fs,"a/relative"));
+
+        assertThat(fs.getPath("a/b","c/d","e")).isEqualTo(MemoryPath.create(fs,"a/b/c/d/e"));
+
+    }
+
     private static MemoryFileSystemProvider newProvider() {
         return new MemoryFileSystemProvider();
     }

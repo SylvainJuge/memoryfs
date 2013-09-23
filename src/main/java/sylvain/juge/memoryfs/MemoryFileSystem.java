@@ -155,8 +155,13 @@ public class MemoryFileSystem extends FileSystem {
 
     @Override
     public Path getPath(String first, String... more) {
-        // TODO : implement this
-        return null;
+        StringBuilder sb = new StringBuilder();
+        sb.append(first);
+        for (String s : more) {
+            sb.append(SEPARATOR);
+            sb.append(s);
+        }
+        return MemoryPath.create(this, sb.toString());
     }
 
     @Override
