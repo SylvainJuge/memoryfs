@@ -13,9 +13,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import static sylvain.juge.memoryfs.MemoryFileSystem.SCHEME;
+
 public class MemoryFileSystemProvider extends FileSystemProvider {
 
-    public static final String SCHEME = "memory";
 
     // thread safety : synchronized on instance for r/w
     private final Map<String, MemoryFileSystem> fileSystems;
