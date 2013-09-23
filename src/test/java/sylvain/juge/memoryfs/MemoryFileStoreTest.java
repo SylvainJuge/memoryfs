@@ -11,8 +11,8 @@ public class MemoryFileStoreTest {
     @Test
     public void createWithDefaultSettings() throws IOException {
         MemoryFileStore store = MemoryFileStore.builder().build();
-        assertThat(store.name()).isNotNull();
-        assertThat(store.type()).isNotNull();
+        assertThat(store.name()).isEqualTo("");
+        assertThat(store.type()).isEqualTo("memory");
         assertThat(store.getTotalSpace()).isEqualTo(0);
         assertThat(store.getUnallocatedSpace()).isEqualTo(0);
         assertThat(store.getUsableSpace()).isEqualTo(0);

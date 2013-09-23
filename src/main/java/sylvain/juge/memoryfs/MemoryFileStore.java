@@ -7,6 +7,7 @@ import java.nio.file.attribute.FileStoreAttributeView;
 
 public class MemoryFileStore extends FileStore {
 
+    private final String name;
     private final boolean readOnly;
     private long totalSpace = 0;
     private long usableSpace = 0;
@@ -17,7 +18,8 @@ public class MemoryFileStore extends FileStore {
     // => filesystem should probably delegate here actual storage of files
     // we don't need to ask anything to FS
 
-    private MemoryFileStore(boolean readOnly, long capacity) {
+    private MemoryFileStore(String name, boolean readOnly, long capacity) {
+        this.name = name;
         this.readOnly = readOnly;
         this.totalSpace = capacity;
         this.usableSpace = capacity;
@@ -27,9 +29,10 @@ public class MemoryFileStore extends FileStore {
     static class Builder {
         private long capacity = 0;
         private boolean readOnly = false;
+        private String name = "";
 
         MemoryFileStore build() {
-            return new MemoryFileStore(readOnly, capacity);
+            return new MemoryFileStore(name, readOnly, capacity);
         }
 
         public Builder readOnly(boolean readOnly) {
@@ -50,7 +53,7 @@ public class MemoryFileStore extends FileStore {
 
     @Override
     public String name() {
-        return "memory";
+        return name;
     }
 
     @Override
