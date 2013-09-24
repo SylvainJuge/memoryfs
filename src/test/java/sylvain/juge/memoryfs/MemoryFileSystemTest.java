@@ -6,6 +6,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 
@@ -130,11 +133,44 @@ public class MemoryFileSystemTest {
         assertThat(fs.getPath("/absoluteSingle")).isEqualTo(MemoryPath.create(fs,"/absoluteSingle"));
         assertThat(fs.getPath("relative")).isEqualTo(MemoryPath.create(fs,"relative"));
 
-        assertThat(fs.getPath("/a","path")).isEqualTo(MemoryPath.create(fs,"/a/path"));
+        assertThat(fs.getPath("/a","path")).isEqualTo(MemoryPath.create(fs, "/a/path"));
         assertThat(fs.getPath("a","relative")).isEqualTo(MemoryPath.create(fs,"a/relative"));
 
         assertThat(fs.getPath("a/b","c/d","e")).isEqualTo(MemoryPath.create(fs,"a/b/c/d/e"));
 
+    }
+
+    @Test
+    public void rootPathIsTheOnlyRoot(){
+        // with or without id, the fs root remains the same
+        checkRootDirectories(MemoryFileSystem.builder(newProvider()).build(), "/");
+        checkRootDirectories(MemoryFileSystem.builder(newProvider()).id("id").build(), "/");
+    }
+
+    private static void checkRootDirectories(MemoryFileSystem fs, String root, String... expectedSubPaths){
+        Path[] subPaths = new Path[expectedSubPaths.length];
+        for (int i=0;i<expectedSubPaths.length;i++) {
+            subPaths[i] = MemoryPath.create(fs, expectedSubPaths[i]);
+        }
+        assertThat(fs.getRootDirectories()).containsOnly(MemoryPath.create(fs, root));
+
+        // TODO
+        // if no subfolder expected, ensure that root folder is empty
+        // check root subfolders
+        // assertThat(fs.getRootDirectories()).containsOnly(expectedPaths.toArray(new Path[expectedPaths.size()]));
+    }
+
+    public void getRootDirectories() {
+        // root directory is always the root folder
+        // however, contents of the root folder changes depending on fs content and structure
+        // 1 store : all folders in this store are at the fs root
+        // 1 or more store : 1 folder per store at the fs root
+    }
+
+    @Test(enabled = false)
+    public void getPathMatcher() {
+
+        throw new RuntimeException("TODO : implement getPathMatcher");
     }
 
     private static MemoryFileSystemProvider newProvider() {

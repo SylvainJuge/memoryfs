@@ -5,7 +5,9 @@ import java.net.URI;
 import java.nio.file.*;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.nio.file.spi.FileSystemProvider;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -139,8 +141,9 @@ public class MemoryFileSystem extends FileSystem {
 
     @Override
     public Iterable<Path> getRootDirectories() {
-        // TODO : implement this
-        return null;
+        List<Path> rootDirectories = new ArrayList<>();
+        rootDirectories.add(MemoryPath.create(this,"/"));
+        return rootDirectories;
     }
 
     @Override
