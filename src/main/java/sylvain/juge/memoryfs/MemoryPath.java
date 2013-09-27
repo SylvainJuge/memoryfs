@@ -51,8 +51,13 @@ public class MemoryPath implements Path {
         this.absolute = absolute;
     }
 
-    private boolean isRoot() {
+    boolean isRoot() {
         return absolute && parts.isEmpty();
+    }
+
+
+    public Iterator<String> partsIterator(){
+        return parts.iterator();
     }
 
     @Override

@@ -7,11 +7,9 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
+import java.nio.file.attribute.FileTime;
 import java.nio.file.spi.FileSystemProvider;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static sylvain.juge.memoryfs.MemoryFileSystem.SCHEME;
 
@@ -149,7 +147,12 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
 
     @Override
     public DirectoryStream<Path> newDirectoryStream(Path dir, DirectoryStream.Filter<? super Path> filter) throws IOException {
-        throw new UnsupportedOperationException("TODO : implement this");
+        if(!(dir instanceof MemoryPath)){
+            throw new IllegalArgumentException("unexpected path type");
+        }
+
+        MemoryFileSystem fs = (MemoryFileSystem)dir.getFileSystem();
+        return fs.newDirectoryStream((MemoryPath)dir);
     }
 
     @Override
@@ -203,7 +206,7 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
 
     @Override
     public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) throws IOException {
-        throw new UnsupportedOperationException("not supported");
+        return (A)new MemoryFileAttributes();
     }
 
     @Override

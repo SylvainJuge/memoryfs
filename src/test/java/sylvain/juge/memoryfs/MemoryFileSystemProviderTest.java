@@ -212,6 +212,21 @@ public class MemoryFileSystemProviderTest {
         createAndGet(getNewProvider(), URI.create("memory://id/"));
     }
 
+    @Test
+    public void emptyFolderDirectoryStream() throws IOException {
+        MemoryFileSystemProvider provider = getNewProvider();
+        MemoryFileSystem fs = MemoryFileSystem.builder(provider).build();
+        Path root = MemoryPath.create(fs, "/");
+
+        DirectoryStream<Path> stream = provider.newDirectoryStream(root, new DirectoryStream.Filter<Path>() {
+            @Override
+            public boolean accept(Path entry) throws IOException {
+                return true;
+            }
+        });
+        assertThat(stream).isEmpty();
+    }
+
     private static String findFirstCommonId(Set<String> before, Set<String> after) {
         for (String id : after) {
             if (!before.contains(id)) {

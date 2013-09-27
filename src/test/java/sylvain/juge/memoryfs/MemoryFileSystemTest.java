@@ -4,9 +4,8 @@ import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.net.URI;
-import java.nio.file.FileStore;
-import java.nio.file.FileSystem;
-import java.nio.file.Path;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,7 +60,7 @@ public class MemoryFileSystemTest {
     @Test
     public void buildThroughUriWithoutExplicitId() throws IOException {
         URI uri = URI.create("memory:/");
-        MemoryFileSystem fs = (MemoryFileSystem)newProvider().newFileSystem(uri, null);
+        MemoryFileSystem fs = (MemoryFileSystem) newProvider().newFileSystem(uri, null);
         assertThat(fs.getId()).isEqualTo("");
     }
 
@@ -130,46 +129,60 @@ public class MemoryFileSystemTest {
     @Test
     public void getPathFromParts() {
         MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
-        assertThat(fs.getPath("/absoluteSingle")).isEqualTo(MemoryPath.create(fs,"/absoluteSingle"));
-        assertThat(fs.getPath("relative")).isEqualTo(MemoryPath.create(fs,"relative"));
+        assertThat(fs.getPath("/absoluteSingle")).isEqualTo(MemoryPath.create(fs, "/absoluteSingle"));
+        assertThat(fs.getPath("relative")).isEqualTo(MemoryPath.create(fs, "relative"));
 
-        assertThat(fs.getPath("/a","path")).isEqualTo(MemoryPath.create(fs, "/a/path"));
-        assertThat(fs.getPath("a","relative")).isEqualTo(MemoryPath.create(fs,"a/relative"));
+        assertThat(fs.getPath("/a", "path")).isEqualTo(MemoryPath.create(fs, "/a/path"));
+        assertThat(fs.getPath("a", "relative")).isEqualTo(MemoryPath.create(fs, "a/relative"));
 
-        assertThat(fs.getPath("a/b","c/d","e")).isEqualTo(MemoryPath.create(fs,"a/b/c/d/e"));
+        assertThat(fs.getPath("a/b", "c/d", "e")).isEqualTo(MemoryPath.create(fs, "a/b/c/d/e"));
 
     }
 
     @Test
-    public void rootPathIsTheOnlyRoot(){
+    public void rootPathIsTheOnlyRoot() throws IOException {
         // with or without id, the fs root remains the same
         checkRootDirectories(MemoryFileSystem.builder(newProvider()).build(), "/");
         checkRootDirectories(MemoryFileSystem.builder(newProvider()).id("id").build(), "/");
     }
 
-    private static void checkRootDirectories(MemoryFileSystem fs, String root, String... expectedSubPaths){
-        Path[] subPaths = new Path[expectedSubPaths.length];
-        for (int i=0;i<expectedSubPaths.length;i++) {
-            subPaths[i] = MemoryPath.create(fs, expectedSubPaths[i]);
-        }
-        assertThat(fs.getRootDirectories()).containsOnly(MemoryPath.create(fs, root));
+    private static void checkRootDirectories(MemoryFileSystem fs, String root, String... expectedSubPaths) throws IOException {
+        MemoryPath rootPath = MemoryPath.create(fs, root);
+        assertThat(fs.getRootDirectories()).containsOnly(rootPath);
 
-        // TODO
-        // if no subfolder expected, ensure that root folder is empty
-        // check root subfolders
-        // assertThat(fs.getRootDirectories()).containsOnly(expectedPaths.toArray(new Path[expectedPaths.size()]));
+        List<Path> subPaths = getSubPaths(rootPath);
+        assertThat(subPaths).isEqualTo(toPath(fs, expectedSubPaths));
     }
 
-    public void getRootDirectories() {
-        // root directory is always the root folder
-        // however, contents of the root folder changes depending on fs content and structure
-        // 1 store : all folders in this store are at the fs root
-        // 1 or more store : 1 folder per store at the fs root
+    private static List<Path> getSubPaths(Path start) throws IOException {
+        final List<Path> subPaths = new ArrayList<>();
+        Files.walkFileTree(start, new SimpleFileVisitor<Path>() {
+
+            @Override
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                subPaths.add(dir);
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                subPaths.add(file);
+                return FileVisitResult.CONTINUE;
+            }
+        });
+        return subPaths;
+    }
+
+    private static List<Path> toPath(MemoryFileSystem fs, String... paths) {
+        List<Path> result = new ArrayList<>();
+        for (String path : paths) {
+            result.add(MemoryPath.create(fs, path));
+        }
+        return result;
     }
 
     @Test(enabled = false)
     public void getPathMatcher() {
-
         throw new RuntimeException("TODO : implement getPathMatcher");
     }
 

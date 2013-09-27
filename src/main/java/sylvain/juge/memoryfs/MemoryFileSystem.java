@@ -5,10 +5,7 @@ import java.net.URI;
 import java.nio.file.*;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.nio.file.spi.FileSystemProvider;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MemoryFileSystem extends FileSystem {
@@ -19,6 +16,8 @@ public class MemoryFileSystem extends FileSystem {
     private final MemoryFileSystemProvider provider;
     private final String id;
     private final FileStore store;
+
+    private final Entry rootEntry = Entry.newDirectory();
 
     private AtomicBoolean isOpen;
 
@@ -109,6 +108,60 @@ public class MemoryFileSystem extends FileSystem {
 
     private String idString(){
         return SCHEME + ":/" + id;
+    }
+
+    private Entry findEntry(MemoryPath path){
+        if(path.isRoot()){
+            return rootEntry;
+        }
+
+        Entry parentEntry = rootEntry;
+        Iterator<String> it = path.partsIterator();
+        while(it.hasNext()){
+            String part = it.next();
+            Entry childEntry = parentEntry.getFiles().get(part);
+            if(null == childEntry){
+                return null;
+            }
+            parentEntry = childEntry;
+        }
+        return null;
+    }
+
+    public DirectoryStream<Path> newDirectoryStream(final MemoryPath path) throws IOException {
+
+        Entry entry = findEntry(path);
+        if (null == entry || !entry.isDirectory()){
+            throw new NotDirectoryException("not a valid directory : "+path);
+        }
+
+        final Iterator<String> contentIterator = path.partsIterator();
+        return new DirectoryStream<Path>() {
+
+            @Override
+            public Iterator<Path> iterator() {
+                return new Iterator<Path>() {
+                    @Override
+                    public boolean hasNext() {
+                        return contentIterator.hasNext();
+                    }
+
+                    @Override
+                    public Path next() {
+                        return path.resolve(contentIterator.next());
+                    }
+
+                    @Override
+                    public void remove() {
+                        throw new UnsupportedOperationException();
+                    }
+                };
+            }
+
+            @Override
+            public void close() throws IOException {
+            }
+        };
     }
 
     @Override
