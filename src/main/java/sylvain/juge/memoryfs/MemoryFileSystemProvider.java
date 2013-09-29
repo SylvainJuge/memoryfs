@@ -204,6 +204,7 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
         return null;
     }
 
+    @SuppressWarnings("unchecked") // yet, we have no way to make it type-safe
     @Override
     public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) throws IOException {
         return (A)new MemoryFileAttributes();
