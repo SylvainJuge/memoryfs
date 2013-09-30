@@ -6,6 +6,7 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.HashSet;
 import java.util.List;
@@ -225,6 +226,26 @@ public class MemoryFileSystemProviderTest {
             }
         });
         assertThat(stream).isEmpty();
+    }
+
+    @Test
+    public void rootDirectoryAttributes() throws IOException {
+        MemoryFileSystemProvider provider = getNewProvider();
+        MemoryFileSystem fs = MemoryFileSystem.builder(provider).build();
+        Path root = MemoryPath.create(fs, "/");
+
+        BasicFileAttributes a = provider.readAttributes(root, BasicFileAttributes.class);
+        checkDirectoryAttributes(a);
+
+    }
+
+    private static void checkDirectoryAttributes(BasicFileAttributes a){
+        assertThat(a).isNotNull();
+        assertThat(a.isDirectory()).describedAs("must be a directory").isTrue();
+        assertThat(a.isRegularFile()).describedAs("directory is not a regular file").isFalse();
+        assertThat(a.isSymbolicLink()).describedAs("directory is not a symbolic link").isFalse();
+        assertThat(a.isOther()).describedAs("directory is not other").isFalse();
+        assertThat(a.size()).describedAs("directory does not have size").isEqualTo(0);
     }
 
     private static String findFirstCommonId(Set<String> before, Set<String> after) {

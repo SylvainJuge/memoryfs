@@ -55,6 +55,9 @@ public class MemoryPath implements Path {
         return absolute && parts.isEmpty();
     }
 
+    Entry findEntry(){
+        return fs.findEntry(this);
+    }
 
     public Iterator<String> partsIterator(){
         return parts.iterator();

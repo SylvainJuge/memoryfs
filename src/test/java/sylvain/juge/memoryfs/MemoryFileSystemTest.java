@@ -154,13 +154,15 @@ public class MemoryFileSystemTest {
         assertThat(subPaths).isEqualTo(toPath(fs, expectedSubPaths));
     }
 
-    private static List<Path> getSubPaths(Path start) throws IOException {
+    private static List<Path> getSubPaths(final Path start) throws IOException {
         final List<Path> subPaths = new ArrayList<>();
         Files.walkFileTree(start, new SimpleFileVisitor<Path>() {
 
             @Override
             public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                subPaths.add(dir);
+                if (!dir.equals(start)) {
+                    subPaths.add(dir);
+                }
                 return FileVisitResult.CONTINUE;
             }
 
