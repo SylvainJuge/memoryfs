@@ -206,19 +206,23 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
 
     @Override
     public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) throws IOException {
+        if(!type.isAssignableFrom(Entry.class)){
+            throw new UnsupportedOperationException("unsupported attribute type : "+ type);
+        }
+        Entry entry = toMemoryPath(path).findEntry();
+        return type.cast(entry);
+    }
+
+    private static MemoryPath toMemoryPath(Path path){
         if (!(path instanceof MemoryPath)) {
             throw new ProviderMismatchException();
         }
-
-        if(!type.isAssignableFrom(Entry.class)){
-            throw new IllegalArgumentException("unsupported attribute type : "+ type);
-        }
-        Entry entry = ((MemoryPath) path).findEntry();
-        return type.cast(entry);
+        return MemoryPath.class.cast(path);
     }
 
     @Override
     public Map<String, Object> readAttributes(Path path, String attributes, LinkOption... options) throws IOException {
+        toMemoryPath(path);
         throw new UnsupportedOperationException("not supported");
     }
 

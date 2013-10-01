@@ -236,7 +236,28 @@ public class MemoryFileSystemProviderTest {
 
         BasicFileAttributes a = provider.readAttributes(root, BasicFileAttributes.class);
         checkDirectoryAttributes(a);
+    }
 
+    @Test(expectedExceptions = ProviderMismatchException.class)
+    public void readAttributesWithWrongPathType1() throws IOException {
+        getNewProvider().readAttributes(Paths.get("inDefaultFs"), BasicFileAttributes.class);
+    }
+
+    @Test(expectedExceptions = ProviderMismatchException.class)
+    public void readAttributesWithWrongPathType2() throws IOException {
+        getNewProvider().readAttributes(Paths.get("inDefaultFs"), "");
+    }
+
+    @Test(expectedExceptions = UnsupportedOperationException.class)
+    public void readAttributesWithWrongAttributeType() throws IOException {
+        MemoryFileSystemProvider provider = getNewProvider();
+        MemoryFileSystem fs = MemoryFileSystem.builder(provider).build();
+        MemoryPath path = MemoryPath.create(fs, "/");
+        getNewProvider().readAttributes(path, UnsupportedAttribute.class);
+    }
+
+    private static class UnsupportedAttribute extends MemoryFileAttributes {
+        // empty by design, we just need an empty subtype of BasicFileAttributes without writing too much
     }
 
     private static void checkDirectoryAttributes(BasicFileAttributes a){
