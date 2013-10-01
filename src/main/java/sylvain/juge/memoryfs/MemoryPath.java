@@ -44,7 +44,7 @@ public class MemoryPath implements Path {
             throw new IllegalArgumentException("filesytem required");
         }
         if (start < 0 || parts.size() < end || end < start) {
-            throw new IllegalArgumentException(String.format("invalid range [%d,%d[ in interval [0,%d[ %s", start, end, parts.size()));
+            throw new IllegalArgumentException(String.format("invalid range [%d,%d[ in interval [0,%d[", start, end, parts.size()));
         }
         this.fs = fs;
         this.parts = parts.subList(start, end);
@@ -55,10 +55,16 @@ public class MemoryPath implements Path {
         return absolute && parts.isEmpty();
     }
 
+    /**
+     * @return entry for this path in filesystem, null if no such entry exists
+     */
     Entry findEntry(){
         return fs.findEntry(this);
     }
 
+    /**
+     * @return an iterator over path parts
+     */
     public Iterator<String> partsIterator(){
         return parts.iterator();
     }

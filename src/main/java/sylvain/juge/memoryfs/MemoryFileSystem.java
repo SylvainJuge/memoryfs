@@ -110,7 +110,11 @@ public class MemoryFileSystem extends FileSystem {
         return SCHEME + ":/" + id;
     }
 
-    private Entry findEntry(MemoryPath path){
+    /**
+     * @param path path
+     * @return filesystem entry associated to this path, null if no such entry exists
+     */
+    Entry findEntry(MemoryPath path){
         if(path.isRoot()){
             return rootEntry;
         }
