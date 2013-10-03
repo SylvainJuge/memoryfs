@@ -58,7 +58,7 @@ public class MemoryPath implements Path {
             throw new IllegalArgumentException(String.format("invalid range [%d,%d[ in interval [0,%d[", start, end, parts.size()));
         }
         this.fs = fs;
-        this.parts = parts;
+        this.parts = new ArrayList<>(parts.subList(start, end));
         this.absolute = absolute;
     }
 
