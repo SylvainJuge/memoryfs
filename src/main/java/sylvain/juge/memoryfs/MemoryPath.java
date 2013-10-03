@@ -22,6 +22,13 @@ public class MemoryPath implements Path {
     private URI uri = null;
     private String path = null;
 
+    static MemoryPath asMemoryPath(Path path){
+        if( path instanceof MemoryPath){
+            return (MemoryPath)path;
+        }
+        throw new ProviderMismatchException();
+    }
+
     static MemoryPath create(MemoryFileSystem fs, String path) {
         if (null == path || path.isEmpty()) {
             throw new IllegalArgumentException("path required not empty, got : " + path);
@@ -39,6 +46,10 @@ public class MemoryPath implements Path {
         return new MemoryPath(fs, parts, 0, parts.size(), absolute);
     }
 
+    static MemoryPath createRoot(MemoryFileSystem fs){
+        return create(fs,"/");
+    }
+
     private MemoryPath(MemoryFileSystem fs, List<String> parts, int start, int end, boolean absolute) {
         if (null == fs) {
             throw new IllegalArgumentException("filesytem required");
@@ -47,7 +58,7 @@ public class MemoryPath implements Path {
             throw new IllegalArgumentException(String.format("invalid range [%d,%d[ in interval [0,%d[", start, end, parts.size()));
         }
         this.fs = fs;
-        this.parts = parts.subList(start, end);
+        this.parts = parts;
         this.absolute = absolute;
     }
 
@@ -234,12 +245,12 @@ public class MemoryPath implements Path {
         if(path.isAbsolute() || parts.size() < 2){
             return path;
         }
-        return toSibling(parts.size()-1, path);
+        return toSibling(parts.size() - 1, path);
     }
 
-    private Path toSibling(int end, MemoryPath sibling){
-        List<String> newParts = parts.subList(0,end);
-        for(String s:sibling.parts){
+    private Path toSibling(int end, MemoryPath sibling) {
+        List<String> newParts = new ArrayList<>(parts.subList(0, end));
+        for (String s : sibling.parts) {
             newParts.add(s);
         }
         return new MemoryPath(fs, newParts, 0, newParts.size(), absolute);

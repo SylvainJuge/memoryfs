@@ -19,6 +19,26 @@ public class MemoryPathTest {
 
     private static final MemoryFileSystem defaultFs = createFs();
 
+    @Test
+    public void createRoot() {
+        MemoryPath path = MemoryPath.createRoot(defaultFs);
+        assertThat(path).isNotNull();
+        assertThat(path.isRoot()).isTrue();
+        assertThat(path.isAbsolute()).isTrue();
+    }
+
+    @Test
+    public void asMemoryPath() {
+        Path path = MemoryPath.createRoot(defaultFs);
+        MemoryPath memoryPath = MemoryPath.asMemoryPath(path);
+        assertThat(memoryPath).isSameAs(path);
+    }
+
+    @Test(expectedExceptions = ProviderMismatchException.class)
+    public void asMemoryPathBadPathType() {
+        MemoryPath.asMemoryPath(Paths.get("in/default/fs"));
+    }
+
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void fileSystemRequired() {
         MemoryPath.create(null, "/anypath");
@@ -417,9 +437,17 @@ public class MemoryPathTest {
 
     @Test
     public void resolveString() {
-        assertThat(createPath("a/b").resolve("c/d")).isEqualTo(createPath("a/b/c/d"));
-        assertThat(createPath("a/b").resolve("/c")).isEqualTo(createPath("/c"));
-        assertThat(createPath("/").resolve("c")).isEqualTo(createPath("/c"));
+        checkResolvePathString("a/b","c/d","a/b/c/d");
+        checkResolvePathString("a/b","/c","/c");
+        checkResolvePathString("/","c","/c");
+    }
+
+    private void checkResolvePathString(String path, String toResolve, String expected){
+        MemoryPath initialPath = createPath(path);
+        Path resolved = initialPath.resolve(toResolve);
+        assertThat(resolved).isEqualTo(createPath(expected));
+
+        assertThat(initialPath.getPath()).describedAs("initial path not modified").isEqualTo(path);
     }
 
     @Test
@@ -472,11 +500,15 @@ public class MemoryPathTest {
     }
 
     private static void checkResolvePath(String path, String toResolve, String expected) {
-        assertThat(createPath(path).resolve(createPath(toResolve))).isEqualTo(createPath(expected));
+        MemoryPath initialPath = createPath(path);
+        assertThat(initialPath.resolve(createPath(toResolve))).isEqualTo(createPath(expected));
+        assertThat(initialPath.getPath()).describedAs("initial path not modified").isEqualTo(path);
     }
 
     private static void checkResolveSiblingPath(String base, String sibling, String expected) {
-        assertThat(createPath(base).resolveSibling(createPath(sibling))).isEqualTo(createPath(expected));
+        MemoryPath basePath = createPath(base);
+        assertThat(basePath.resolveSibling(createPath(sibling))).isEqualTo(createPath(expected));
+        assertThat(basePath.getPath()).describedAs("initial path not modified").isEqualTo(base);
     }
 
     private static void checkCompareToStrictOrder(String... paths) {
