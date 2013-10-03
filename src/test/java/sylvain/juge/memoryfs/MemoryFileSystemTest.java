@@ -146,6 +146,47 @@ public class MemoryFileSystemTest {
         checkRootDirectories(MemoryFileSystem.builder(newProvider()).id("id").build(), "/");
     }
 
+    @Test
+    public void rootEntryAlwaysAvailable(){
+        MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
+        MemoryPath root = MemoryPath.createRoot(fs);
+        Entry entry = fs.findEntry(root);
+        assertThat(entry).isNotNull();
+        assertThat(entry.getParent()).isNull();
+        assertThat(entry.isDirectory()).isTrue();
+        assertThat(entry.getFiles()).isEmpty();
+
+        // multiple equivalent paths leads to the same entry instance
+        assertThat(fs.findEntry(root)).isSameAs(entry);
+    }
+
+    @Test
+    public void findNonExistingEntry() {
+        MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
+        MemoryPath nonExistingPath = MemoryPath.create(fs,"non/existing/path");
+
+        assertThat(fs.findEntry(nonExistingPath)).isNull();
+    }
+
+    @Test
+    public void createDirectory() {
+        MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
+        MemoryPath root = MemoryPath.createRoot(fs);
+        Path directory = root.resolve("directory");
+
+        assertThat(fs.findEntry(directory)).describedAs("non existing directory shouldn't have any entry yet").isNull();
+
+        Entry dirEntry = fs.createDirectory(directory);
+        assertThat(dirEntry).isNotNull();
+        assertThat(dirEntry.isDirectory()).isTrue();
+
+        assertThat(fs.findEntry(root).getFiles()).isNotEmpty();
+
+        assertThat(dirEntry.getParent()).isSameAs(fs.findEntry(root));
+
+        assertThat(fs.findEntry(directory)).isSameAs(dirEntry);
+    }
+
     private static void checkRootDirectories(MemoryFileSystem fs, String root, String... expectedSubPaths) throws IOException {
         MemoryPath rootPath = MemoryPath.create(fs, root);
         assertThat(fs.getRootDirectories()).containsOnly(rootPath);

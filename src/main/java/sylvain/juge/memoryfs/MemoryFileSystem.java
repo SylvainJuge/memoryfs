@@ -17,7 +17,7 @@ public class MemoryFileSystem extends FileSystem {
     private final String id;
     private final FileStore store;
 
-    private final Entry rootEntry = Entry.newDirectory();
+    private final Entry rootEntry = Entry.newRoot();
 
     private AtomicBoolean isOpen;
 
@@ -114,22 +114,78 @@ public class MemoryFileSystem extends FileSystem {
      * @param path path
      * @return filesystem entry associated to this path, null if no such entry exists
      */
-    Entry findEntry(MemoryPath path){
-        if(path.isRoot()){
+    Entry findEntry(Path path){
+        MemoryPath p = MemoryPath.asMemoryPath(path);
+        if(p.isRoot()){
             return rootEntry;
         }
 
         Entry parentEntry = rootEntry;
-        Iterator<String> it = path.partsIterator();
+        Entry childEntry = null;
+        Iterator<String> it = p.partsIterator();
         while(it.hasNext()){
             String part = it.next();
-            Entry childEntry = parentEntry.getFiles().get(part);
+            childEntry = parentEntry.getFiles().get(part);
             if(null == childEntry){
                 return null;
             }
             parentEntry = childEntry;
         }
+        return childEntry;
+    }
+
+    Entry createDirectory(Path path){
+        return createDirectory(path, false);
+    }
+
+    // things to test :
+    // - parent exists but is not a directory
+    // - multiple level of parents do not exists
+
+    // - direct parent exists
+    //   - fail if it is not a directory
+    // - direct parent does not exists
+    //  - we have to iterator over all ancestors to create folders when needed
+    //  - while creating, if we encounter conflicts, we throw an error
+
+    Entry createDirectory(Path path, boolean createParents){
+        Path parent = path.getParent();
+        Entry parentEntry = findEntry(parent);
+
+        if (null != parentEntry && !parentEntry.isDirectory()) {
+            throw new IllegalArgumentException("parent folder is not a directory");
+        }
+
+        if (null == parentEntry) {
+            if (!createParents) {
+                throw new IllegalArgumentException("parent folder does not exists : " + parent);
+            } else {
+                for (Path dir : parent) {
+                    Entry dirEntry = findEntry(dir);
+                    if (null == dirEntry) {
+                        dirEntry = Entry.newDirectory(parentEntry, dir.getFileName().toString());
+                    } else if (!dirEntry.isDirectory()) {
+                        throw new IllegalArgumentException("conflict : path exists and is not a directory :" + dir);
+                    }
+                    parentEntry = dirEntry;
+                }
+            }
+        }
+
+        if( null == parentEntry){
+            throw new IllegalArgumentException("can't get or create parent directory : "+parent);
+        }
+
+        String name = MemoryPath.asMemoryPath(path.getFileName()).getPath();
+        return Entry.newDirectory(parentEntry, name);
+    }
+
+    Entry createFile(Path path){
         return null;
+    }
+
+    void delete(Path entry){
+
     }
 
     public DirectoryStream<Path> newDirectoryStream(final MemoryPath path) throws IOException {

@@ -2,29 +2,55 @@ package sylvain.juge.memoryfs;
 
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 class Entry implements BasicFileAttributes {
 
     private final boolean isDirectory;
+    private final String name;
     private final Map<String, Entry> files;
+    private final Entry parent;
 
-    Entry(boolean isDirectory) {
+    // TODO : keeping a reference on parent Map.Entry may allow to retrieve
+    // both the file name and it's associated entry in a single structure
+    // -> this avoids duplicating name in parent map and in entry itself
+    // -> in this case we will have to rename this class for clarity.
+    Entry(Entry parent, boolean isDirectory, String name) {
+        this.parent = parent;
         this.isDirectory = isDirectory;
-        this.files = isDirectory ? new HashMap<String, Entry>() : null;
+        Map<String,Entry> emptyMap = Collections.emptyMap();
+        this.files = isDirectory ? new HashMap<String, Entry>() : emptyMap;
+        this.name = name;
     }
 
-    static Entry newDirectory() {
-        return new Entry(true);
+    private Entry addChild(Entry child, String name){
+        if( files.containsKey(name) ){
+            throw new IllegalArgumentException("file aleready exists in folder : "+name);
+        }
+        this.files.put(name, child);
+        return child;
     }
 
-    static Entry newFile() {
-        return new Entry(false);
+    static Entry newRoot(){
+        return new Entry(null, true, null);
+    }
+
+    static Entry newDirectory(Entry parent, String name) {
+        return parent.addChild(new Entry(parent, true, name),name);
+    }
+
+    static Entry newFile(Entry parent, String name) {
+        return parent.addChild(new Entry(parent, false, name),name);
     }
 
     Map<String,Entry> getFiles(){
         return files;
+    }
+
+    Entry getParent() {
+        return parent;
     }
 
     @Override
