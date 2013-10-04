@@ -288,6 +288,11 @@ public class MemoryPathTest {
     }
 
     @Test
+    public void endsWithLongerReturnFalse(){
+        assertThat(createPath("/a/b").endsWith(createPath("/a/b/c"))).isFalse();
+    }
+
+    @Test
     public void startsWithStringPrefix() {
         // a/bc/d starts with a/b (which is not true for paths)
         MemoryPath abcd = createPath("a/bc/d");
@@ -497,6 +502,11 @@ public class MemoryPathTest {
     public void resolveSiblingString() {
         assertThat(createPath("a/b").resolveSibling("c/d")).isEqualTo(createPath("a/c/d"));
         assertThat(createPath("a").resolveSibling("/b")).isEqualTo(createPath("/b"));
+    }
+
+    @Test(expectedExceptions = UnsupportedOperationException.class)
+    public void pathIteratorDoesNotAllowRemove(){
+        createPath("/").iterator().remove();
     }
 
     private static void checkResolvePath(String path, String toResolve, String expected) {
