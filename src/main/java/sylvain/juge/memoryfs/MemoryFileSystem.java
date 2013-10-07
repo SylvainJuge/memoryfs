@@ -153,27 +153,23 @@ public class MemoryFileSystem extends FileSystem {
         Entry parentEntry = findEntry(parent);
 
         if (null != parentEntry && !parentEntry.isDirectory()) {
-            throw new IllegalArgumentException("parent folder is not a directory");
+            throw new ConflictException("parent folder is not a directory");
         }
 
-        if (null == parentEntry) {
-            if (!createParents) {
-                throw new IllegalArgumentException("parent folder does not exists : " + parent);
-            } else {
-                for (Path dir : parent) {
-                    Entry dirEntry = findEntry(dir);
-                    if (null == dirEntry) {
-                        dirEntry = Entry.newDirectory(parentEntry, dir.getFileName().toString());
-                    } else if (!dirEntry.isDirectory()) {
-                        throw new IllegalArgumentException("conflict : path exists and is not a directory :" + dir);
-                    }
-                    parentEntry = dirEntry;
+        if (null == parentEntry && createParents) {
+            for (Path dir : parent) {
+                Entry dirEntry = findEntry(dir);
+                if (null == dirEntry) {
+                    dirEntry = Entry.newDirectory(parentEntry, dir.getFileName().toString());
+                } else if (!dirEntry.isDirectory()) {
+                    throw new ConflictException("conflict : path exists and is not a directory :" + dir);
                 }
+                parentEntry = dirEntry;
             }
         }
 
         if( null == parentEntry){
-            throw new IllegalArgumentException("can't get or create parent directory : "+parent);
+            throw new DoesNotExistsException(parent);
         }
 
         String name = MemoryPath.asMemoryPath(path.getFileName()).getPath();

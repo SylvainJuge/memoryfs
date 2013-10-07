@@ -169,7 +169,7 @@ public class MemoryFileSystemTest {
     }
 
     @Test
-    public void createDirectory() {
+    public void createDirectoryEntry() {
         MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
         MemoryPath root = MemoryPath.createRoot(fs);
         Path directory = root.resolve("directory");
@@ -185,6 +185,29 @@ public class MemoryFileSystemTest {
         assertThat(dirEntry.getParent()).isSameAs(fs.findEntry(root));
 
         assertThat(fs.findEntry(directory)).isSameAs(dirEntry);
+    }
+
+
+    @Test(expectedExceptions = DoesNotExistsException.class)
+    public void failsToCreateWithMissingParent() {
+        MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
+
+        MemoryPath path = MemoryPath.create(fs, "/anywhere/beyond/root");
+        assertThat(fs.findEntry(path)).isNull();
+
+        fs.createDirectory(path, false);
+    }
+
+    @Test(expectedExceptions = ConflictException.class)
+    public void failsToCreateWhenAlreadyExists() {
+        MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
+
+        MemoryPath path = MemoryPath.create(fs, "/existing");
+        fs.createDirectory(path);
+        Entry entry = fs.findEntry(path);
+        assertThat(entry).isNotNull();
+
+        fs.createDirectory(path, false);
     }
 
     private static void checkRootDirectories(MemoryFileSystem fs, String root, String... expectedSubPaths) throws IOException {

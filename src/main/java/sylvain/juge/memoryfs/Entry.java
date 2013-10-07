@@ -27,7 +27,7 @@ class Entry implements BasicFileAttributes {
 
     private Entry addChild(Entry child, String name){
         if( files.containsKey(name) ){
-            throw new IllegalArgumentException("file aleready exists in folder : "+name);
+            throw new ConflictException(name + " already exists in folder");
         }
         this.files.put(name, child);
         return child;
