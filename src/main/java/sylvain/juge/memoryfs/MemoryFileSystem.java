@@ -148,7 +148,7 @@ public class MemoryFileSystem extends FileSystem {
     //  - we have to iterator over all ancestors to create folders when needed
     //  - while creating, if we encounter conflicts, we throw an error
 
-    Entry createDirectory(Path path, boolean createParents){
+    public Entry createEntry(Path path, boolean directory, boolean createParents) {
         Path parent = path.getParent();
         Entry parentEntry = findEntry(parent);
 
@@ -177,11 +177,20 @@ public class MemoryFileSystem extends FileSystem {
         }
 
         String name = MemoryPath.asMemoryPath(path.getFileName()).getPath();
-        return Entry.newDirectory(parentEntry, name);
+        return directory ?
+                Entry.newDirectory(parentEntry, name) :
+                Entry.newFile(parentEntry, name);
+
     }
 
-    Entry createFile(Path path){
-        return null;
+    @Deprecated
+    Entry createDirectory(Path path, boolean createParents){
+        return createEntry(path, true, createParents);
+    }
+
+    @Deprecated
+    Entry createFile(Path path, boolean createParents){
+        return createEntry(path, false, createParents);
     }
 
     void delete(Path entry){

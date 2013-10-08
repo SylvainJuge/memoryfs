@@ -212,22 +212,33 @@ public class MemoryFileSystemTest {
 
     @Test
     public void createDirectoryEntryWithParents() {
+        createWithParents(true);
+    }
 
+    @Test
+    public void createFileEntryWithParents() {
+        createWithParents(false);
+    }
+
+    private static void createWithParents(boolean directory){
         MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
         MemoryPath path = MemoryPath.create(fs, "/not/in/root");
         for (Path p : path) {
             assertThat(fs.findEntry(p)).isNull();
         }
-
-        Entry entry = fs.createDirectory(path, true);
+        Entry entry = directory ? fs.createDirectory(path, true) : fs.createFile(path, true);
         assertThat(entry).isNotNull();
+        assertThat(entry.isDirectory()).isEqualTo(directory);
 
-        for (Path p : path) {
-            Entry e = fs.findEntry(p);
-            assertThat(e).describedAs("missing folder " + p).isNotNull();
+        for(Path parent: path.getParent()){
+            Entry e = fs.findEntry(parent);
+            assertThat(e).describedAs("missing parent folder " + parent).isNotNull();
             assertThat(e.isDirectory()).isTrue();
         }
     }
+
+    // TODO : create with parents when some of ancestors already exist
+
 
     }
 
