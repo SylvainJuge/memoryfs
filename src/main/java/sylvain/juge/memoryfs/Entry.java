@@ -99,6 +99,18 @@ class Entry implements BasicFileAttributes {
     }
 
 
+    @Override
+    public String toString() {
+        // note : not really efficient for very deep paths, but we can probably get with
+        if( null == parent){
+            return "/";
+        }
+        if ( null == parent.parent ){
+            return "/"+name;
+        }
+        else return parent.toString() + "/" + name;
+    }
+
     // - where we store file bytes
     // - contains all its attributes (may extend BasicFileAttributes)
     // - subclass for files/folders (only if required, especially if we store both the same way in the actual FS metadata)
