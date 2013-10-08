@@ -265,7 +265,6 @@ public class MemoryFileSystemTest {
     // TODO : create with parents when some of ancestors already exist
 
 
-    }
 
     private static void checkRootDirectories(MemoryFileSystem fs, String root, String... expectedSubPaths) throws IOException {
         MemoryPath rootPath = MemoryPath.create(fs, root);
