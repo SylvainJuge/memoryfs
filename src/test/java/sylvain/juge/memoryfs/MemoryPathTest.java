@@ -62,11 +62,23 @@ public class MemoryPathTest {
 
         assertThat(path.isAbsolute()).isFalse();
         assertThat(path.getRoot()).isNull(); // relative path does not have root
-        // TODO : get relative path parent
 
         checkParts(path,
                 "relative",
                 "relative/path");
+    }
+
+    @Test
+    public void checkPathParent(){
+        assertThat(createPath("/").getParent()).isNull();
+        assertThat(createPath("a").getParent()).isNull();
+        checkParent("/a","/");
+        checkParent("/a/b","/a");
+        checkParent("a/b","a");
+    }
+
+    private static void checkParent(String path, String expectedParent){
+        assertThat(createPath(path).getParent()).isEqualTo(createPath(expectedParent));
     }
 
 
