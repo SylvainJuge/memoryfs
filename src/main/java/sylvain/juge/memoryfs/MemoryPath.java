@@ -305,24 +305,6 @@ public class MemoryPath implements Path {
             uri = fs.toUri((absolute ? "" : SEPARATOR) + getPath());
         }
         return uri;
-
-        // note :
-        // - when fs path is "memory:/"
-        //    root path is the same as fs path
-        // - when fs path is memory:/id
-        //    root path is memory:/id/
-        // - when file store is provided
-        // - default id : / -> memory:/fs1/
-        // - explicit id : / -> memory:/id/fs1/
-        //
-        // using an empty id is not suitable due to constraints in URI format
-        // memory://<host> would match with an empty id
-
-        // ===> do we really need file store here ?
-        // -> path : represents any path
-        // -> fs knows how to translate this path to file system and file store
-        // --> actual path in file system & file store is a subpath of total path
-        //
     }
 
     public String getPath() {
