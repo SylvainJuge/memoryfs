@@ -45,6 +45,13 @@ class Entry implements BasicFileAttributes {
         return parent.addChild(new Entry(parent, false, name),name);
     }
 
+    void removeChild(Entry child){
+        if(!isDirectory){
+            throw new IllegalStateException("can't remove child on a file");
+        }
+        files.remove(child.name);
+    }
+
     Map<String,Entry> getFiles(){
         return files;
     }

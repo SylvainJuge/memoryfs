@@ -268,6 +268,52 @@ public class MemoryFileSystemTest {
         fs.createEntry(fileToCreate, false, true);
     }
 
+    @Test
+    public void deleteNonExistingEntryIsNoOp(){
+        MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
+        MemoryPath path = MemoryPath.create(fs,"/a/b/c");
+        assertThat(fs.findEntry(path)).isNull();
+        fs.deleteEntry(path);
+    }
+
+    @Test
+    public void deleteThenReCreateFile(){
+        MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
+        MemoryPath path = MemoryPath.create(fs,"/a/b");
+        Entry entry = fs.createEntry(path, false, true);
+        Entry parentFolder = entry.getParent();
+        assertThat(fs.findEntry(path)).isSameAs(entry);
+        fs.deleteEntry(path);
+        assertThat(fs.findEntry(path)).isNull();
+
+        // parent folder is not deleted
+        assertThat(fs.findEntry(path.getParent())).isSameAs(parentFolder);
+
+        // once deleted, we can create it again
+        Entry reCreatedEntry = fs.createEntry(path, false, true);
+        assertThat(reCreatedEntry.getParent()).isSameAs(parentFolder);
+    }
+
+    @Test
+    public void deleteFolderDeleteItsContent(){
+        MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
+        MemoryPath folder = MemoryPath.create(fs, "/a");
+        MemoryPath leaf = MemoryPath.create(fs, "/a/b");
+
+        fs.createEntry(leaf, false, true);
+        assertThat(fs.findEntry(leaf)).isNotNull();
+        fs.deleteEntry(folder);
+        assertThat(fs.findEntry(folder)).isNull();
+        assertThat(fs.findEntry(leaf)).isNull();
+
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void shouldNotAllowToDeleteRoot(){
+        MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
+        fs.deleteEntry(MemoryPath.createRoot(fs));
+    }
+
 
 
     private static void checkRootDirectories(MemoryFileSystem fs, String root, String... expectedSubPaths) throws IOException {

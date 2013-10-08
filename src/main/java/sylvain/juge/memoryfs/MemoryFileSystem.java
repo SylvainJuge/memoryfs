@@ -179,8 +179,14 @@ public class MemoryFileSystem extends FileSystem {
 
     }
 
-    void delete(Path entry){
-
+    void deleteEntry(Path path){
+        Entry entry = findEntry(path);
+        if( rootEntry == entry){
+            throw new IllegalArgumentException("deleting fs root is not allowed");
+        }
+        if( null != entry){
+            entry.getParent().removeChild(entry);
+        }
     }
 
     public DirectoryStream<Path> newDirectoryStream(final MemoryPath path) throws IOException {
