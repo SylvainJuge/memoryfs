@@ -134,11 +134,6 @@ public class MemoryFileSystem extends FileSystem {
         return childEntry;
     }
 
-    @Deprecated
-    Entry createDirectory(Path path){
-        return createDirectory(path, false);
-    }
-
     // things to test :
     // - parent exists but is not a directory
     // - multiple level of parents do not exists
@@ -182,16 +177,6 @@ public class MemoryFileSystem extends FileSystem {
                 Entry.newDirectory(parentEntry, name) :
                 Entry.newFile(parentEntry, name);
 
-    }
-
-    @Deprecated
-    Entry createDirectory(Path path, boolean createParents){
-        return createEntry(path, true, createParents);
-    }
-
-    @Deprecated
-    Entry createFile(Path path, boolean createParents){
-        return createEntry(path, false, createParents);
     }
 
     void delete(Path entry){
