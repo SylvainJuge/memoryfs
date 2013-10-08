@@ -21,7 +21,7 @@
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <version>6.2</version>
-            <scope>compile</scope><!-- TODO : move to test -->
+            <scope>test</scope>
         </dependency>
 
         <dependency>
