@@ -208,12 +208,6 @@ public class MemoryFileSystemTest {
         fs.createEntry(path, directory, false);
     }
 
-    // TODO : use data provider to test alll cases when creating files/folder before/after
-    // - create folder, then try to create file
-    // - create file, then try to create folder
-    // - create file, then try to create file
-    // - create folder, then try to create folder
-
     @Test(expectedExceptions = ConflictException.class)
     public void failsToCreateFileWhenAlreadyExists() {
         failsToCreateWhenAlreadyExists(false);
@@ -262,7 +256,17 @@ public class MemoryFileSystemTest {
         }
     }
 
-    // TODO : create with parents when some of ancestors already exist
+    @Test(expectedExceptions = ConflictException.class)
+    public void createWithParentsConflict() {
+        // when there exist a file entry which exists and is not a directory
+        MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
+        MemoryPath conflictingFile = MemoryPath.create(fs, "/a/b");
+        MemoryPath fileToCreate = MemoryPath.create(fs, "/a/b/c");
+
+        fs.createEntry(conflictingFile, false, true);
+        // will fail because parent folder already created as file (and not directory)
+        fs.createEntry(fileToCreate, false, true);
+    }
 
 
 
