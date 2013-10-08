@@ -176,7 +176,7 @@ public class MemoryFileSystemTest {
 
         assertThat(fs.findEntry(directory)).describedAs("non existing directory shouldn't have any entry yet").isNull();
 
-        Entry dirEntry = fs.createDirectory(directory);
+        Entry dirEntry = fs.createEntry(directory, true, false);
         assertThat(dirEntry).isNotNull();
         assertThat(dirEntry.isDirectory()).isTrue();
 
@@ -189,25 +189,50 @@ public class MemoryFileSystemTest {
 
 
     @Test(expectedExceptions = DoesNotExistsException.class)
-    public void failsToCreateWithMissingParent() {
+    public void failsToCreateFolderWithMissingParents() {
+        failsToCreateWithMissingParent(true);
+    }
+
+    @Test(expectedExceptions = DoesNotExistsException.class)
+    public void failsToCreateFileWithMissingParents(){
+        failsToCreateWithMissingParent(false);
+    }
+
+    private static void failsToCreateWithMissingParent(boolean directory){
         MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
 
         MemoryPath path = MemoryPath.create(fs, "/anywhere/beyond/root");
         assertThat(fs.findEntry(path)).isNull();
+        assertThat(fs.findEntry(path.getParent())).isNull();
 
-        fs.createDirectory(path, false);
+        fs.createEntry(path, directory, false);
+    }
+
+    // TODO : use data provider to test alll cases when creating files/folder before/after
+    // - create folder, then try to create file
+    // - create file, then try to create folder
+    // - create file, then try to create file
+    // - create folder, then try to create folder
+
+    @Test(expectedExceptions = ConflictException.class)
+    public void failsToCreateFileWhenAlreadyExists() {
+        failsToCreateWhenAlreadyExists(false);
     }
 
     @Test(expectedExceptions = ConflictException.class)
-    public void failsToCreateWhenAlreadyExists() {
+    public void failsToCreateFolderWhenAlreadyExists() {
+        failsToCreateWhenAlreadyExists(false);
+    }
+
+    private static void failsToCreateWhenAlreadyExists(boolean directory){
         MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
 
         MemoryPath path = MemoryPath.create(fs, "/existing");
-        fs.createDirectory(path);
+        fs.createEntry(path, directory, false);
         Entry entry = fs.findEntry(path);
         assertThat(entry).isNotNull();
 
-        fs.createDirectory(path);
+        fs.createEntry(path, directory, false);
     }
 
     @Test
@@ -226,7 +251,7 @@ public class MemoryFileSystemTest {
         for (Path p : path) {
             assertThat(fs.findEntry(p)).isNull();
         }
-        Entry entry = directory ? fs.createDirectory(path, true) : fs.createFile(path, true);
+        Entry entry = fs.createEntry(path, directory, true);
         assertThat(entry).isNotNull();
         assertThat(entry.isDirectory()).isEqualTo(directory);
 

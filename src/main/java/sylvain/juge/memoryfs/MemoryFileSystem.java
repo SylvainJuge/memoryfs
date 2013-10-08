@@ -134,6 +134,7 @@ public class MemoryFileSystem extends FileSystem {
         return childEntry;
     }
 
+    @Deprecated
     Entry createDirectory(Path path){
         return createDirectory(path, false);
     }
