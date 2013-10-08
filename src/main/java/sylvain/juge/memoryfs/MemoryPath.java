@@ -350,8 +350,7 @@ public class MemoryPath implements Path {
 
     @Override
     public Path toRealPath(LinkOption... options) throws IOException {
-        // TODO : what does "real" path means ?
-        return null;
+        return toAbsolutePath().normalize();
     }
 
     @Override
