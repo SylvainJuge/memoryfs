@@ -147,7 +147,7 @@ public class MemoryFileSystemTest {
     }
 
     @Test
-    public void rootEntryAlwaysAvailable(){
+    public void rootEntryAlwaysAvailable() {
         MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
         MemoryPath root = MemoryPath.createRoot(fs);
         Entry entry = fs.findEntry(root);
@@ -163,7 +163,7 @@ public class MemoryFileSystemTest {
     @Test
     public void findNonExistingEntry() {
         MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
-        MemoryPath nonExistingPath = MemoryPath.create(fs,"non/existing/path");
+        MemoryPath nonExistingPath = MemoryPath.create(fs, "non/existing/path");
 
         assertThat(fs.findEntry(nonExistingPath)).isNull();
     }
@@ -207,7 +207,28 @@ public class MemoryFileSystemTest {
         Entry entry = fs.findEntry(path);
         assertThat(entry).isNotNull();
 
-        fs.createDirectory(path, false);
+        fs.createDirectory(path);
+    }
+
+    @Test
+    public void createDirectoryEntryWithParents() {
+
+        MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
+        MemoryPath path = MemoryPath.create(fs, "/not/in/root");
+        for (Path p : path) {
+            assertThat(fs.findEntry(p)).isNull();
+        }
+
+        Entry entry = fs.createDirectory(path, true);
+        assertThat(entry).isNotNull();
+
+        for (Path p : path) {
+            Entry e = fs.findEntry(p);
+            assertThat(e).describedAs("missing folder " + p).isNotNull();
+            assertThat(e.isDirectory()).isTrue();
+        }
+    }
+
     }
 
     private static void checkRootDirectories(MemoryFileSystem fs, String root, String... expectedSubPaths) throws IOException {

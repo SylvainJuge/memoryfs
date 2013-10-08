@@ -157,10 +157,14 @@ public class MemoryFileSystem extends FileSystem {
         }
 
         if (null == parentEntry && createParents) {
+            // 1st entry is always a child of root
+            parentEntry = rootEntry;
+
             for (Path dir : parent) {
                 Entry dirEntry = findEntry(dir);
                 if (null == dirEntry) {
-                    dirEntry = Entry.newDirectory(parentEntry, dir.getFileName().toString());
+                    String name = MemoryPath.asMemoryPath(dir.getFileName()).getPath();
+                    dirEntry = Entry.newDirectory(parentEntry, name);
                 } else if (!dirEntry.isDirectory()) {
                     throw new ConflictException("conflict : path exists and is not a directory :" + dir);
                 }
