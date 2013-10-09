@@ -137,7 +137,7 @@ public class MemoryFileSystem extends FileSystem {
         Iterator<String> it = p.partsIterator();
         while(it.hasNext()){
             String part = it.next();
-            childEntry = parentEntry.getFiles().get(part);
+            childEntry = parentEntry.getChild(part);
             if(null == childEntry){
                 return null;
             }

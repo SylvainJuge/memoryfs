@@ -10,8 +10,11 @@ class Entry implements BasicFileAttributes {
 
     private final boolean isDirectory;
     private final String name;
-    private final Map<String, Entry> files;
     private final Entry parent;
+
+    private Entry files;
+    private Entry next;
+    private Entry previous;
 
     // TODO : keeping a reference on parent Map.Entry may allow to retrieve
     // both the file name and it's associated entry in a single structure
@@ -20,16 +23,25 @@ class Entry implements BasicFileAttributes {
     Entry(Entry parent, boolean isDirectory, String name) {
         this.parent = parent;
         this.isDirectory = isDirectory;
-        Map<String,Entry> emptyMap = Collections.emptyMap();
-        this.files = isDirectory ? new HashMap<String, Entry>() : emptyMap;
         this.name = name;
     }
 
     private Entry addChild(Entry child, String name){
-        if( files.containsKey(name) ){
-            throw new ConflictException(name + " already exists in folder");
+        Entry previous = null;
+        Entry current = files;
+        while (current != null && !current.name.equals(name)) {
+            previous = current;
+            current = current.next;
         }
-        this.files.put(name, child);
+        if( current != null){
+            throw new ConflictException("name conflict : "+name);
+        }
+        if (files == null) {
+            files = child;
+        } else {
+            previous.next = child;
+            child.previous = previous;
+        }
         return child;
     }
 
@@ -49,11 +61,30 @@ class Entry implements BasicFileAttributes {
         if(!isDirectory){
             throw new IllegalStateException("can't remove child on a file");
         }
-        files.remove(child.name);
+        Entry current = files;
+        while( current != null && current != child){
+            current = current.next;
+        }
+        if( current == null){
+            throw new IllegalArgumentException("entry not found");
+        }
+        if( current.previous == null ){
+            // remove 1st file in folder
+            current.parent.files = current.next;
+            if( current.next != null ){
+                current.next.previous = null;
+            }
+        } else {
+            current.previous.next = current.next;
+        }
     }
 
-    Map<String,Entry> getFiles(){
-        return files;
+    Entry getChild(String name){
+        Entry current = files;
+        while( current != null && !current.name.equals(name)){
+            current = current.next;
+        }
+        return current;
     }
 
     Entry getParent() {

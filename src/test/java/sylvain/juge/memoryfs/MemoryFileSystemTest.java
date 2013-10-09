@@ -154,7 +154,6 @@ public class MemoryFileSystemTest {
         assertThat(entry).isNotNull();
         assertThat(entry.getParent()).isNull();
         assertThat(entry.isDirectory()).isTrue();
-        assertThat(entry.getFiles()).isEmpty();
 
         // multiple equivalent paths leads to the same entry instance
         assertThat(fs.findEntry(root)).isSameAs(entry);
@@ -179,8 +178,6 @@ public class MemoryFileSystemTest {
         Entry dirEntry = fs.createEntry(directory, true, false);
         assertThat(dirEntry).isNotNull();
         assertThat(dirEntry.isDirectory()).isTrue();
-
-        assertThat(fs.findEntry(root).getFiles()).isNotEmpty();
 
         assertThat(dirEntry.getParent()).isSameAs(fs.findEntry(root));
 
