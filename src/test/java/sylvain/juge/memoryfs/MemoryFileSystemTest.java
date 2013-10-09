@@ -353,6 +353,17 @@ public class MemoryFileSystemTest {
 
     @Test(enabled = false)
     public void getPathMatcher() {
+        // /* : all items in root
+        // /a/* : all items in folder a
+        // /abc* : all items in root that start with "abc"
+        // ab*def : all items that start with "ab" and end with "def"
+        // a?c : all items of 3 characters whose middle character is unknown
+        //
+        // implementation idea :
+        // transform input to set of matchers, and use special matchers for wildcards
+        // * : will match anything
+        // ** : will match anything at any depth
+        // use pcre regex for other cases.
         throw new RuntimeException("TODO : implement getPathMatcher");
     }
 
