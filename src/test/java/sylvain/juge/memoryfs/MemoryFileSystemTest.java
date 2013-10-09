@@ -314,8 +314,6 @@ public class MemoryFileSystemTest {
         fs.deleteEntry(MemoryPath.createRoot(fs));
     }
 
-
-
     private static void checkRootDirectories(MemoryFileSystem fs, String root, String... expectedSubPaths) throws IOException {
         MemoryPath rootPath = MemoryPath.create(fs, root);
         assertThat(fs.getRootDirectories()).containsOnly(rootPath);

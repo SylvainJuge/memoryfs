@@ -12,6 +12,7 @@ import java.nio.file.spi.FileSystemProvider;
 import java.util.*;
 
 import static sylvain.juge.memoryfs.MemoryFileSystem.SCHEME;
+import static sylvain.juge.memoryfs.MemoryPath.asMemoryPath;
 
 public class MemoryFileSystemProvider extends FileSystemProvider {
 
@@ -209,20 +210,13 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
         if(!type.isAssignableFrom(Entry.class)){
             throw new UnsupportedOperationException("unsupported attribute type : "+ type);
         }
-        Entry entry = toMemoryPath(path).findEntry();
+        Entry entry = asMemoryPath(path).findEntry();
         return type.cast(entry);
-    }
-
-    private static MemoryPath toMemoryPath(Path path){
-        if (!(path instanceof MemoryPath)) {
-            throw new ProviderMismatchException();
-        }
-        return MemoryPath.class.cast(path);
     }
 
     @Override
     public Map<String, Object> readAttributes(Path path, String attributes, LinkOption... options) throws IOException {
-        toMemoryPath(path);
+        asMemoryPath(path);
         throw new UnsupportedOperationException("not supported");
     }
 

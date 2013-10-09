@@ -8,6 +8,8 @@ import java.nio.file.spi.FileSystemProvider;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static sylvain.juge.memoryfs.MemoryPath.asMemoryPath;
+
 public class MemoryFileSystem extends FileSystem {
 
     static final String SEPARATOR = "/";
@@ -18,6 +20,7 @@ public class MemoryFileSystem extends FileSystem {
     private final FileStore store;
 
     private final Entry rootEntry = Entry.newRoot();
+    private final List<Path> rootDirectories;
 
     private AtomicBoolean isOpen;
 
@@ -47,6 +50,8 @@ public class MemoryFileSystem extends FileSystem {
         this.id = id;
         this.isOpen = new AtomicBoolean(true);
         this.store = MemoryFileStore.builder().capacity(capacity).build();
+        this.rootDirectories = new ArrayList<>();
+        this.rootDirectories.add(MemoryPath.createRoot(this));
     }
 
     // TODO : should allow to build filestores with sane defaults
@@ -115,7 +120,7 @@ public class MemoryFileSystem extends FileSystem {
      * @return filesystem entry associated to this path, null if no such entry exists
      */
     Entry findEntry(Path path){
-        MemoryPath p = MemoryPath.asMemoryPath(path);
+        MemoryPath p = asMemoryPath(path);
         if(p.isRoot()){
             return rootEntry;
         }
@@ -159,7 +164,7 @@ public class MemoryFileSystem extends FileSystem {
             for (Path dir : parent) {
                 Entry dirEntry = findEntry(dir);
                 if (null == dirEntry) {
-                    String name = MemoryPath.asMemoryPath(dir.getFileName()).getPath();
+                    String name = asMemoryPath(dir.getFileName()).getPath();
                     dirEntry = Entry.newDirectory(parentEntry, name);
                 } else if (!dirEntry.isDirectory()) {
                     throw new ConflictException("conflict : path exists and is not a directory :" + dir);
@@ -172,7 +177,7 @@ public class MemoryFileSystem extends FileSystem {
             throw new DoesNotExistsException(parent);
         }
 
-        String name = MemoryPath.asMemoryPath(path.getFileName()).getPath();
+        String name = asMemoryPath(path.getFileName()).getPath();
         return directory ?
                 Entry.newDirectory(parentEntry, name) :
                 Entry.newFile(parentEntry, name);
@@ -255,8 +260,6 @@ public class MemoryFileSystem extends FileSystem {
 
     @Override
     public Iterable<Path> getRootDirectories() {
-        List<Path> rootDirectories = new ArrayList<>();
-        rootDirectories.add(MemoryPath.create(this,"/"));
         return rootDirectories;
     }
 
