@@ -228,6 +228,16 @@ public class MemoryFileSystemProviderTest {
         assertThat(stream).isEmpty();
     }
 
+    @Test(enabled = false)
+    public void folderStructureDirectoryStream() {
+        // should return folders in in-order prefix tree
+        // a
+        // a/b
+        // c
+        // c/d
+        throw new RuntimeException("TODO : implement folderStructureDirectoryStream");
+    }
+
     @Test
     public void rootDirectoryAttributes() throws IOException {
         MemoryFileSystemProvider provider = getNewProvider();
@@ -246,6 +256,12 @@ public class MemoryFileSystemProviderTest {
     @Test(expectedExceptions = ProviderMismatchException.class)
     public void readAttributesWithWrongPathType2() throws IOException {
         getNewProvider().readAttributes(Paths.get("inDefaultFs"), "");
+    }
+
+    @Test(enabled = false)
+    public void readAttributesAsMap() {
+        // read attribuets as map, thus allowing to only have runtime dependency to read attributes
+        throw new RuntimeException("TODO : implement readAttributesAsMap");
     }
 
     @Test(expectedExceptions = UnsupportedOperationException.class)
