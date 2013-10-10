@@ -9,55 +9,55 @@ final class FileData {
 
     private final InternalOutputStream stream;
 
-    private FileData(InternalOutputStream stream){
+    private FileData(InternalOutputStream stream) {
         this.stream = stream;
     }
 
-    public void truncate(int newSize){
+    public void truncate(int newSize) {
         stream.truncate(newSize);
     }
 
-    public InputStream asInputStream(){
+    public InputStream asInputStream() {
         return new ByteArrayInputStream(stream.internalBuffer());
     }
 
-    public OutputStream asOutputStream(){
+    public OutputStream asOutputStream() {
         return stream;
     }
 
-    public long size(){
+    public long size() {
         return stream.size();
     }
 
-    public static FileData newEmpty(){
+    public static FileData newEmpty() {
         return new FileData(new InternalOutputStream());
     }
 
-    public static FileData fromData(byte[] data){
+    public static FileData fromData(byte[] data) {
         return new FileData(new InternalOutputStream(data));
     }
 
     private static class InternalOutputStream extends ByteArrayOutputStream {
 
-        private InternalOutputStream(){
+        private InternalOutputStream() {
             super();
         }
 
-        private InternalOutputStream(byte[] data){
+        private InternalOutputStream(byte[] data) {
             super(data.length);
             count = data.length;
             System.arraycopy(data, 0, buf, 0, data.length);
         }
 
-        private byte[] internalBuffer(){
+        private byte[] internalBuffer() {
             return buf;
         }
 
-        private void truncate(int newSize){
-            if( newSize < 0){
+        private void truncate(int newSize) {
+            if (newSize < 0) {
                 throw new IllegalArgumentException("can't truncate to negative size");
             }
-            if( newSize < count ){
+            if (newSize < count) {
                 count = newSize;
             }
         }

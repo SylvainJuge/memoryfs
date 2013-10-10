@@ -6,7 +6,7 @@ import java.nio.file.attribute.FileTime;
 public class MemoryFileAttributes implements BasicFileAttributes {
 
 
-    MemoryFileAttributes(){
+    MemoryFileAttributes() {
 
     }
 

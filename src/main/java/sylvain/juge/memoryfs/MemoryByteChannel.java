@@ -1,6 +1,6 @@
 package sylvain.juge.memoryfs;
 
-import java.io.*;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 
@@ -46,19 +46,19 @@ public class MemoryByteChannel implements SeekableByteChannel {
     // -> a kind of linked list with blocks for storage can also be a good idea
     // - fs metadata have to be stored separately from files
 
-    private MemoryByteChannel(FileData data, boolean readOnly, boolean append){
-        if( null == data){
+    private MemoryByteChannel(FileData data, boolean readOnly, boolean append) {
+        if (null == data) {
             throw new IllegalArgumentException("file data storage is required");
         }
         this.data = data;
         this.open = true;
-        if( readOnly ){
+        if (readOnly) {
             writeChannel = null;
             readChannel = Channels.newChannel(data.asInputStream());
         } else {
             readChannel = null;
             data.asOutputStream();
-            if( append ){
+            if (append) {
                 position = data.size();
             } else {
                 data.truncate(0);
@@ -67,11 +67,11 @@ public class MemoryByteChannel implements SeekableByteChannel {
         }
     }
 
-    public static MemoryByteChannel newReadChannel(FileData data){
+    public static MemoryByteChannel newReadChannel(FileData data) {
         return new MemoryByteChannel(data, true, false);
     }
 
-    public static MemoryByteChannel newWriteChannel(FileData data, boolean append){
+    public static MemoryByteChannel newWriteChannel(FileData data, boolean append) {
         return new MemoryByteChannel(data, false, append);
     }
 
@@ -79,7 +79,7 @@ public class MemoryByteChannel implements SeekableByteChannel {
     public int read(ByteBuffer dst) throws IOException {
         checkOpen();
         checkCanRead();
-        int read =  readChannel.read(dst);
+        int read = readChannel.read(dst);
         position += read;
         return read;
     }
@@ -88,7 +88,7 @@ public class MemoryByteChannel implements SeekableByteChannel {
     public int write(ByteBuffer src) throws IOException {
         checkOpen();
         checkCanWrite();
-        int written =  writeChannel.write(src);
+        int written = writeChannel.write(src);
         position += written;
         return written;
     }
@@ -99,8 +99,8 @@ public class MemoryByteChannel implements SeekableByteChannel {
         }
     }
 
-    private void checkCanWrite(){
-        if(null == writeChannel){
+    private void checkCanWrite() {
+        if (null == writeChannel) {
             throw new NonWritableChannelException();
         }
     }
@@ -113,8 +113,8 @@ public class MemoryByteChannel implements SeekableByteChannel {
     @Override
     public SeekableByteChannel position(long newPosition) throws IOException {
         checkOpen();
-        if( newPosition < 0 || data.size() <= newPosition){
-            throw new IllegalArgumentException("position out of bounds : "+newPosition);
+        if (newPosition < 0 || data.size() <= newPosition) {
+            throw new IllegalArgumentException("position out of bounds : " + newPosition);
         }
         this.position = newPosition;
         return this;
@@ -132,8 +132,8 @@ public class MemoryByteChannel implements SeekableByteChannel {
         if (newSize < 0) {
             throw new IllegalArgumentException("can't truncate to negative size");
         }
-        data.truncate((int)newSize);
-        if( data.size() < position ){
+        data.truncate((int) newSize);
+        if (data.size() < position) {
             position = data.size();
         }
         return this;
@@ -151,7 +151,7 @@ public class MemoryByteChannel implements SeekableByteChannel {
     }
 
     private void checkOpen() throws ClosedChannelException {
-        if(!open){
+        if (!open) {
             throw new ClosedChannelException();
         }
     }

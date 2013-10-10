@@ -3,18 +3,16 @@ package sylvain.juge.memoryfs;
 import java.io.IOException;
 import java.nio.file.Path;
 
-import static sylvain.juge.memoryfs.MemoryPath.asMemoryPath;
-
 /**
  * base class for memory fs exceptions, allows to wrap to  IOException to ensure compatibility with nio API specifications
  */
 class MemoryFileSystemException extends RuntimeException {
 
-    MemoryFileSystemException(String msg){
+    MemoryFileSystemException(String msg) {
         super(msg);
     }
 
-    IOException toIOException(){
+    IOException toIOException() {
         return new IOException(getMessage(), this);
     }
 
@@ -33,7 +31,7 @@ class DoesNotExistsException extends MemoryFileSystemException {
  * exception thrown when there is a conflict, when trying to create two files/folders with same same in the same directory
  */
 class ConflictException extends MemoryFileSystemException {
-    ConflictException(String msg){
+    ConflictException(String msg) {
         super(msg);
     }
 }

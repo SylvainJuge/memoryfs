@@ -22,9 +22,9 @@ public class MemoryPath implements Path {
     private URI uri = null;
     private String path = null;
 
-    static MemoryPath asMemoryPath(Path path){
-        if( path instanceof MemoryPath){
-            return (MemoryPath)path;
+    static MemoryPath asMemoryPath(Path path) {
+        if (path instanceof MemoryPath) {
+            return (MemoryPath) path;
         }
         throw new ProviderMismatchException();
     }
@@ -46,8 +46,8 @@ public class MemoryPath implements Path {
         return new MemoryPath(fs, parts, 0, parts.size(), absolute);
     }
 
-    static MemoryPath createRoot(MemoryFileSystem fs){
-        return create(fs,"/");
+    static MemoryPath createRoot(MemoryFileSystem fs) {
+        return create(fs, "/");
     }
 
     private MemoryPath(MemoryFileSystem fs, List<String> parts, int start, int end, boolean absolute) {
@@ -69,14 +69,14 @@ public class MemoryPath implements Path {
     /**
      * @return entry for this path in filesystem, null if no such entry exists
      */
-    Entry findEntry(){
+    Entry findEntry() {
         return fs.findEntry(this);
     }
 
     /**
      * @return an iterator over path parts
      */
-    public Iterator<String> partsIterator(){
+    public Iterator<String> partsIterator() {
         return parts.iterator();
     }
 
@@ -242,7 +242,7 @@ public class MemoryPath implements Path {
     @Override
     public Path resolveSibling(Path other) {
         MemoryPath path = toMemoryPath(other);
-        if(path.isAbsolute() || parts.size() < 2){
+        if (path.isAbsolute() || parts.size() < 2) {
             return path;
         }
         return toSibling(parts.size() - 1, path);
@@ -337,7 +337,7 @@ public class MemoryPath implements Path {
 
     @Override
     public File toFile() {
-        throw new  UnsupportedOperationException("not supported");
+        throw new UnsupportedOperationException("not supported");
     }
 
     @Override
@@ -357,7 +357,7 @@ public class MemoryPath implements Path {
 
     @Override
     public int compareTo(Path other) {
-        MemoryPath path = (MemoryPath)other;
+        MemoryPath path = (MemoryPath) other;
         if (absolute && !path.absolute) {
             return -1;
         } else if (!absolute && path.absolute) {
@@ -380,7 +380,7 @@ public class MemoryPath implements Path {
         if (o == null || getClass() != o.getClass()) return false;
 
         MemoryPath other = (MemoryPath) o;
-        if(fs != other.fs) return false;
+        if (fs != other.fs) return false;
         if (absolute != other.absolute) return false;
         if (parts.size() != other.parts.size()) return false;
 

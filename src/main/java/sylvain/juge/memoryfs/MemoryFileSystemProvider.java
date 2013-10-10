@@ -7,9 +7,11 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
-import java.nio.file.attribute.FileTime;
 import java.nio.file.spi.FileSystemProvider;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import static sylvain.juge.memoryfs.MemoryFileSystem.SCHEME;
 import static sylvain.juge.memoryfs.MemoryFileSystem.asMemoryFileSystem;
@@ -63,7 +65,7 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
         return MemoryFileSystem.builder(this).id(id).capacity(0).build();
     }
 
-    public MemoryFileSystem registerFileSystem(MemoryFileSystem fs){
+    public MemoryFileSystem registerFileSystem(MemoryFileSystem fs) {
         String id = fs.getId();
         synchronized (fileSystems) {
             if (fileSystems.containsKey(id)) {
@@ -151,7 +153,7 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
     public DirectoryStream<Path> newDirectoryStream(Path dir, DirectoryStream.Filter<? super Path> filter) throws IOException {
         // TODO : path type is already enforced by code below, see how we can have a common exception for this
         // => see (outside of tests) where such exception is required in API spec
-        if(!(dir instanceof MemoryPath)){
+        if (!(dir instanceof MemoryPath)) {
             throw new IllegalArgumentException("unexpected path type");
         }
         return MemoryFileSystem.asMemoryFileSystem(dir.getFileSystem()).newDirectoryStream(dir);
@@ -207,8 +209,8 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
 
     @Override
     public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) throws IOException {
-        if(!type.isAssignableFrom(Entry.class)){
-            throw new UnsupportedOperationException("unsupported attribute type : "+ type);
+        if (!type.isAssignableFrom(Entry.class)) {
+            throw new UnsupportedOperationException("unsupported attribute type : " + type);
         }
         Entry entry = asMemoryPath(path).findEntry();
         return type.cast(entry);

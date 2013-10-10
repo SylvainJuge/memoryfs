@@ -118,7 +118,7 @@ public class MemoryFileSystem extends FileSystem {
         return id;
     }
 
-    private String idString(){
+    private String idString() {
         return SCHEME + ":/" + id;
     }
 
@@ -126,19 +126,19 @@ public class MemoryFileSystem extends FileSystem {
      * @param path path
      * @return filesystem entry associated to this path, null if no such entry exists
      */
-    Entry findEntry(Path path){
+    Entry findEntry(Path path) {
         MemoryPath p = asMemoryPath(path);
-        if(p.isRoot()){
+        if (p.isRoot()) {
             return rootEntry;
         }
 
         Entry parentEntry = rootEntry;
         Entry childEntry = null;
         Iterator<String> it = p.partsIterator();
-        while(it.hasNext()){
+        while (it.hasNext()) {
             String part = it.next();
             childEntry = parentEntry.getChild(part);
-            if(null == childEntry){
+            if (null == childEntry) {
                 return null;
             }
             parentEntry = childEntry;
@@ -170,7 +170,7 @@ public class MemoryFileSystem extends FileSystem {
             }
         }
 
-        if( null == parentEntry){
+        if (null == parentEntry) {
             throw new DoesNotExistsException(parent);
         }
 
@@ -184,8 +184,8 @@ public class MemoryFileSystem extends FileSystem {
     public DirectoryStream<Path> newDirectoryStream(Path path) throws IOException {
 
         final Entry startFolder = findEntry(path);
-        if (null == startFolder || !startFolder.isDirectory()){
-            throw new NotDirectoryException("not a valid directory : "+path);
+        if (null == startFolder || !startFolder.isDirectory()) {
+            throw new NotDirectoryException("not a valid directory : " + path);
         }
 
         return new DirectoryStream<Path>() {
@@ -296,18 +296,16 @@ public class MemoryFileSystem extends FileSystem {
 
         @Override
         public Path next() {
-            if( stack.isEmpty()){
+            if (stack.isEmpty()) {
                 return null;
             }
             Entry entry = stack.removeFirst();
 
-            if(entry.isDirectory()){
+            if (entry.isDirectory()) {
                 for (Entry e = entry.getFiles(); e != null; e = e.getNext()) {
                     stack.add(e);
                 }
             }
-
-            // convert entry to path
             return MemoryPath.create(fs, entry.getPath());
         }
 

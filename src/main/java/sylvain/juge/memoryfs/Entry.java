@@ -2,7 +2,8 @@ package sylvain.juge.memoryfs;
 
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 class Entry implements BasicFileAttributes {
 
@@ -76,7 +77,7 @@ class Entry implements BasicFileAttributes {
     }
 
     public void delete() {
-        if( null == parent){
+        if (null == parent) {
             throw new IllegalArgumentException("deleting fs root is not allowed");
         }
         parent.removeChild(this);
