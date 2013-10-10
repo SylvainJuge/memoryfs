@@ -284,7 +284,7 @@ public class MemoryFileSystem extends FileSystem {
         DirectoryStreamPathIterator(MemoryFileSystem fs, Entry startFolder) {
             this.fs = fs;
             this.stack = new ArrayDeque<>();
-            for (Entry e = startFolder.getFiles(); e != null; e = e.getNext()) {
+            for (Entry e = startFolder.getEntries(); e != null; e = e.getNext()) {
                 stack.add(e);
             }
         }
@@ -302,7 +302,7 @@ public class MemoryFileSystem extends FileSystem {
             Entry entry = stack.removeFirst();
 
             if (entry.isDirectory()) {
-                for (Entry e = entry.getFiles(); e != null; e = e.getNext()) {
+                for (Entry e = entry.getEntries(); e != null; e = e.getNext()) {
                     stack.add(e);
                 }
             }

@@ -15,10 +15,6 @@ class Entry implements BasicFileAttributes {
     private Entry next;
     private Entry previous;
 
-    // TODO : keeping a reference on parent Map.Entry may allow to retrieve
-    // both the file name and it's associated entry in a single structure
-    // -> this avoids duplicating name in parent map and in entry itself
-    // -> in this case we will have to rename this class for clarity.
     Entry(Entry parent, boolean isDirectory, String name) {
         this.parent = parent;
         this.isDirectory = isDirectory;
@@ -72,7 +68,7 @@ class Entry implements BasicFileAttributes {
         return next;
     }
 
-    Entry getFiles() {
+    Entry getEntries() {
         return files;
     }
 
