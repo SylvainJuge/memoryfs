@@ -183,19 +183,19 @@ public class MemoryFileSystemProviderTest {
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
-    public void getFileSystemIdFromUriWithInvalidUriScheme() {
+    public void getFileSystemIdFromUriWithInvalidUriScheme() throws IOException {
         createAndGet(getNewProvider(), URI.create("notMemory://dummy/"));
     }
 
     @Test
-    public void suffixInFileSystemUriIsIgnored() {
+    public void suffixInFileSystemUriIsIgnored() throws IOException {
         // only the 1st non empty element of path is used as ID
         MemoryFileSystem fs = createAndGet(getNewProvider(), URI.create("memory:/fs1/a"));
         assertThat(fs.getId()).isEqualTo("fs1");
     }
 
     @Test
-    public void getFileSystemIdFromValidUri() {
+    public void getFileSystemIdFromValidUri() throws IOException {
         // fs ID must be the 1st non-empty element in path (if it exists), or an empty string
 
         MemoryFileSystem fs1 = createAndGet(getNewProvider(), URI.create("memory:///"));
@@ -206,7 +206,7 @@ public class MemoryFileSystemProviderTest {
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
-    public void hostNameInUriShouldNotBeAllowed() {
+    public void hostNameInUriShouldNotBeAllowed() throws IOException {
         createAndGet(getNewProvider(), URI.create("memory://id/"));
     }
 
@@ -312,23 +312,17 @@ public class MemoryFileSystemProviderTest {
     }
 
     // create fs by using a specific provider instance
-    private static MemoryFileSystem createAndGet(MemoryFileSystemProvider provider, URI uri) {
+    private static MemoryFileSystem createAndGet(MemoryFileSystemProvider provider, URI uri) throws IOException {
         // try to create file with specific uri, and if it succeeds,
         // we check that this filesystem is properly registered with expected id
 
         Set<String> beforeIds = new HashSet<>(provider.registeredFileSystems().keySet());
-        String id;
-        FileSystem fs = null;
-        try {
-            fs = provider.newFileSystem(uri, null);
-        } catch (IOException e) {
-            fail("unexpected io exception", e);
-        }
+        FileSystem fs = provider.newFileSystem(uri, null);
         assertThat(fs).isInstanceOf(MemoryFileSystem.class);
 
         Set<String> afterIds = provider.registeredFileSystems().keySet();
         assertThat(afterIds).hasSize(beforeIds.size() + 1);
-        id = findFirstCommonId(beforeIds, afterIds);
+        String id = findFirstCommonId(beforeIds, afterIds);
         assertThat(provider.registeredFileSystems().get(id)).isSameAs(fs);
         assertThat(provider.getFileSystem(uri)).isSameAs(fs);
 
