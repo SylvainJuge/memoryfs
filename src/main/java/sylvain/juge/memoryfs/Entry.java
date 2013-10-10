@@ -55,7 +55,34 @@ class Entry implements BasicFileAttributes {
         return parent.addChild(new Entry(parent, false, name), name);
     }
 
-    void removeChild(Entry child) {
+    Entry getChild(String name) {
+        Entry current = files;
+        while (current != null && !current.name.equals(name)) {
+            current = current.next;
+        }
+        return current;
+    }
+
+    Entry getParent() {
+        return parent;
+    }
+
+    Entry getNext() {
+        return next;
+    }
+
+    Entry getFiles() {
+        return files;
+    }
+
+    public void delete() {
+        if( null == parent){
+            throw new IllegalArgumentException("deleting fs root is not allowed");
+        }
+        parent.removeChild(this);
+    }
+
+    private void removeChild(Entry child) {
         if (!isDirectory) {
             throw new IllegalStateException("can't remove child on a file");
         }
@@ -75,26 +102,6 @@ class Entry implements BasicFileAttributes {
         } else {
             current.previous.next = current.next;
         }
-    }
-
-    Entry getChild(String name) {
-        Entry current = files;
-        while (current != null && !current.name.equals(name)) {
-            current = current.next;
-        }
-        return current;
-    }
-
-    Entry getParent() {
-        return parent;
-    }
-
-    Entry getNext() {
-        return next;
-    }
-
-    Entry getFiles() {
-        return files;
     }
 
     @Override

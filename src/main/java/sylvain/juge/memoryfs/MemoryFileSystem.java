@@ -146,16 +146,6 @@ public class MemoryFileSystem extends FileSystem {
         return childEntry;
     }
 
-    // things to test :
-    // - parent exists but is not a directory
-    // - multiple level of parents do not exists
-
-    // - direct parent exists
-    //   - fail if it is not a directory
-    // - direct parent does not exists
-    //  - we have to iterator over all ancestors to create folders when needed
-    //  - while creating, if we encounter conflicts, we throw an error
-
     public Entry createEntry(Path path, boolean directory, boolean createParents) {
         Path parent = path.getParent();
         Entry parentEntry = findEntry(parent);
@@ -189,16 +179,6 @@ public class MemoryFileSystem extends FileSystem {
                 Entry.newDirectory(parentEntry, name) :
                 Entry.newFile(parentEntry, name);
 
-    }
-
-    void deleteEntry(Path path){
-        Entry entry = findEntry(path);
-        if( rootEntry == entry){
-            throw new IllegalArgumentException("deleting fs root is not allowed");
-        }
-        if( null != entry){
-            entry.getParent().removeChild(entry);
-        }
     }
 
     public DirectoryStream<Path> newDirectoryStream(Path path) throws IOException {

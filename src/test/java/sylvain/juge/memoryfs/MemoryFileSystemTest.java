@@ -266,21 +266,13 @@ public class MemoryFileSystemTest {
     }
 
     @Test
-    public void deleteNonExistingEntryIsNoOp(){
-        MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
-        MemoryPath path = MemoryPath.create(fs,"/a/b/c");
-        assertThat(fs.findEntry(path)).isNull();
-        fs.deleteEntry(path);
-    }
-
-    @Test
     public void deleteThenReCreateFile(){
         MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
         MemoryPath path = MemoryPath.create(fs,"/a/b");
         Entry entry = fs.createEntry(path, false, true);
         Entry parentFolder = entry.getParent();
         assertThat(fs.findEntry(path)).isSameAs(entry);
-        fs.deleteEntry(path);
+        entry.delete();
         assertThat(fs.findEntry(path)).isNull();
 
         // parent folder is not deleted
@@ -299,7 +291,7 @@ public class MemoryFileSystemTest {
 
         fs.createEntry(leaf, false, true);
         assertThat(fs.findEntry(leaf)).isNotNull();
-        fs.deleteEntry(folder);
+        folder.findEntry().delete();
         assertThat(fs.findEntry(folder)).isNull();
         assertThat(fs.findEntry(leaf)).isNull();
 
@@ -308,7 +300,7 @@ public class MemoryFileSystemTest {
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void shouldNotAllowToDeleteRoot(){
         MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
-        fs.deleteEntry(MemoryPath.createRoot(fs));
+        MemoryPath.createRoot(fs).findEntry().delete();
     }
 
     private static void checkRootDirectories(MemoryFileSystem fs, String root, String... expectedSubPaths) throws IOException {
