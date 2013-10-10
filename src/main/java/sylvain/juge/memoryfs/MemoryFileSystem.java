@@ -203,48 +203,16 @@ public class MemoryFileSystem extends FileSystem {
 
     public DirectoryStream<Path> newDirectoryStream(Path path) throws IOException {
 
-        Entry startFolder = findEntry(path);
+        final Entry startFolder = findEntry(path);
         if (null == startFolder || !startFolder.isDirectory()){
             throw new NotDirectoryException("not a valid directory : "+path);
-        }
-
-        final Deque<Entry> stack = new ArrayDeque<>();
-        for (Entry e = startFolder.getFiles(); e != null; e = e.getNext()) {
-            stack.add(e);
         }
 
         return new DirectoryStream<Path>() {
 
             @Override
             public Iterator<Path> iterator() {
-                return new Iterator<Path>() {
-
-                    @Override
-                    public boolean hasNext() {
-                        return !stack.isEmpty();
-                    }
-
-                    @Override
-                    public Path next() {
-                        if( stack.isEmpty()){
-                            return null;
-                        }
-                        Entry entry = stack.removeFirst();
-
-                        if(entry.isDirectory()){
-                            for (Entry e = entry.getFiles(); e != null; e = e.getNext()) {
-                                stack.add(e);
-                            }
-                        }
-
-                        // convert entry to path
-                        return MemoryPath.create(MemoryFileSystem.this, entry.getPath());
-                    }
-
-                    public void remove() {
-                        throw new UnsupportedOperationException();
-                    }
-                };
+                return new DirectoryStreamPathIterator(MemoryFileSystem.this, startFolder);
             }
 
             @Override
@@ -326,5 +294,46 @@ public class MemoryFileSystem extends FileSystem {
     @Override
     public String toString() {
         return idString();
+    }
+
+    private static class DirectoryStreamPathIterator implements Iterator<Path> {
+
+        private final Deque<Entry> stack;
+        private final MemoryFileSystem fs;
+
+        DirectoryStreamPathIterator(MemoryFileSystem fs, Entry startFolder) {
+            this.fs = fs;
+            this.stack = new ArrayDeque<>();
+            for (Entry e = startFolder.getFiles(); e != null; e = e.getNext()) {
+                stack.add(e);
+            }
+        }
+
+        @Override
+        public boolean hasNext() {
+            return !stack.isEmpty();
+        }
+
+        @Override
+        public Path next() {
+            if( stack.isEmpty()){
+                return null;
+            }
+            Entry entry = stack.removeFirst();
+
+            if(entry.isDirectory()){
+                for (Entry e = entry.getFiles(); e != null; e = e.getNext()) {
+                    stack.add(e);
+                }
+            }
+
+            // convert entry to path
+            return MemoryPath.create(fs, entry.getPath());
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
     }
 }
