@@ -12,6 +12,7 @@ import java.nio.file.spi.FileSystemProvider;
 import java.util.*;
 
 import static sylvain.juge.memoryfs.MemoryFileSystem.SCHEME;
+import static sylvain.juge.memoryfs.MemoryFileSystem.asMemoryFileSystem;
 import static sylvain.juge.memoryfs.MemoryPath.asMemoryPath;
 
 public class MemoryFileSystemProvider extends FileSystemProvider {
@@ -148,18 +149,17 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
 
     @Override
     public DirectoryStream<Path> newDirectoryStream(Path dir, DirectoryStream.Filter<? super Path> filter) throws IOException {
+        // TODO : path type is already enforced by code below, see how we can have a common exception for this
+        // => see (outside of tests) where such exception is required in API spec
         if(!(dir instanceof MemoryPath)){
             throw new IllegalArgumentException("unexpected path type");
         }
-
-        MemoryFileSystem fs = (MemoryFileSystem)dir.getFileSystem();
-        return fs.newDirectoryStream((MemoryPath)dir);
+        return MemoryFileSystem.asMemoryFileSystem(dir.getFileSystem()).newDirectoryStream(dir);
     }
 
     @Override
     public void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
-        throw new UnsupportedOperationException("TODO : implement this");
-        // zip fs : delegate to path implementation
+        asMemoryFileSystem(dir.getFileSystem()).createEntry(dir, true, true);
     }
 
     @Override

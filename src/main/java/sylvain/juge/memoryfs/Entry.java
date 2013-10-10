@@ -2,9 +2,7 @@ package sylvain.juge.memoryfs;
 
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 class Entry implements BasicFileAttributes {
 
@@ -26,15 +24,15 @@ class Entry implements BasicFileAttributes {
         this.name = name;
     }
 
-    private Entry addChild(Entry child, String name){
+    private Entry addChild(Entry child, String name) {
         Entry previous = null;
         Entry current = files;
         while (current != null && !current.name.equals(name)) {
             previous = current;
             current = current.next;
         }
-        if( current != null){
-            throw new ConflictException("name conflict : "+name);
+        if (current != null) {
+            throw new ConflictException("name conflict : " + name);
         }
         if (files == null) {
             files = child;
@@ -45,33 +43,33 @@ class Entry implements BasicFileAttributes {
         return child;
     }
 
-    static Entry newRoot(){
+    static Entry newRoot() {
         return new Entry(null, true, null);
     }
 
     static Entry newDirectory(Entry parent, String name) {
-        return parent.addChild(new Entry(parent, true, name),name);
+        return parent.addChild(new Entry(parent, true, name), name);
     }
 
     static Entry newFile(Entry parent, String name) {
-        return parent.addChild(new Entry(parent, false, name),name);
+        return parent.addChild(new Entry(parent, false, name), name);
     }
 
-    void removeChild(Entry child){
-        if(!isDirectory){
+    void removeChild(Entry child) {
+        if (!isDirectory) {
             throw new IllegalStateException("can't remove child on a file");
         }
         Entry current = files;
-        while( current != null && current != child){
+        while (current != null && current != child) {
             current = current.next;
         }
-        if( current == null){
+        if (current == null) {
             throw new IllegalArgumentException("entry not found");
         }
-        if( current.previous == null ){
+        if (current.previous == null) {
             // remove 1st file in folder
             current.parent.files = current.next;
-            if( current.next != null ){
+            if (current.next != null) {
                 current.next.previous = null;
             }
         } else {
@@ -79,9 +77,9 @@ class Entry implements BasicFileAttributes {
         }
     }
 
-    Entry getChild(String name){
+    Entry getChild(String name) {
         Entry current = files;
-        while( current != null && !current.name.equals(name)){
+        while (current != null && !current.name.equals(name)) {
             current = current.next;
         }
         return current;
@@ -89,6 +87,14 @@ class Entry implements BasicFileAttributes {
 
     Entry getParent() {
         return parent;
+    }
+
+    Entry getNext() {
+        return next;
+    }
+
+    Entry getFiles() {
+        return files;
     }
 
     @Override
@@ -136,17 +142,28 @@ class Entry implements BasicFileAttributes {
         return null;
     }
 
+    String getPath() {
+        List<String> parts = new ArrayList<>();
+        for (Entry e = this; e != null; e = e.parent) {
+            if (null != e.name) {
+                parts.add(e.name);
+            }
+        }
+        if (parts.isEmpty()) {
+            return MemoryFileSystem.SEPARATOR;
+        }
+        StringBuilder sb = new StringBuilder();
+        for (int i = parts.size() - 1; i >= 0; i--) {
+            sb.append(MemoryFileSystem.SEPARATOR);
+            sb.append(parts.get(i));
+        }
+        return sb.toString();
+    }
+
 
     @Override
     public String toString() {
-        // note : not really efficient for very deep paths, but we can probably get with
-        if( null == parent){
-            return "/";
-        }
-        if ( null == parent.parent ){
-            return "/"+name;
-        }
-        else return parent.toString() + "/" + name;
+        return getPath();
     }
 
     // - where we store file bytes

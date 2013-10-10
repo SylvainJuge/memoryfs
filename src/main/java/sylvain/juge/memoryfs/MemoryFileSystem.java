@@ -201,30 +201,46 @@ public class MemoryFileSystem extends FileSystem {
         }
     }
 
-    public DirectoryStream<Path> newDirectoryStream(final MemoryPath path) throws IOException {
+    public DirectoryStream<Path> newDirectoryStream(Path path) throws IOException {
 
-        Entry entry = findEntry(path);
-        if (null == entry || !entry.isDirectory()){
+        Entry startFolder = findEntry(path);
+        if (null == startFolder || !startFolder.isDirectory()){
             throw new NotDirectoryException("not a valid directory : "+path);
         }
 
-        final Iterator<String> contentIterator = path.partsIterator();
+        final Deque<Entry> stack = new ArrayDeque<>();
+        for (Entry e = startFolder.getFiles(); e != null; e = e.getNext()) {
+            stack.add(e);
+        }
+
         return new DirectoryStream<Path>() {
 
             @Override
             public Iterator<Path> iterator() {
                 return new Iterator<Path>() {
+
                     @Override
                     public boolean hasNext() {
-                        return contentIterator.hasNext();
+                        return !stack.isEmpty();
                     }
 
                     @Override
                     public Path next() {
-                        return path.resolve(contentIterator.next());
+                        if( stack.isEmpty()){
+                            return null;
+                        }
+                        Entry entry = stack.removeFirst();
+
+                        if(entry.isDirectory()){
+                            for (Entry e = entry.getFiles(); e != null; e = e.getNext()) {
+                                stack.add(e);
+                            }
+                        }
+
+                        // convert entry to path
+                        return MemoryPath.create(MemoryFileSystem.this, entry.getPath());
                     }
 
-                    @Override
                     public void remove() {
                         throw new UnsupportedOperationException();
                     }

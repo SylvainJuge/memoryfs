@@ -409,7 +409,7 @@ public class MemoryPath implements Path {
 
     @Override
     public String toString() {
-        return fs.toString()+" " + getPath();
+        return getPath();
     }
 
     private static class PathIterator implements Iterator<Path> {

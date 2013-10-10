@@ -225,14 +225,22 @@ public class MemoryFileSystemProviderTest {
         assertThat(stream).isEmpty();
     }
 
-    @Test(enabled = false)
-    public void folderStructureDirectoryStream() {
-        // should return folders in in-order prefix tree
-        // a
-        // a/b
-        // c
-        // c/d
-        throw new RuntimeException("TODO : implement folderStructureDirectoryStream");
+    @Test
+    public void folderStructureDirectoryStream() throws IOException {
+        MemoryFileSystemProvider provider = getNewProvider();
+        MemoryFileSystem fs = MemoryFileSystem.builder(provider).build();
+
+        provider.createDirectory(MemoryPath.create(fs, "/a/b"), null);
+        provider.createDirectory(MemoryPath.create(fs, "/c/d"), null);
+
+        // Note : order of elements is not enforced
+        assertThat(provider.newDirectoryStream(MemoryPath.createRoot(fs), null))
+                .containsOnly(
+                        MemoryPath.create(fs, "/a"),
+                        MemoryPath.create(fs, "/a/b"),
+                        MemoryPath.create(fs, "/c"),
+                        MemoryPath.create(fs, "/c/d")
+                );
     }
 
     @Test
