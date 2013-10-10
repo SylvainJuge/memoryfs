@@ -31,27 +31,6 @@ public class MemoryFileSystem extends FileSystem {
         throw new ProviderMismatchException();
     }
 
-    // URI design
-    //
-    // memory:/
-    //
-    // use cases :
-    // - allow to have a dedicated FS instance for testing purpose
-    // - code under test should access to this FS through
-    //
-    // - a path that is handled by memory fs (static)
-    // --> how is FS instance created if it does not exists yet ?
-    //
-    // --> how to allow using isolated FS instances in the same provider ?
-    // ---> maybe using specific paths
-    // ---> use a random identifier
-
-    //
-    // - a provided instance of fileSystem (IoC)
-    // --> providing a comprehensive API is useful here
-
-
-    // TODO : allow for more than one filestore
     private MemoryFileSystem(MemoryFileSystemProvider provider, String id, long capacity) {
         this.provider = provider;
         this.id = id;
@@ -61,10 +40,6 @@ public class MemoryFileSystem extends FileSystem {
         this.rootDirectories.add(MemoryPath.createRoot(this));
     }
 
-    // TODO : should allow to build filestores with sane defaults
-    // - should allow to create more than one fileStore (with a "mount" path)
-    // - should allow to control available and usable space
-    // - shoudl allow to control if FS is readonly or not
     static class Builder {
         private final MemoryFileSystemProvider provider;
         private long capacity = 0;
@@ -257,7 +232,6 @@ public class MemoryFileSystem extends FileSystem {
 
     @Override
     public PathMatcher getPathMatcher(String syntaxAndPattern) {
-        // TODO : implement this
         return null;
     }
 

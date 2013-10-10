@@ -135,10 +135,8 @@ public class MemoryPathTest {
             assertThat(path.isAbsolute()).isFalse();
             Path toAbsolute = path.toAbsolutePath();
             assertThat(toAbsolute.isAbsolute()).isTrue();
-            // TODO : check that resuling path endsWith 'relative' as suffix
-            assertThat(toAbsolute.toUri().toString()).isEqualTo("memory:/" + relative);
+            assertThat(toAbsolute.endsWith(relative));
         }
-        // TODO : relative path without normalization
     }
 
     @Test
