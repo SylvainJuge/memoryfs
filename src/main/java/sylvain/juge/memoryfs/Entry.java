@@ -8,14 +8,14 @@ import java.util.List;
 class Entry implements BasicFileAttributes {
 
     private final boolean isDirectory;
+
     private final String name;
     private final Entry parent;
-
     private Entry files;
     private Entry next;
     private Entry previous;
 
-    Entry(Entry parent, boolean isDirectory, String name) {
+    private Entry(Entry parent, boolean isDirectory, String name) {
         this.parent = parent;
         this.isDirectory = isDirectory;
         this.name = name;
