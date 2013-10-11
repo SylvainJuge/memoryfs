@@ -284,7 +284,7 @@ public class MemoryFileSystemTest {
     }
 
     @Test
-    public void deleteFolderDeleteItsContent(){
+    public void deleteFolderDeletesItsContent(){
         MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
         MemoryPath folder = MemoryPath.create(fs, "/a");
         MemoryPath leaf = MemoryPath.create(fs, "/a/b");
