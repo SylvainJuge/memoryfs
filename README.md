@@ -15,10 +15,12 @@ TODOs
  - basic file attribues read/write
  - minimal thread safety
  - usage documentation with code samples
+ - file/folders operations : copy, move, rename
  
 ### Improvements
 
  - path matcher
+ - access control
  - control read-only/read-write at runtime for file stores
  - fs with limited capacity (currently heap is the limit)
  - fs with multiple stores
