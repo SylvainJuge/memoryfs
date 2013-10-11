@@ -167,12 +167,18 @@ public class EntryTest {
                 .hasChild("a", a);
     }
 
-
     @Test
     public void createEmptyRoot() {
         assertEntry(Entry.newRoot())
                 .isRoot()
                 .hasNoEntry();
+    }
+
+    @Test(expectedExceptions = ConflictException.class)
+    public void createNameConflict() {
+        Entry root = Entry.newRoot();
+        Entry.newFile(root, "a");
+        Entry.newFile(root, "a");
     }
 
     // TODO : define an exception more appropriate than one about "argument"
@@ -215,6 +221,11 @@ public class EntryTest {
 
         public EntryAssert isDirectory() {
             assertThat(entry.isDirectory()).describedAs(entry + " expacted to be a directory").isTrue();
+            assertThat(entry.isRegularFile()).isFalse();
+            assertThat(entry.isOther()).isFalse();
+            assertThat(entry.isSymbolicLink()).isFalse();
+            assertThat(entry.size()).isEqualTo(0);
+
             // TODO : must have null data reference
             return this;
         }
@@ -222,6 +233,9 @@ public class EntryTest {
         public EntryAssert isFile() {
             assertThat(entry.isDirectory()).isFalse();
             assertThat(entry.getEntries()).isNull();
+            assertThat(entry.isRegularFile()).isTrue();
+            assertThat(entry.isOther()).isFalse();
+            assertThat(entry.isSymbolicLink()).isFalse();
             // TODO : must not have non-null data reference
             return this;
         }

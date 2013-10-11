@@ -72,32 +72,30 @@ class Entry implements BasicFileAttributes {
         return files;
     }
 
+    public void rename(String newName){
+        if( null == parent){
+            throw new IllegalArgumentException("can't rename root");
+        }
+    }
+
+    public void move(Entry newParent){
+        if( null == parent){
+            throw new IllegalArgumentException("can't move root");
+        }
+    }
+
     public void delete() {
         if (null == parent) {
             throw new IllegalArgumentException("deleting fs root is not allowed");
         }
-        parent.removeChild(this);
-    }
-
-    private void removeChild(Entry child) {
-        if (!isDirectory) {
-            throw new IllegalStateException("can't remove child on a file");
-        }
-        Entry current = files;
-        while (current != null && current != child) {
-            current = current.next;
-        }
-        if (current == null) {
-            throw new IllegalArgumentException("entry not found");
-        }
-        if (current.previous == null) {
+        if (previous == null) {
             // remove 1st file in folder
-            current.parent.files = current.next;
-            if (current.next != null) {
-                current.next.previous = null;
+            parent.files = next;
+            if (next != null) {
+                next.previous = null;
             }
         } else {
-            current.previous.next = current.next;
+            previous.next = next;
         }
     }
 
