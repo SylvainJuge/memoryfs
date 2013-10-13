@@ -11,7 +11,7 @@ class Entry implements BasicFileAttributes {
 
     private Entry parent;
     private String name;
-    private Entry files;
+    private Entry entries;
     private Entry next;
     private Entry previous;
 
@@ -21,19 +21,19 @@ class Entry implements BasicFileAttributes {
         this.name = name;
     }
 
-    private Entry addChild(Entry child, String name) {
+    private Entry addEntry(Entry child) {
         Entry previous = null;
-        Entry current = files;
-        while (current != null && !current.name.equals(name)) {
+        Entry current = entries;
+        while (current != null && !current.name.equals(child.name)) {
             previous = current;
             current = current.next;
         }
         if (current != null) {
-            throw new ConflictException("name conflict : " + name);
+            throw new ConflictException("name conflict : " + child.name);
         }
         child.next = null;
-        if (files == null) {
-            files = child;
+        if (entries == null) {
+            entries = child;
             child.previous = null;
         } else {
             previous.next = child;
@@ -48,15 +48,15 @@ class Entry implements BasicFileAttributes {
     }
 
     static Entry newDirectory(Entry parent, String name) {
-        return parent.addChild(new Entry(parent, true, name), name);
+        return parent.addEntry(new Entry(parent, true, name));
     }
 
     static Entry newFile(Entry parent, String name) {
-        return parent.addChild(new Entry(parent, false, name), name);
+        return parent.addEntry(new Entry(parent, false, name));
     }
 
     Entry getChild(String name) {
-        Entry current = files;
+        Entry current = entries;
         while (current != null && !current.name.equals(name)) {
             current = current.next;
         }
@@ -72,7 +72,7 @@ class Entry implements BasicFileAttributes {
     }
 
     Entry getEntries() {
-        return files;
+        return entries;
     }
 
     public void rename(String newName){
@@ -111,7 +111,7 @@ class Entry implements BasicFileAttributes {
 
         if( parent != newParent) {
             delete();
-            newParent.addChild(this, name);
+            newParent.addEntry(this);
         }
     }
 
@@ -121,7 +121,7 @@ class Entry implements BasicFileAttributes {
         }
         if (previous == null) {
             // remove 1st file in folder
-            parent.files = next;
+            parent.entries = next;
             if (next != null) {
                 next.previous = null;
             }
