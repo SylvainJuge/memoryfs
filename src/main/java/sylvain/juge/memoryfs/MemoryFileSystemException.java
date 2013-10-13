@@ -35,3 +35,9 @@ class ConflictException extends MemoryFileSystemException {
         super(msg);
     }
 }
+
+class InvalidNameException extends MemoryFileSystemException {
+    InvalidNameException(String name){
+        super("not a valid name : "+name);
+    }
+}

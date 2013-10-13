@@ -9,8 +9,8 @@ class Entry implements BasicFileAttributes {
 
     private final boolean isDirectory;
 
-    private final String name;
     private final Entry parent;
+    private String name;
     private Entry files;
     private Entry next;
     private Entry previous;
@@ -76,6 +76,14 @@ class Entry implements BasicFileAttributes {
         if( null == parent){
             throw new IllegalArgumentException("can't rename root");
         }
+        if( null == newName) {
+            throw new InvalidNameException(newName);
+        }
+        Entry existingEntry = parent.getChild(newName);
+        if( null != existingEntry){
+            throw new ConflictException("name conflict : " + newName);
+        }
+        this.name = newName;
     }
 
     public void move(Entry newParent){

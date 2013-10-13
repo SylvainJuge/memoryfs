@@ -181,6 +181,49 @@ public class EntryTest {
         Entry.newFile(root, "a");
     }
 
+    @Test
+    public void rename(){
+        Entry root = Entry.newRoot();
+        Entry folder = Entry.newDirectory(root,"a");
+        Entry file = Entry.newFile(folder,"b");
+
+        // rename file
+        file.rename("c");
+
+        assertEntry(folder)
+                .doesNotHaveChild("b")
+                .hasEntry("c", file);
+        assertEntry(file)
+                .hasPath("/a/c")
+                .hasName("c");
+
+        // rename folder
+        folder.rename("d");
+
+        assertEntry(root)
+                .hasEntries(folder)
+                .hasEntry("d", folder);
+        assertEntry(folder)
+                .hasName("d")
+                .hasPath("/d");
+
+        assertEntry(file).hasPath("/d/c");
+
+    }
+
+    @Test(expectedExceptions = InvalidNameException.class)
+    public void tryToRenameNull() {
+        Entry root = Entry.newRoot();
+        Entry.newFile(root, "file").rename(null);
+    }
+
+    @Test(expectedExceptions = ConflictException.class)
+    public void tryToCreateNameConflictThroughRename(){
+        Entry root = Entry.newRoot();
+        Entry.newFile(root, "a");
+        Entry.newFile(root, "b").rename("a");
+    }
+
     // TODO : define an exception more appropriate than one about "argument"
 
     @Test(expectedExceptions = IllegalArgumentException.class)
