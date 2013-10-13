@@ -124,7 +124,7 @@ public class EntryTest {
         Entry a = Entry.newFile(root, "a");
         assertEntry(root)
                 .hasEntries(a)
-                .hasChild("a", a);
+                .hasEntry("a", a);
 
         a.delete();
 
@@ -148,7 +148,7 @@ public class EntryTest {
                 .hasEntries(b)
                 .doesNotHaveChild(a)
                 .doesNotHaveChild("a")
-                .hasChild("b", b);
+                .hasEntry("b", b);
     }
 
     @Test
@@ -164,7 +164,7 @@ public class EntryTest {
                 .hasEntries(a)
                 .doesNotHaveChild(b)
                 .doesNotHaveChild("b")
-                .hasChild("a", a);
+                .hasEntry("a", a);
     }
 
     @Test
@@ -320,7 +320,7 @@ public class EntryTest {
             return this;
         }
 
-        public EntryAssert hasChild(String name, Entry child) {
+        public EntryAssert hasEntry(String name, Entry child) {
             isDirectory();
             assertThat(entry.getChild(name)).isSameAs(child);
             Entry e = entry.getEntries();
