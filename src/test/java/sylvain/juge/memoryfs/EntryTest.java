@@ -224,6 +224,100 @@ public class EntryTest {
         Entry.newFile(root, "b").rename("a");
     }
 
+    @Test
+    public void move() {
+
+        // Note : we test only for files, but folders should behave the same
+        // the important part is moving 1st, middle and last entries since
+        // implementation uses a linked-list
+        Entry root = Entry.newRoot();
+        Entry a = Entry.newFile(root, "a");
+        Entry b = Entry.newFile(root, "b");
+        Entry c = Entry.newFile(root, "c");
+        Entry folder = Entry.newDirectory(root, "folder");
+
+        assertEntry(root).hasEntries(a, b, c, folder);
+        assertEntry(folder).hasNoEntry();
+
+        // move middle element
+        b.move(folder);
+        assertEntry(b).hasParent(folder);
+
+        assertEntry(root).hasEntries(a, c, folder);
+        assertEntry(folder).hasEntries(b);
+
+        // move it back to root, note that order is different
+        b.move(root);
+        assertEntry(b).hasParent(root);
+
+        assertEntry(root).hasEntries(a, c, folder, b);
+        assertEntry(folder).hasNoEntry();
+
+        // move 1st element
+        a.move(folder);
+        assertEntry(root).hasEntries(c, folder, b);
+        assertEntry(folder).hasEntries(a);
+
+        // move last element
+        b.move(folder);
+        assertEntry(root).hasEntries(c, folder);
+        assertEntry(folder).hasEntries(a, b);
+
+        // move the last remaining file
+        c.move(folder);
+        assertEntry(root).hasEntries(folder);
+        assertEntry(folder).hasEntries(a, b, c);
+
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void moveNull(){
+        Entry.newFile(Entry.newRoot(), "file").move(null);
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void tryToMoveToFile(){
+        Entry root = Entry.newRoot();
+        Entry a = Entry.newFile(root, "a");
+        Entry b = Entry.newFile(root, "b");
+        a.move(b);
+    }
+
+    @Test(expectedExceptions = ConflictException.class)
+    public void tryToCreateNameConflictThroughMove(){
+
+        Entry root = Entry.newRoot();
+        Entry a = Entry.newFile(root,"a");
+        Entry folder = Entry.newDirectory(root, "folder");
+        Entry.newFile(folder,"a");
+
+        a.move(folder);
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void tryToMoveFolderWithinItself(){
+        Entry root = Entry.newRoot();
+        Entry folder1 = Entry.newDirectory(root, "folder1");
+        Entry folder2 = Entry.newDirectory(folder1, "folder2");
+
+        folder1.move(folder2);
+    }
+
+    @Test
+    public void moveToSameLocationIsNoOp() {
+        Entry root = Entry.newRoot();
+        Entry a = Entry.newFile(root, "a");
+        Entry b = Entry.newFile(root, "b");
+        Entry c = Entry.newFile(root, "c");
+
+        assertEntry(root).hasEntries(a, b, c);
+
+        b.move(root);
+
+        // if operation is a no-op, order of elements don't change
+        assertEntry(root).hasEntries(a, b, c);
+    }
+
     // TODO : define an exception more appropriate than one about "argument"
 
     @Test(expectedExceptions = IllegalArgumentException.class)

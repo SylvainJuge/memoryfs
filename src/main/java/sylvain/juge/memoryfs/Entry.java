@@ -9,7 +9,7 @@ class Entry implements BasicFileAttributes {
 
     private final boolean isDirectory;
 
-    private final Entry parent;
+    private Entry parent;
     private String name;
     private Entry files;
     private Entry next;
@@ -31,12 +31,15 @@ class Entry implements BasicFileAttributes {
         if (current != null) {
             throw new ConflictException("name conflict : " + name);
         }
+        child.next = null;
         if (files == null) {
             files = child;
+            child.previous = null;
         } else {
             previous.next = child;
             child.previous = previous;
         }
+        child.parent = this;
         return child;
     }
 
@@ -87,8 +90,28 @@ class Entry implements BasicFileAttributes {
     }
 
     public void move(Entry newParent){
-        if( null == parent){
+        if (null == parent) {
             throw new IllegalArgumentException("can't move root");
+        }
+        if (null == newParent) {
+            // TODO : use a classic NPE probably more appropriate
+            throw new IllegalArgumentException("parent entry required");
+        }
+        if (!newParent.isDirectory) {
+            throw new IllegalArgumentException("directory expected");
+        }
+        // ensure that we don't move within itself
+        Entry e = newParent;
+        while (e != null && e != this) {
+            e = e.parent;
+        }
+        if (e == this) {
+            throw new IllegalArgumentException("can't move within itself");
+        }
+
+        if( parent != newParent) {
+            delete();
+            newParent.addChild(this, name);
         }
     }
 
