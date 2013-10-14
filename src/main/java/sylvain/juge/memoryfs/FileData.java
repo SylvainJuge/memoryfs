@@ -30,6 +30,10 @@ final class FileData {
         return stream.size();
     }
 
+    public static FileData copy(FileData data){
+        return null == data ? null : fromData(data.stream.internalBuffer());
+    }
+
     public static FileData newEmpty() {
         return new FileData(new InternalOutputStream());
     }

@@ -15,7 +15,7 @@ public class FileDataTest {
                 .isEmpty()
                 .value();
         FileData data2 = assertData(FileData.newEmpty())
-                .hasSameContent(data1)
+                .isDistinctCopyOf(data1)
                 .isEmpty()
                 .value();
         TestEquals.checkHashCodeEqualsConsistency(true, data1, data2);
@@ -28,20 +28,34 @@ public class FileDataTest {
                 .hasContent(data)
                 .value();
         FileData data2 = assertData(FileData.fromData(data))
-                .hasSameContent(data1)
+                .isDistinctCopyOf(data1)
                 .value();
         TestEquals.checkHashCodeEqualsConsistency(true, data1, data2);
     }
 
-    @Test(enabled = false)
+    @Test
     public void dataCopyOnCreate(){
         // ensure that provided data is copied when created
         byte[] bytes = new byte[]{ 1, 2, 3, 4};
+        byte[] bytesCopy = Arrays.copyOf(bytes, bytes.length);
+        FileData data = assertData(FileData.fromData(bytes))
+                .hasContent(bytes)
+                .hasContent(bytesCopy)
+                .value();
+        Arrays.fill(bytes, (byte) 0);
+        assertData(data).hasContent(bytesCopy);
+    }
+
+    @Test
+    public void dataCopyOnCopy(){
+        byte[] bytes = new byte[]{1,2,3,4};
         FileData data = assertData(FileData.fromData(bytes))
                 .hasContent(bytes)
                 .value();
-        Arrays.fill(bytes, (byte) 0);
-        assertData(data).hasContent(bytes);
+        FileData copy = FileData.copy(data);
+        assertData(copy)
+                .hasContent(bytes)
+                .isDistinctCopyOf(data);
     }
 
     private static FileDataAssert assertData(FileData data){
@@ -64,7 +78,8 @@ public class FileDataTest {
             return this;
         }
 
-        public FileDataAssert hasSameContent(FileData other){
+        public FileDataAssert isDistinctCopyOf(FileData other){
+            assertThat(data).isNotSameAs(other);
             assertThat(data.asInputStream()).hasContentEqualTo(other.asInputStream());
             return this;
         }
