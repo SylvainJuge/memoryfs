@@ -166,12 +166,30 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
 
     @Override
     public void delete(Path path) throws IOException {
-        throw new UnsupportedOperationException("TODO : implement this");
-        // zip fs : delegate to path implementation
+        asMemoryFileSystem(path.getFileSystem()).findEntry(path).delete();
     }
+
+    // test cases
+    // - target path exists ( use overwrite option to see what to do)
+    // - target path exists and is not of the same type (folder|file)
+    // - creates target parent folder if it does not exists
+
 
     @Override
     public void copy(Path source, Path target, CopyOption... options) throws IOException {
+        // Note : file copy will be more convenient if we put target path directly, instead of target folder and new name
+        MemoryFileSystem fs = asMemoryFileSystem(source.getFileSystem());
+
+        Entry sourceEntry = fs.findEntry(source);
+
+        Entry targetEntry = fs.findEntry(target);
+        if( null == targetEntry ){
+            targetEntry = fs.createEntry(target, sourceEntry.isDirectory(), true);
+        } else {
+            // TODO : allow to overwrite through overwrite option
+            throw new RuntimeException("entry exists, don't know what to do");
+        }
+
         throw new UnsupportedOperationException("TODO : implement this");
         // zip fs : delegate to path implementation
     }

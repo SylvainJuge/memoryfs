@@ -121,7 +121,7 @@ public class MemoryFileSystem extends FileSystem {
         return childEntry;
     }
 
-    public Entry createEntry(Path path, boolean directory, boolean createParents) {
+    Entry createEntry(Path path, boolean directory, boolean createParents) {
         Path parent = path.getParent();
         Entry parentEntry = findEntry(parent);
 
@@ -156,7 +156,7 @@ public class MemoryFileSystem extends FileSystem {
 
     }
 
-    public DirectoryStream<Path> newDirectoryStream(Path path) throws IOException {
+    DirectoryStream<Path> newDirectoryStream(Path path) throws IOException {
 
         final Entry startFolder = findEntry(path);
         if (null == startFolder || !startFolder.isDirectory()) {

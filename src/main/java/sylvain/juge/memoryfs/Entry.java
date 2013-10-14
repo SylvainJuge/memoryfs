@@ -23,6 +23,13 @@ class Entry implements BasicFileAttributes {
         this.data = isDirectory ? null : FileData.newEmpty();
     }
 
+    private Entry(Entry original, String name){
+        this.parent = original.parent;
+        this.isDirectory = original.isDirectory;
+        this.name = name;
+        this.data = FileData.copy(original.data);
+    }
+
     private Entry addEntry(Entry child) {
         Entry previous = null;
         Entry current = entries;
@@ -136,8 +143,13 @@ class Entry implements BasicFileAttributes {
         }
     }
 
-    public Entry copy(Entry to, String newName){
-        return null;
+    public Entry copy(Entry targetParent, String targetName){
+        Entry newEntry = new Entry(this, targetName);
+        if (isDirectory) {
+            throw new RuntimeException("don't support folder copy yet");
+        }
+        targetParent.addEntry(newEntry);
+        return newEntry;
     }
 
     @Override

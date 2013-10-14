@@ -336,15 +336,30 @@ public class EntryTest {
         Entry.newRoot().rename("");
     }
 
-    @Test(enabled = false)
+    @Test
+    public void fileIsCopyOfIself(){
+        // test self test
+        Entry file = Entry.newFile(Entry.newRoot(), "file");
+        assertEntry(file).isCopyOf(file);
+    }
+
+    @Test
     public void copyFile(){
+        // copy a single file
+        // file data should be identical, but not the same instance
         Entry root = Entry.newRoot();
         Entry file = Entry.newFile(root, "file");
         Entry copy = file.copy(root, "copy");
-        // copy a single file
-        // file data should be identical, but not the same instance
-        assertEntry(copy).isCopyOf(file);
+        assertEntry(copy).isDistinctCopyOf(file);
     }
+
+    @Test(expectedExceptions = ConflictException.class)
+    public void tryToCreateConflictThroughCopy(){
+        Entry root = Entry.newRoot();
+        Entry file = Entry.newFile(root, "file");
+        file.copy(root,"file");
+    }
+    // try to create conflict through copy
 
     @Test(enabled = false)
     public void copyFolder(){
@@ -460,22 +475,25 @@ public class EntryTest {
         }
 
         public EntryAssert isCopyOf(Entry expectedCopy){
-            assertThat(entry).isNotSameAs(expectedCopy);
             if( entry.isDirectory()){
                 // Note : folder copies must allow different ordering of elements and still be "equivalent"
                 // only topology have to be the same, not all implementation details like next/previous.
                 fail("not supported yet");
             }
-            assertEntry(expectedCopy).hasCopyOfData(expectedCopy);
+            assertEntry(expectedCopy).hasSameData(expectedCopy);
             return this;
         }
 
-        public EntryAssert hasCopyOfData(Entry expectedSameData){
-            // equal copy but not same instance
+        public EntryAssert isDistinctCopyOf(Entry expectedCopy){
+            isCopyOf(expectedCopy);
+            assertThat(entry).isNotSameAs(expectedCopy);
+            assertThat(entry.getData()).isNotSameAs(expectedCopy.getData());
+            return this;
+        }
+
+        public EntryAssert hasSameData(Entry expectedSameData){
             assertThat(expectedSameData.getData())
-                    .isNotSameAs(entry.getData())
                     .isEqualTo(entry.getData());
-            // we miss a "has same hashcode" assertion here
             assertThat(expectedSameData.getData().hashCode()).isEqualTo(entry.getData().hashCode());
             return this;
         }
