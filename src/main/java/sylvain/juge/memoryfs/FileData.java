@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 
 final class FileData {
 
@@ -35,6 +36,26 @@ final class FileData {
 
     public static FileData fromData(byte[] data) {
         return new FileData(new InternalOutputStream(data));
+    }
+
+    // Hashcode and equals are rather "costly" since they naively read the whole buffer
+
+    // Note : if hashcode is called frequently without data change, we could avoid re-computing value
+    // as long as data is not rewritten.
+    // for equals, we could short-circuit wich cached hash code when available
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(stream.internalBuffer());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof FileData)) {
+            return false;
+        }
+        FileData other = (FileData) o;
+        return Arrays.equals(stream.internalBuffer(), other.stream.internalBuffer());
     }
 
     private static class InternalOutputStream extends ByteArrayOutputStream {

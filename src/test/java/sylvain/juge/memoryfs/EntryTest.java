@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.fest.assertions.api.Assertions.assertThat;
+import static org.fest.assertions.api.Assertions.fail;
 
 public class EntryTest {
 
@@ -335,6 +336,28 @@ public class EntryTest {
         Entry.newRoot().rename("");
     }
 
+    @Test(enabled = false)
+    public void copyFile(){
+        Entry root = Entry.newRoot();
+        Entry file = Entry.newFile(root, "file");
+        Entry copy = file.copy(root, "copy");
+        // copy a single file
+        // file data should be identical, but not the same instance
+        assertEntry(copy).isCopyOf(file);
+    }
+
+    @Test(enabled = false)
+    public void copyFolder(){
+        // copy a folder with files & sub-folders
+        // all original files must be still in place
+        // all copies should be available into target folder with same data
+
+        // -> will require to add assertions to test file data
+        // things to test :
+        // - empty data
+        // - identical data as another file
+    }
+
     private static EntryAssert assertEntry(Entry entry) {
         return new EntryAssert(entry);
     }
@@ -435,6 +458,28 @@ public class EntryTest {
             assertThat(entry.getPath()).isEqualTo(path);
             return this;
         }
+
+        public EntryAssert isCopyOf(Entry expectedCopy){
+            assertThat(entry).isNotSameAs(expectedCopy);
+            if( entry.isDirectory()){
+                // Note : folder copies must allow different ordering of elements and still be "equivalent"
+                // only topology have to be the same, not all implementation details like next/previous.
+                fail("not supported yet");
+            }
+            assertEntry(expectedCopy).hasCopyOfData(expectedCopy);
+            return this;
+        }
+
+        public EntryAssert hasCopyOfData(Entry expectedSameData){
+            // equal copy but not same instance
+            assertThat(expectedSameData.getData())
+                    .isNotSameAs(entry.getData())
+                    .isEqualTo(entry.getData());
+            // we miss a "has same hashcode" assertion here
+            assertThat(expectedSameData.getData().hashCode()).isEqualTo(entry.getData().hashCode());
+            return this;
+        }
+
 
         public Entry value() {
             return entry;

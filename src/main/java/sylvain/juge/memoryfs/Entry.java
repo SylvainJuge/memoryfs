@@ -8,6 +8,7 @@ import java.util.List;
 class Entry implements BasicFileAttributes {
 
     private final boolean isDirectory;
+    private final FileData data;
 
     private Entry parent;
     private String name;
@@ -19,6 +20,7 @@ class Entry implements BasicFileAttributes {
         this.parent = parent;
         this.isDirectory = isDirectory;
         this.name = name;
+        this.data = isDirectory ? null : FileData.newEmpty();
     }
 
     private Entry addEntry(Entry child) {
@@ -61,6 +63,10 @@ class Entry implements BasicFileAttributes {
             current = current.next;
         }
         return current;
+    }
+
+    FileData getData(){
+        return data;
     }
 
     Entry getParent() {
@@ -130,6 +136,10 @@ class Entry implements BasicFileAttributes {
         }
     }
 
+    public Entry copy(Entry to, String newName){
+        return null;
+    }
+
     @Override
     public FileTime lastModifiedTime() {
         return null;
@@ -193,15 +203,9 @@ class Entry implements BasicFileAttributes {
         return sb.toString();
     }
 
-
     @Override
     public String toString() {
         return getPath();
     }
 
-    // - where we store file bytes
-    // - contains all its attributes (may extend BasicFileAttributes)
-    // - subclass for files/folders (only if required, especially if we store both the same way in the actual FS metadata)
-
-    // what does FS is to map a MemoryPath to an Entry
 }
