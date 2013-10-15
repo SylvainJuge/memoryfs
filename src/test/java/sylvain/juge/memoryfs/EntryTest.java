@@ -5,6 +5,7 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.fest.assertions.api.Assertions.assertThat;
@@ -16,6 +17,34 @@ public class EntryTest {
     // -> files & folders : with same content (but distinct from original copy)
 
     // TODO : try to create files/folders with illegal characters like / * . ..
+
+
+    @Test
+    public void variousValidFileNames(){
+        List<String> allowed = Arrays.asList(".a", "..a", "a..", "a.a", "a..b");
+        for (String name : allowed) {
+            Entry root = Entry.newRoot();
+            Entry entry = Entry.newFile(root, name);
+            assertEntry(entry).hasName(name);
+        }
+
+    }
+    @Test(enabled = false)
+    public void tryToCreateFileWithInvalidName(){
+        Entry root = Entry.newRoot();
+        List<String> invalid = Arrays.asList("", "*", "**", "a**a", "a*a", "*a", "*a", "/", "/a", "a/", "a/a", ".", "..");
+        for (String name : invalid) {
+            boolean thrown = false;
+            try {
+                Entry.newFile(root, name);
+                fail("should not be able to create file with name : " + name);
+            } catch (IllegalArgumentException e) {
+                thrown = true;
+            }
+            assertThat(thrown).isTrue();
+        }
+    }
+
 
     @Test
     public void createSingleFileInRoot() {

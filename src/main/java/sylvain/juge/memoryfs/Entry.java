@@ -8,26 +8,23 @@ import java.util.List;
 class Entry implements BasicFileAttributes {
 
     private final boolean isDirectory;
-    private final FileData data;
+    private final FileData data; // null for folders
 
-    private Entry parent;
+    private Entry parent; // null for root
     private String name;
-    private Entry entries;
+    private Entry entries; // null for files
     private Entry next;
     private Entry previous;
 
-    private Entry(Entry parent, boolean isDirectory, String name) {
+    // As long as this constructor remains private, we can "trust" calling code to provide consistent set of parameters
+    // thus, we don't check them (directory has null data, file has non-null data, root has null name)
+    private Entry(Entry parent, boolean isDirectory, String name, FileData data) {
+        // TODO : check name validity here
+
         this.parent = parent;
         this.isDirectory = isDirectory;
         this.name = name;
-        this.data = isDirectory ? null : FileData.newEmpty();
-    }
-
-    private Entry(Entry original, String name){
-        this.parent = original.parent;
-        this.isDirectory = original.isDirectory;
-        this.name = name;
-        this.data = FileData.copy(original.data);
+        this.data = data;
     }
 
     private Entry addEntry(Entry child) {
@@ -53,15 +50,15 @@ class Entry implements BasicFileAttributes {
     }
 
     static Entry newRoot() {
-        return new Entry(null, true, null);
+        return new Entry(null, true, null, null);
     }
 
     static Entry newDirectory(Entry parent, String name) {
-        return parent.addEntry(new Entry(parent, true, name));
+        return parent.addEntry(new Entry(parent, true, name, null));
     }
 
     static Entry newFile(Entry parent, String name) {
-        return parent.addEntry(new Entry(parent, false, name));
+        return parent.addEntry(new Entry(parent, false, name, FileData.newEmpty()));
     }
 
     Entry getChild(String name) {
@@ -144,12 +141,13 @@ class Entry implements BasicFileAttributes {
     }
 
     public Entry copy(Entry targetParent, String targetName){
-        Entry newEntry = new Entry(this, targetName);
         if (isDirectory) {
             throw new RuntimeException("don't support folder copy yet");
         }
-        targetParent.addEntry(newEntry);
-        return newEntry;
+        FileData dataCopy = isDirectory ? null : FileData.copy(data);
+        Entry entry = new Entry(parent,isDirectory, targetName, dataCopy);
+        targetParent.addEntry(entry);
+        return entry;
     }
 
     @Override
