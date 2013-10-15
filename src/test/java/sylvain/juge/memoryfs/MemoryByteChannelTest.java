@@ -15,6 +15,12 @@ import static sylvain.juge.memoryfs.MemoryByteChannel.newWriteChannel;
 
 public class MemoryByteChannelTest {
 
+    // TODO : things to test for thread safety
+    // - open/close state
+    // - multiple readers allowed
+    // - single writer allowed
+    // - or any other concurrency policy
+
     private static final SecureRandom rand = new SecureRandom();
 
     @Test(expectedExceptions = IllegalArgumentException.class)
@@ -238,13 +244,6 @@ public class MemoryByteChannelTest {
         assertThat(c.isOpen()).isFalse();
         c.position(0);
     }
-
-    // TODO : things to test
-    // thread safety
-    // - open/close state
-    // - multiple readers allowed
-    // - single writer allowed
-    // - or any other concurrency policy
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void truncateNegative() throws IOException {

@@ -37,9 +37,4 @@ public class MemoryFileStoreTest {
         assertThat(store.getUnallocatedSpace()).isEqualTo(100);
     }
 
-    // TODO : test reading file attributes
-    // - try to read supported attributes
-    // - try to read non-supported attributes
-    // --> how do we write attributes ?
-    // --> should we delegate to fs implementation (and thus keep a reference to it)
 }

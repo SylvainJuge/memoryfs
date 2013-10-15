@@ -13,6 +13,12 @@ import static org.fest.assertions.api.Assertions.fail;
 
 public class EntryTest {
 
+    // TODO : test reading file attributes
+    // - try to read supported attributes
+    // - try to read non-supported attributes
+    // --> how do we write attributes ?
+    // --> should we delegate to fs implementation (and thus keep a reference to it)
+
     // entry copy should be a full copy
     // -> files & folders : with same content (but distinct from original copy)
 
@@ -26,7 +32,6 @@ public class EntryTest {
         }
     }
 
-    // TODO : try to use a data provider to inject test values ?
     @Test
     public void tryToCreateFileWithInvalidName(){
         Entry root = Entry.newRoot();

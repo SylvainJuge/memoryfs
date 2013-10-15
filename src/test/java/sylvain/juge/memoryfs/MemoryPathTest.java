@@ -19,6 +19,8 @@ public class MemoryPathTest {
 
     private static final MemoryFileSystem defaultFs = createFs();
 
+    // TODO : InvalidPathException when string is not a valid path
+
     @Test
     public void createRoot() {
         MemoryPath path = MemoryPath.createRoot(defaultFs);
@@ -151,7 +153,7 @@ public class MemoryPathTest {
     public void rootPath() {
         MemoryPath root = createPath("/");
         assertThat(root.getNameCount()).isEqualTo(0);
-        assertThat(root.getParent()).isNull(); // TODO : does parent of root is null or is it itself ?
+        assertThat(root.getParent()).isNull();
         assertThat(root.getRoot()).isEqualTo(root);
     }
 
@@ -447,8 +449,6 @@ public class MemoryPathTest {
         checkResolvePath("/a", "b/c", "/a/b/c");
         checkResolvePath("/", "a/b", "/a/b");
     }
-
-    // TODO : InvalidPathException when string is not a valid path
 
     @Test
     public void resolveString() {
