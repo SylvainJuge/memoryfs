@@ -19,8 +19,9 @@ class Entry implements BasicFileAttributes {
     // As long as this constructor remains private, we can "trust" calling code to provide consistent set of parameters
     // thus, we don't check them (directory has null data, file has non-null data, root has null name)
     private Entry(Entry parent, boolean isDirectory, String name, FileData data) {
-        // TODO : check name validity here
-
+        if (null != name) {
+            checkName(name);
+        }
         this.parent = parent;
         this.isDirectory = isDirectory;
         this.name = name;
@@ -217,5 +218,12 @@ class Entry implements BasicFileAttributes {
     public String toString() {
         return getPath();
     }
+
+    private static void checkName(String name){
+        if (name.isEmpty() || name.contains("/") || name.contains("*") || ".".equals(name) || "..".equals(name)) {
+            throw new IllegalArgumentException();
+        }
+    }
+
 
 }

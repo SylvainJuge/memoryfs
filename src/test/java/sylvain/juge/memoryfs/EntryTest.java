@@ -16,9 +16,6 @@ public class EntryTest {
     // entry copy should be a full copy
     // -> files & folders : with same content (but distinct from original copy)
 
-    // TODO : try to create files/folders with illegal characters like / * . ..
-
-
     @Test
     public void variousValidFileNames(){
         List<String> allowed = Arrays.asList(".a", "..a", "a..", "a.a", "a..b");
@@ -29,11 +26,12 @@ public class EntryTest {
         }
 
     }
-    @Test(enabled = false)
+
+    // TODO : try to use a data provider to inject test values ?
+    @Test
     public void tryToCreateFileWithInvalidName(){
         Entry root = Entry.newRoot();
-        List<String> invalid = Arrays.asList("", "*", "**", "a**a", "a*a", "*a", "*a", "/", "/a", "a/", "a/a", ".", "..");
-        for (String name : invalid) {
+        for (String name : Arrays.asList("", "*", "**", "a**a", "a*a", "*a", "*a", "/", "/a", "a/", "a/a", ".", "..")) {
             boolean thrown = false;
             try {
                 Entry.newFile(root, name);
