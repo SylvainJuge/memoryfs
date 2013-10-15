@@ -395,6 +395,29 @@ public class EntryTest {
         checkData(file.getData(), name.getBytes());
     }
 
+    @Test(enabled = false)
+    public void copyFolder(){
+        Entry root = Entry.newRoot();
+        Entry folderToCopy = Entry.newDirectory(root, "toCopy");
+        Entry folder = Entry.newDirectory(folderToCopy, "folder");
+        Entry fileInFolder = newFileWithNameAsData(folder, "fileInFolder");
+        Entry file = newFileWithNameAsData(folderToCopy, "file");
+
+        Entry copy = folderToCopy.copy(root,"copy");
+        assertEntry(copy)
+                .hasPath("/copy");
+
+
+        // copy a folder with files & sub-folders
+        // all original files must be still in place
+        // all copies should be available into target folder with same data
+
+        // -> will require to add assertions to test file data
+        // things to test :
+        // - empty data
+        // - identical data as another file
+    }
+
     private static void checkData(FileData data, byte[] expected) {
         assertThat(data.size()).isEqualTo(expected.length);
 
