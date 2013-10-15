@@ -383,7 +383,7 @@ public class EntryTest {
     public void tryToCreateConflictThroughCopy(){
         Entry root = Entry.newRoot();
         Entry file = Entry.newFile(root, "file");
-        file.copy(root,"file");
+        file.copy(root, "file");
     }
 
     @Test
@@ -539,10 +539,8 @@ public class EntryTest {
         }
 
         public EntryAssert hasSameData(Entry expectedSameData){
-            assertThat(expectedSameData.getData())
-                    .isEqualTo(entry.getData());
-            assertThat(entry.getData().asInputStream())
-                    .isEqualTo(expectedSameData.getData().asInputStream());
+             assertThat(entry.getData().asInputStream())
+                    .hasContentEqualTo(expectedSameData.getData().asInputStream());
             assertThat(expectedSameData.getData().hashCode()).isEqualTo(entry.getData().hashCode());
             return this;
         }
