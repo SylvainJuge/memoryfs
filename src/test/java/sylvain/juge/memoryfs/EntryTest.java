@@ -12,11 +12,6 @@ import static org.fest.assertions.api.Assertions.fail;
 
 public class EntryTest {
 
-    // TODO : try to create name conflict
-    // -> when creating entry
-    // -> when renaming entry
-    // -> when copying entry
-
     // entry copy should be a full copy
     // -> files & folders : with same content (but distinct from original copy)
 
@@ -362,17 +357,6 @@ public class EntryTest {
         file.copy(root,"file");
     }
 
-    private static Entry newFileWithNameAsData(Entry parent, String name){
-        Entry result = Entry.newFile(parent,name);
-        try {
-            result.getData().asOutputStream().write(name.getBytes());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        assertThat(result.getData().size()).isEqualTo(name.length());
-        return result;
-    }
-
     @Test
     public void createFileWithData(){
         Entry root = Entry.newRoot();
@@ -398,22 +382,20 @@ public class EntryTest {
         assertThat(actualBytes).isEqualTo(expected);
     }
 
-    @Test(enabled = false)
-    public void copyFolder(){
-        // copy a folder with files & sub-folders
-        // all original files must be still in place
-        // all copies should be available into target folder with same data
-
-        // -> will require to add assertions to test file data
-        // things to test :
-        // - empty data
-        // - identical data as another file
+    private static Entry newFileWithNameAsData(Entry parent, String name){
+        Entry result = Entry.newFile(parent,name);
+        try {
+            result.getData().asOutputStream().write(name.getBytes());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        assertThat(result.getData().size()).isEqualTo(name.length());
+        return result;
     }
 
     private static EntryAssert assertEntry(Entry entry) {
         return new EntryAssert(entry);
     }
-
 
     private static class EntryAssert {
         private final Entry entry;
@@ -437,8 +419,7 @@ public class EntryTest {
             assertThat(entry.isOther()).isFalse();
             assertThat(entry.isSymbolicLink()).isFalse();
             assertThat(entry.size()).isEqualTo(0);
-
-            // TODO : must have null data reference
+            assertThat(entry.getData()).isNull();
             return this;
         }
 
@@ -448,7 +429,7 @@ public class EntryTest {
             assertThat(entry.isRegularFile()).isTrue();
             assertThat(entry.isOther()).isFalse();
             assertThat(entry.isSymbolicLink()).isFalse();
-            // TODO : must not have non-null data reference
+            assertThat(entry.getData()).isNotNull();
             return this;
         }
 
@@ -512,7 +493,7 @@ public class EntryTest {
         }
 
         public EntryAssert isCopyOf(Entry expectedCopy){
-            if( entry.isDirectory()){
+            if(entry.isDirectory()){
                 // Note : folder copies must allow different ordering of elements and still be "equivalent"
                 // only topology have to be the same, not all implementation details like next/previous.
                 fail("not supported yet");
@@ -531,10 +512,11 @@ public class EntryTest {
         public EntryAssert hasSameData(Entry expectedSameData){
             assertThat(expectedSameData.getData())
                     .isEqualTo(entry.getData());
+            assertThat(entry.getData().asInputStream())
+                    .isEqualTo(expectedSameData.getData().asInputStream());
             assertThat(expectedSameData.getData().hashCode()).isEqualTo(entry.getData().hashCode());
             return this;
         }
-
 
         public Entry value() {
             return entry;

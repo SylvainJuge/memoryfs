@@ -156,7 +156,7 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
         if (!(dir instanceof MemoryPath)) {
             throw new IllegalArgumentException("unexpected path type");
         }
-        return MemoryFileSystem.asMemoryFileSystem(dir.getFileSystem()).newDirectoryStream(dir);
+        return asMemoryFileSystem(dir.getFileSystem()).newDirectoryStream(dir);
     }
 
     @Override
