@@ -221,7 +221,7 @@ class Entry implements BasicFileAttributes {
 
     private static void checkName(String name){
         if (name.isEmpty() || name.contains("/") || name.contains("*") || ".".equals(name) || "..".equals(name)) {
-            throw new IllegalArgumentException();
+            throw new InvalidNameException(name);
         }
     }
 

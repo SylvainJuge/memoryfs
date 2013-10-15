@@ -38,6 +38,6 @@ class ConflictException extends MemoryFileSystemException {
 
 class InvalidNameException extends MemoryFileSystemException {
     InvalidNameException(String name){
-        super("not a valid name : "+name);
+        super(String.format("not a valid name : \"%s\"", name));
     }
 }

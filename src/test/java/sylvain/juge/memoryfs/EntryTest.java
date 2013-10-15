@@ -24,7 +24,6 @@ public class EntryTest {
             Entry entry = Entry.newFile(root, name);
             assertEntry(entry).hasName(name);
         }
-
     }
 
     // TODO : try to use a data provider to inject test values ?
@@ -36,13 +35,12 @@ public class EntryTest {
             try {
                 Entry.newFile(root, name);
                 fail("should not be able to create file with name : " + name);
-            } catch (IllegalArgumentException e) {
+            } catch (InvalidNameException e) {
                 thrown = true;
             }
             assertThat(thrown).isTrue();
         }
     }
-
 
     @Test
     public void createSingleFileInRoot() {
@@ -56,7 +54,6 @@ public class EntryTest {
                 .hasPath("/file");
 
         assertEntry(root).hasEntries(file);
-
     }
 
     @Test
