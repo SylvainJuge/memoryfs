@@ -2,6 +2,8 @@ package sylvain.juge.memoryfs;
 
 import org.testng.annotations.Test;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -359,7 +361,42 @@ public class EntryTest {
         Entry file = Entry.newFile(root, "file");
         file.copy(root,"file");
     }
-    // try to create conflict through copy
+
+    private static Entry newFileWithNameAsData(Entry parent, String name){
+        Entry result = Entry.newFile(parent,name);
+        try {
+            result.getData().asOutputStream().write(name.getBytes());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        assertThat(result.getData().size()).isEqualTo(name.length());
+        return result;
+    }
+
+    @Test
+    public void createFileWithData(){
+        Entry root = Entry.newRoot();
+        String name = "fileName";
+        Entry file = newFileWithNameAsData(root, name);
+
+        checkData(file.getData(), name.getBytes());
+    }
+
+    private static void checkData(FileData data, byte[] expected) {
+        assertThat(data.size()).isEqualTo(expected.length);
+
+        byte[] actualBytes = new byte[expected.length];
+
+        try (InputStream input = data.asInputStream()) {
+            for(int i=0;i<actualBytes.length;i++){
+                actualBytes[i] = (byte)input.read();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        assertThat(actualBytes).isEqualTo(expected);
+    }
 
     @Test(enabled = false)
     public void copyFolder(){
