@@ -21,6 +21,7 @@ TODOs
 
  - path matcher
  - access control
+ - allow to create readonly file{system,store}
  - control read-only/read-write at runtime for file stores
  - fs with limited capacity (currently heap is the limit)
  - fs with multiple stores

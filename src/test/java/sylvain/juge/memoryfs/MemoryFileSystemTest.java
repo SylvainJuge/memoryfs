@@ -101,14 +101,6 @@ public class MemoryFileSystemTest {
         }
     }
 
-    // TODO : test that creating a readonly filesystem only contains readonly filestores
-    // TODO : create a filesystem with mixex readonly/readwrite stores
-    // TODO : allow to create runtime-configurable stores ?
-    // -> otherwise creating empty-read-only filestores seems quite useless
-
-    // TODO : multiple filestores in the same fs have different IDs
-    // when there is a single store, there is no need to explicitely provide its name
-
     @Test
     public void buildWithDefaultValues() throws IOException {
         MemoryFileSystem fs = MemoryFileSystem
