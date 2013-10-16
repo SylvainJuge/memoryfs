@@ -4,12 +4,15 @@ import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
+import static java.nio.file.StandardOpenOption.READ;
+import static java.nio.file.StandardOpenOption.WRITE;
 import static org.fest.assertions.api.Assertions.assertThat;
+import static org.fest.assertions.api.Assertions.fail;
 
 public class MemoryFileSystemTest {
 
@@ -293,6 +296,90 @@ public class MemoryFileSystemTest {
         MemoryPath.createRoot(fs).findEntry().delete();
     }
 
+    @Test
+    public void readChannel() throws IOException {
+        MemoryFileSystem fs = newMemoryFs();
+        MemoryPath filePath = MemoryPath.create(fs, "/file");
+
+        // create file manually directly in guts of fs impl
+        Entry entry = fs.createEntry(filePath, false, true);
+        byte[] data = filePath.getPath().getBytes();
+        entry.getData().asOutputStream().write(data);
+
+        MemoryByteChannel read = fs.newByteChannel(filePath, Collections.singleton(READ));
+        assertThat(read).isNotNull();
+
+        readExpected(read, data);
+    }
+
+    @Test(expectedExceptions = InvalidRequestException.class)
+    public void tryToReadFolder(){
+        MemoryFileSystem fs = newMemoryFs();
+        MemoryPath folder = MemoryPath.create(fs, "/folder");
+        fs.createEntry(folder, true, true);
+
+        fs.newByteChannel(folder, Collections.singleton(READ));
+    }
+
+    @Test(expectedExceptions = DoesNotExistsException.class)
+    public void tryToReadMissingFile(){
+        tryOpenChannelMissingFile(READ);
+    }
+
+    @Test(expectedExceptions = DoesNotExistsException.class)
+    public void tryToWriteMissingFile(){
+        tryOpenChannelMissingFile(WRITE);
+    }
+
+    public void tryOpenChannelMissingFile(StandardOpenOption... options){
+        MemoryFileSystem fs = newMemoryFs();
+        MemoryPath folder = MemoryPath.create(fs, "/missingFile");
+        fs.newByteChannel(folder, new HashSet<>(Arrays.asList(options)));
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void tryNotReadNorWriteChannel(){
+        // at least one of read|write options is required
+        tryChannelWithOptions();
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void tryReadAndWriteChannel() {
+        // at least one of read|write options is required
+        tryChannelWithOptions(READ, WRITE);
+    }
+
+    // TODO test cases for write :
+    // - write when file does not exists
+    // -- file creation not requested : KO
+    // -- file creation requested : create it
+    // - write when file exists
+    // -- new file creation requested : KO
+    // -- append to end of file : new data should be appended at the end of original file
+    // -- truncate file on write (seems exclusive of previous) : only new data remains in file
+
+    // multiple options for write
+    // StandardOpenOption.WRITE;
+    // StandardOpenOption.APPEND;
+    // StandardOpenOption.TRUNCATE;
+    // StandardOpenOption.CREATE;
+    // StandardOpenOption.CREATE_NEW; // fails if file already exists
+    //
+    // options not supported
+    // sparse files
+    // delete on close
+    //
+    // TODO : read documentation link in javadoc about synchronized I/O
+    // sync
+    // dsync
+
+    private void readExpected(MemoryByteChannel channel, byte[] expected) throws IOException {
+        assertThat(channel.isOpen()).isTrue();
+        byte[] actual = new byte[expected.length];
+        ByteBuffer buffer = ByteBuffer.wrap(actual);
+        channel.read(buffer);
+    }
+
     private static void checkRootDirectories(MemoryFileSystem fs, String root, String... expectedSubPaths) throws IOException {
         MemoryPath rootPath = MemoryPath.create(fs, root);
         assertThat(fs.getRootDirectories()).containsOnly(rootPath);
@@ -354,4 +441,10 @@ public class MemoryFileSystemTest {
         return new MemoryFileSystemProvider();
     }
 
+    private static void tryChannelWithOptions(StandardOpenOption... options){
+        Set<StandardOpenOption> set = new HashSet<>(Arrays.asList(options));
+        MemoryFileSystem fs = newMemoryFs();
+        MemoryPath path = MemoryPath.create(fs, "/file");
+        fs.newByteChannel(path, set);
+    }
 }

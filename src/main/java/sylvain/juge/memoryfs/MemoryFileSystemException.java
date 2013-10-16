@@ -41,3 +41,10 @@ class InvalidNameException extends MemoryFileSystemException {
         super(String.format("not a valid name : \"%s\"", name));
     }
 }
+
+/** exception for use-case invalid requests like trying to read a folder */
+class InvalidRequestException extends MemoryFileSystemException{
+    InvalidRequestException(String msg){
+        super(msg);
+    }
+}

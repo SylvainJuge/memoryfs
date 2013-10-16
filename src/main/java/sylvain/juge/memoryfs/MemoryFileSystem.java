@@ -8,6 +8,8 @@ import java.nio.file.spi.FileSystemProvider;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static java.nio.file.StandardOpenOption.READ;
+import static java.nio.file.StandardOpenOption.WRITE;
 import static sylvain.juge.memoryfs.MemoryPath.asMemoryPath;
 
 public class MemoryFileSystem extends FileSystem {
@@ -248,6 +250,26 @@ public class MemoryFileSystem extends FileSystem {
     @Override
     public String toString() {
         return idString();
+    }
+
+    public MemoryByteChannel newByteChannel(Path path, Set<? extends OpenOption> options){
+        Entry entry = findEntry(path);
+        if (options.contains(READ)) {
+            if( options.contains(WRITE)){
+                throw new IllegalArgumentException("read and write are mutualy exclusive options");
+            }
+            if (null == entry) {
+                throw new DoesNotExistsException(path);
+            } else if (entry.isDirectory()) {
+                throw new InvalidRequestException("target path is a directory : " + path);
+            }
+            return MemoryByteChannel.newReadChannel(entry.getData());
+        } else if (options.contains(WRITE)) {
+            if (null == entry) {
+                throw new DoesNotExistsException(path);
+            }
+        }
+        throw new IllegalArgumentException("read or write option is required");
     }
 
     private static class DirectoryStreamPathIterator implements Iterator<Path> {
