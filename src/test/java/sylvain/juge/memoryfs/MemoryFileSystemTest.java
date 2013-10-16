@@ -103,9 +103,7 @@ public class MemoryFileSystemTest {
 
     @Test
     public void buildWithDefaultValues() throws IOException {
-        MemoryFileSystem fs = MemoryFileSystem
-                .builder(newProvider())
-                .build();
+        MemoryFileSystem fs = newMemoryFs();
 
         assertThat(fs.getId()).isEqualTo("");
 
@@ -120,7 +118,7 @@ public class MemoryFileSystemTest {
 
     @Test
     public void getPathFromParts() {
-        MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
+        MemoryFileSystem fs = newMemoryFs();
         assertThat(fs.getPath("/absoluteSingle")).isEqualTo(MemoryPath.create(fs, "/absoluteSingle"));
         assertThat(fs.getPath("relative")).isEqualTo(MemoryPath.create(fs, "relative"));
 
@@ -134,13 +132,13 @@ public class MemoryFileSystemTest {
     @Test
     public void rootPathIsTheOnlyRoot() throws IOException {
         // with or without id, the fs root remains the same
-        checkRootDirectories(MemoryFileSystem.builder(newProvider()).build(), "/");
+        checkRootDirectories(newMemoryFs(), "/");
         checkRootDirectories(MemoryFileSystem.builder(newProvider()).id("id").build(), "/");
     }
 
     @Test
     public void rootEntryAlwaysAvailable() {
-        MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
+        MemoryFileSystem fs = newMemoryFs();
         MemoryPath root = MemoryPath.createRoot(fs);
         Entry entry = fs.findEntry(root);
         assertThat(entry).isNotNull();
@@ -153,7 +151,7 @@ public class MemoryFileSystemTest {
 
     @Test
     public void findNonExistingEntry() {
-        MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
+        MemoryFileSystem fs = newMemoryFs();
         MemoryPath nonExistingPath = MemoryPath.create(fs, "non/existing/path");
 
         assertThat(fs.findEntry(nonExistingPath)).isNull();
@@ -161,7 +159,7 @@ public class MemoryFileSystemTest {
 
     @Test
     public void createDirectoryEntry() {
-        MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
+        MemoryFileSystem fs = newMemoryFs();
         MemoryPath root = MemoryPath.createRoot(fs);
         Path directory = root.resolve("directory");
 
@@ -188,7 +186,7 @@ public class MemoryFileSystemTest {
     }
 
     private static void failsToCreateWithMissingParent(boolean directory){
-        MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
+        MemoryFileSystem fs = newMemoryFs();
 
         MemoryPath path = MemoryPath.create(fs, "/anywhere/beyond/root");
         assertThat(fs.findEntry(path)).isNull();
@@ -208,7 +206,7 @@ public class MemoryFileSystemTest {
     }
 
     private static void failsToCreateWhenAlreadyExists(boolean directory){
-        MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
+        MemoryFileSystem fs = newMemoryFs();
 
         MemoryPath path = MemoryPath.create(fs, "/existing");
         fs.createEntry(path, directory, false);
@@ -229,7 +227,7 @@ public class MemoryFileSystemTest {
     }
 
     private static void createWithParents(boolean directory){
-        MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
+        MemoryFileSystem fs = newMemoryFs();
         MemoryPath path = MemoryPath.create(fs, "/not/in/root");
         for (Path p : path) {
             assertThat(fs.findEntry(p)).isNull();
@@ -248,7 +246,7 @@ public class MemoryFileSystemTest {
     @Test(expectedExceptions = ConflictException.class)
     public void createWithParentsConflict() {
         // when there exist a file entry which exists and is not a directory
-        MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
+        MemoryFileSystem fs = newMemoryFs();
         MemoryPath conflictingFile = MemoryPath.create(fs, "/a/b");
         MemoryPath fileToCreate = MemoryPath.create(fs, "/a/b/c");
 
@@ -259,7 +257,7 @@ public class MemoryFileSystemTest {
 
     @Test
     public void deleteThenReCreateFile(){
-        MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
+        MemoryFileSystem fs = newMemoryFs();
         MemoryPath path = MemoryPath.create(fs,"/a/b");
         Entry entry = fs.createEntry(path, false, true);
         Entry parentFolder = entry.getParent();
@@ -277,7 +275,7 @@ public class MemoryFileSystemTest {
 
     @Test
     public void deleteFolderDeletesItsContent(){
-        MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
+        MemoryFileSystem fs = newMemoryFs();
         MemoryPath folder = MemoryPath.create(fs, "/a");
         MemoryPath leaf = MemoryPath.create(fs, "/a/b");
 
@@ -291,7 +289,7 @@ public class MemoryFileSystemTest {
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void shouldNotAllowToDeleteRoot(){
-        MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
+        MemoryFileSystem fs = newMemoryFs();
         MemoryPath.createRoot(fs).findEntry().delete();
     }
 
@@ -346,6 +344,10 @@ public class MemoryFileSystemTest {
         // ** : will match anything at any depth
         // use pcre regex for other cases.
         throw new RuntimeException("TODO : implement getPathMatcher");
+    }
+
+    private static MemoryFileSystem newMemoryFs() {
+        return MemoryFileSystem.builder(newProvider()).build();
     }
 
     private static MemoryFileSystemProvider newProvider() {
