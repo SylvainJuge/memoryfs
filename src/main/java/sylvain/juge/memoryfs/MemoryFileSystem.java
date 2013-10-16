@@ -8,8 +8,7 @@ import java.nio.file.spi.FileSystemProvider;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static java.nio.file.StandardOpenOption.READ;
-import static java.nio.file.StandardOpenOption.WRITE;
+import static java.nio.file.StandardOpenOption.*;
 import static sylvain.juge.memoryfs.MemoryPath.asMemoryPath;
 
 public class MemoryFileSystem extends FileSystem {
@@ -253,9 +252,18 @@ public class MemoryFileSystem extends FileSystem {
     }
 
     public MemoryByteChannel newByteChannel(Path path, Set<? extends OpenOption> options){
+        if( options.contains(SPARSE)
+                || options.contains(DELETE_ON_CLOSE)
+                || options.contains(SYNC)
+                || options.contains(DSYNC)
+                ){
+            throw new UnsupportedOperationException();
+
+        }
+
         Entry entry = findEntry(path);
         if (options.contains(READ)) {
-            if( options.contains(WRITE)){
+            if (options.contains(WRITE)) {
                 throw new IllegalArgumentException("read and write are mutualy exclusive options");
             }
             if (null == entry) {
@@ -265,9 +273,14 @@ public class MemoryFileSystem extends FileSystem {
             }
             return MemoryByteChannel.newReadChannel(entry.getData());
         } else if (options.contains(WRITE)) {
-            if (null == entry) {
+            if (null != entry && options.contains(CREATE_NEW)) {
+                throw new ConflictException("impossible to create new file, it already exists");
+            } else if (!options.contains(CREATE) && !options.contains(CREATE_NEW)) {
                 throw new DoesNotExistsException(path);
+            } else {
+                entry = createEntry(path, false, true);
             }
+            return MemoryByteChannel.newWriteChannel(entry.getData(), false);
         }
         throw new IllegalArgumentException("read or write option is required");
     }

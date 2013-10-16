@@ -29,6 +29,7 @@ class DoesNotExistsException extends MemoryFileSystemException {
 
 /**
  * exception thrown when there is a conflict, when trying to create two files/folders with same same in the same directory
+ * or when trying to create a file that should not exist.
  */
 class ConflictException extends MemoryFileSystemException {
     ConflictException(String msg) {

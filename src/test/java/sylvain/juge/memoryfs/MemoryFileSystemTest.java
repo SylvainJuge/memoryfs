@@ -9,8 +9,7 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 
-import static java.nio.file.StandardOpenOption.READ;
-import static java.nio.file.StandardOpenOption.WRITE;
+import static java.nio.file.StandardOpenOption.*;
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.fest.assertions.api.Assertions.fail;
 
@@ -349,14 +348,78 @@ public class MemoryFileSystemTest {
         tryChannelWithOptions(READ, WRITE);
     }
 
+    @Test(expectedExceptions = DoesNotExistsException.class)
+    public void tryToWriteMissingFileWithoutRequestToCreate(){
+        MemoryFileSystem fs = newMemoryFs();
+        MemoryPath file = MemoryPath.create(fs, "/file");
+        fs.newByteChannel(file, openOptions(WRITE));
+    }
+
+    @Test
+    public void writeMissingFileAndRequestCreate() {
+        writeMissingCreateNew(WRITE, CREATE);
+    }
+    // TODO : write existing file and request create : should ignore that file exists
+
+    @Test
+    public void writeMissingFileAndRequestCreateNew() {
+        writeMissingCreateNew(WRITE, CREATE_NEW);
+    }
+
+    @Test(expectedExceptions = ConflictException.class)
+    public void tryWriteExistingFileAndRequestCreateNew() {
+        MemoryFileSystem fs = newMemoryFs();
+        MemoryPath file = MemoryPath.create(fs, "/file");
+        fs.createEntry(file, false, true);
+        assertThat(fs.findEntry(file)).isNotNull();
+
+        fs.newByteChannel(file, openOptions(WRITE, CREATE_NEW));
+    }
+
+    public MemoryByteChannel writeMissingCreateNew(StandardOpenOption... options){
+        MemoryFileSystem fs = newMemoryFs();
+        MemoryPath file = MemoryPath.create(fs, "/file");
+        assertThat(fs.findEntry(file)).isNull();
+
+        MemoryByteChannel channel = fs.newByteChannel(file, openOptions(options));
+        assertThat(channel).isNotNull();
+
+        assertThat(fs.findEntry(file)).isNotNull();
+        return channel;
+    }
+
+    private static Set<StandardOpenOption> openOptions(StandardOpenOption... options){
+        return new HashSet<>(Arrays.asList(options));
+    }
+
+    // TODO : make sure that read does not allow to create/alter files
+    // - create (create and create_new)
+    // - truncate
+
     // TODO test cases for write :
-    // - write when file does not exists
-    // -- file creation not requested : KO
-    // -- file creation requested : create it
+    // x write when file does not exists
+    // xx file creation not requested : KO
+    // xx file creation requested : create it
     // - write when file exists
-    // -- new file creation requested : KO
+    // xx new file creation requested : KO
     // -- append to end of file : new data should be appended at the end of original file
     // -- truncate file on write (seems exclusive of previous) : only new data remains in file
+
+    @Test
+    public void tryChannelWithUnsupportedOptions(){
+        // we bypass most of checks by trying to write to an existing file
+        // but must fail since we try to use an insupported option.
+        for (StandardOpenOption unsuported : Arrays.asList(SPARSE, DELETE_ON_CLOSE, SYNC, DSYNC)) {
+            boolean thrown = false;
+            try {
+                writeMissingCreateNew(WRITE, CREATE, unsuported);
+            } catch (UnsupportedOperationException e) {
+                thrown = true;
+            }
+            assertThat(thrown).describedAs("shoule not support channel option : " + unsuported).isTrue();
+        }
+
+    }
 
     // multiple options for write
     // StandardOpenOption.WRITE;
@@ -365,11 +428,9 @@ public class MemoryFileSystemTest {
     // StandardOpenOption.CREATE;
     // StandardOpenOption.CREATE_NEW; // fails if file already exists
     //
-    // options not supported
+    // options not supported : must throw UnsupportedOperationException
     // sparse files
     // delete on close
-    //
-    // TODO : read documentation link in javadoc about synchronized I/O
     // sync
     // dsync
 
