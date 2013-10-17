@@ -304,10 +304,7 @@ public class MemoryFileSystemTest {
         byte[] data = filePath.getPath().getBytes();
         entry.getData().asOutputStream().write(data);
 
-        MemoryByteChannel read = fs.newByteChannel(filePath, Collections.singleton(READ));
-        assertThat(read).isNotNull();
-
-        readExpected(read, data);
+        read(fs, filePath, data);
     }
 
     @Test(expectedExceptions = InvalidRequestException.class)
@@ -395,15 +392,6 @@ public class MemoryFileSystemTest {
     // - create (create and create_new)
     // - truncate
 
-    // TODO test cases for write :
-    // x write when file does not exists
-    // xx file creation not requested : KO
-    // xx file creation requested : create it
-    // - write when file exists
-    // xx new file creation requested : KO
-    // -- append to end of file : new data should be appended at the end of original file
-    // -- truncate file on write (seems exclusive of previous) : only new data remains in file
-
     @Test
     public void tryChannelWithUnsupportedOptions(){
         // we bypass most of checks by trying to write to an existing file
@@ -420,26 +408,42 @@ public class MemoryFileSystemTest {
     }
 
     @Test
-    public void writeToNewThenWriteAppend() throws IOException {
+    public void writeAppend() throws IOException {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath file = MemoryPath.create(fs, "/file");
 
-        MemoryByteChannel firstChannel = fs.newByteChannel(file, openOptions(WRITE, CREATE_NEW));
-        write(firstChannel, new byte[]{1, 2, 3, 4});
-        readExpected(fs.newByteChannel(file, openOptions(READ)), new byte[]{1, 2, 3, 4});
+        write( fs, file, new byte[]{1, 2, 3, 4}, WRITE, CREATE_NEW);
+        read(fs, file, new byte[]{1, 2, 3, 4});
 
-        MemoryByteChannel secondChannel = fs.newByteChannel(file, openOptions(WRITE, APPEND));
-        write(secondChannel, new byte[]{5, 6, 7, 8});
-        readExpected(fs.newByteChannel(file, openOptions(READ)), new byte[]{1, 2, 3, 4, 5, 6, 7, 8});
+        write(fs, file, new byte[]{5, 6, 7, 8}, WRITE, APPEND);
+        read(fs, file, new byte[]{1, 2, 3, 4, 5, 6, 7, 8});
     }
 
-    private void write(MemoryByteChannel channel, byte[] toWrite) throws IOException {
+    @Test
+    public void writeTruncate() throws IOException {
+        MemoryFileSystem fs = newMemoryFs();
+        MemoryPath file = MemoryPath.create(fs, "/file");
+
+        write( fs, file, new byte[]{1, 2, 3, 4}, WRITE, CREATE_NEW);
+        read(fs, file, new byte[]{1, 2, 3, 4});
+
+        write( fs, file, new byte[]{5, 6, 7, 8}, WRITE, TRUNCATE_EXISTING);
+        read(fs, file, new byte[]{5, 6, 7, 8});
+    }
+
+    private static void write(MemoryFileSystem fs, Path path, byte[] toWrite, StandardOpenOption... options) throws IOException {
+        MemoryByteChannel firstChannel = fs.newByteChannel(path, openOptions(options));
+        write(firstChannel, toWrite);
+    }
+
+    private static void write(MemoryByteChannel channel, byte[] toWrite) throws IOException {
         assertThat(channel).isNotNull();
         assertThat(channel.isOpen()).isNotNull();
         channel.write(ByteBuffer.wrap(toWrite));
     }
 
-    private void readExpected(MemoryByteChannel channel, byte[] expected) throws IOException {
+    private static void read(MemoryFileSystem fs, Path path, byte[] expected) throws IOException {
+        MemoryByteChannel channel = fs.newByteChannel(path, openOptions(READ));
         assertThat(channel).isNotNull();
         assertThat(channel.isOpen()).isTrue();
         byte[] actual = new byte[expected.length];

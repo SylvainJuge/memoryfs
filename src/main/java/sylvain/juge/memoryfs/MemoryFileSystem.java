@@ -283,6 +283,8 @@ public class MemoryFileSystem extends FileSystem {
                 } else {
                     entry = createEntry(path, false, true);
                 }
+            } else if( options.contains(TRUNCATE_EXISTING)){
+                entry.getData().truncate(0);
             }
             return MemoryByteChannel.newWriteChannel(entry.getData(), false);
         }
