@@ -11,7 +11,6 @@ import java.util.*;
 
 import static java.nio.file.StandardOpenOption.*;
 import static org.fest.assertions.api.Assertions.assertThat;
-import static org.fest.assertions.api.Assertions.fail;
 
 public class MemoryFileSystemTest {
 
@@ -416,29 +415,36 @@ public class MemoryFileSystemTest {
             } catch (UnsupportedOperationException e) {
                 thrown = true;
             }
-            assertThat(thrown).describedAs("shoule not support channel option : " + unsuported).isTrue();
+            assertThat(thrown).describedAs("should not support channel option : " + unsuported).isTrue();
         }
-
     }
 
-    // multiple options for write
-    // StandardOpenOption.WRITE;
-    // StandardOpenOption.APPEND;
-    // StandardOpenOption.TRUNCATE;
-    // StandardOpenOption.CREATE;
-    // StandardOpenOption.CREATE_NEW; // fails if file already exists
-    //
-    // options not supported : must throw UnsupportedOperationException
-    // sparse files
-    // delete on close
-    // sync
-    // dsync
+    @Test
+    public void writeToNewThenWriteAppend() throws IOException {
+        MemoryFileSystem fs = newMemoryFs();
+        MemoryPath file = MemoryPath.create(fs, "/file");
+
+        MemoryByteChannel firstChannel = fs.newByteChannel(file, openOptions(WRITE, CREATE_NEW));
+        write(firstChannel, new byte[]{1, 2, 3, 4});
+        readExpected(fs.newByteChannel(file, openOptions(READ)), new byte[]{1, 2, 3, 4});
+
+        MemoryByteChannel secondChannel = fs.newByteChannel(file, openOptions(WRITE, APPEND));
+        write(secondChannel, new byte[]{5, 6, 7, 8});
+        readExpected(fs.newByteChannel(file, openOptions(READ)), new byte[]{1, 2, 3, 4, 5, 6, 7, 8});
+    }
+
+    private void write(MemoryByteChannel channel, byte[] toWrite) throws IOException {
+        assertThat(channel).isNotNull();
+        assertThat(channel.isOpen()).isNotNull();
+        channel.write(ByteBuffer.wrap(toWrite));
+    }
 
     private void readExpected(MemoryByteChannel channel, byte[] expected) throws IOException {
+        assertThat(channel).isNotNull();
         assertThat(channel.isOpen()).isTrue();
         byte[] actual = new byte[expected.length];
-        ByteBuffer buffer = ByteBuffer.wrap(actual);
-        channel.read(buffer);
+        channel.read(ByteBuffer.wrap(actual));
+        assertThat(expected).isEqualTo(expected);
     }
 
     private static void checkRootDirectories(MemoryFileSystem fs, String root, String... expectedSubPaths) throws IOException {

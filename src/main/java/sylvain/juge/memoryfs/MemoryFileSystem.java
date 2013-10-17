@@ -252,6 +252,7 @@ public class MemoryFileSystem extends FileSystem {
     }
 
     public MemoryByteChannel newByteChannel(Path path, Set<? extends OpenOption> options){
+        // TODO : make this more readable
         if( options.contains(SPARSE)
                 || options.contains(DELETE_ON_CLOSE)
                 || options.contains(SYNC)
@@ -275,10 +276,13 @@ public class MemoryFileSystem extends FileSystem {
         } else if (options.contains(WRITE)) {
             if (null != entry && options.contains(CREATE_NEW)) {
                 throw new ConflictException("impossible to create new file, it already exists");
-            } else if (!options.contains(CREATE) && !options.contains(CREATE_NEW)) {
-                throw new DoesNotExistsException(path);
-            } else {
-                entry = createEntry(path, false, true);
+            }
+            if (null == entry) {
+                if (!options.contains(CREATE) && !options.contains(CREATE_NEW)) {
+                    throw new DoesNotExistsException(path);
+                } else {
+                    entry = createEntry(path, false, true);
+                }
             }
             return MemoryByteChannel.newWriteChannel(entry.getData(), false);
         }
