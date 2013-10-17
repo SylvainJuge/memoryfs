@@ -267,6 +267,9 @@ public class MemoryFileSystem extends FileSystem {
             if (options.contains(WRITE)) {
                 throw new IllegalArgumentException("read and write are mutualy exclusive options");
             }
+            if( options.contains(CREATE) || options.contains(CREATE_NEW)){
+                throw new IllegalArgumentException("create inconsistent options ");
+            }
             if (null == entry) {
                 throw new DoesNotExistsException(path);
             } else if (entry.isDirectory()) {

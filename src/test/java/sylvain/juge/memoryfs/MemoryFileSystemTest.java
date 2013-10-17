@@ -5,6 +5,7 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.nio.channels.NonWritableChannelException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
@@ -388,9 +389,28 @@ public class MemoryFileSystemTest {
         return new HashSet<>(Arrays.asList(options));
     }
 
-    // TODO : make sure that read does not allow to create/alter files
-    // - create (create and create_new)
-    // - truncate
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void tryToCreateWithReadChannel() throws IOException {
+        MemoryFileSystem fs = newMemoryFs();
+        MemoryPath file = MemoryPath.create(fs, "/file");
+
+        fs.newByteChannel(file, openOptions(WRITE, CREATE));
+
+        fs.newByteChannel(file, openOptions(READ, CREATE));
+    }
+
+    @Test
+    public void tryToTruncateWithReadChannel() throws IOException {
+        MemoryFileSystem fs = newMemoryFs();
+        MemoryPath file = MemoryPath.create(fs, "/file");
+        byte[] data = {1, 2, 3};
+        fs.newByteChannel(file, openOptions(WRITE, CREATE)).write(ByteBuffer.wrap(data));
+
+        // truncate should just be ignored
+        fs.newByteChannel(file,openOptions(READ, TRUNCATE_EXISTING));
+
+        read(fs, file, data);
+    }
 
     @Test
     public void tryChannelWithUnsupportedOptions(){
