@@ -16,6 +16,7 @@ TODOs
  - minimal thread safety
  - usage documentation with code samples
  - file/folders operations : copy, move, rename
+ - provide impl. for FileChannel
  
 ### Improvements
 

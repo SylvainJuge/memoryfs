@@ -46,7 +46,7 @@ public class MemoryByteChannel implements SeekableByteChannel {
     // -> a kind of linked list with blocks for storage can also be a good idea
     // - fs metadata have to be stored separately from files
 
-    private MemoryByteChannel(FileData data, boolean readOnly, boolean append) {
+    protected MemoryByteChannel(FileData data, boolean readOnly, boolean append) {
         if (null == data) {
             throw new IllegalArgumentException("file data storage is required");
         }
