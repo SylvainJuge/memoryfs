@@ -261,8 +261,9 @@ public class MemoryFileSystem extends FileSystem {
             throw new UnsupportedOperationException();
 
         }
+        Path absolutePath = path.toAbsolutePath();
 
-        Entry entry = findEntry(path);
+        Entry entry = findEntry(absolutePath);
         if (options.contains(READ)) {
             if (options.contains(WRITE)) {
                 throw new IllegalArgumentException("read and write are mutualy exclusive options");
@@ -271,9 +272,9 @@ public class MemoryFileSystem extends FileSystem {
                 throw new IllegalArgumentException("create inconsistent options ");
             }
             if (null == entry) {
-                throw new DoesNotExistsException(path);
+                throw new DoesNotExistsException(absolutePath);
             } else if (entry.isDirectory()) {
-                throw new InvalidRequestException("target path is a directory : " + path);
+                throw new InvalidRequestException("target path is a directory : " + absolutePath);
             }
             return MemoryByteChannel.newReadChannel(entry.getData());
         } else if (options.contains(WRITE)) {
@@ -284,7 +285,7 @@ public class MemoryFileSystem extends FileSystem {
                 if (!options.contains(CREATE) && !options.contains(CREATE_NEW)) {
                     throw new DoesNotExistsException(path);
                 } else {
-                    entry = createEntry(path, false, true);
+                    entry = createEntry(absolutePath, false, true);
                 }
             } else if( options.contains(TRUNCATE_EXISTING)){
                 entry.getData().truncate(0);
