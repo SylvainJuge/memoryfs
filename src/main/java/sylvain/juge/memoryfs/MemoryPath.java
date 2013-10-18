@@ -236,7 +236,7 @@ public class MemoryPath implements Path {
 
     @Override
     public Path resolve(String other) {
-        return resolve(create(fs, other));
+        return other.isEmpty() ? this : resolve(create(fs, other));
     }
 
     @Override

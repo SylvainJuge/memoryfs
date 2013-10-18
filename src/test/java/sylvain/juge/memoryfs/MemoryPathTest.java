@@ -512,6 +512,11 @@ public class MemoryPathTest {
     public void resolveSiblingString() {
         assertThat(createPath("a/b").resolveSibling("c/d")).isEqualTo(createPath("a/c/d"));
         assertThat(createPath("a").resolveSibling("/b")).isEqualTo(createPath("/b"));
+
+        // resolve with empty string should return same path
+        // default fs implementation has the same behavior, and it's just convenient
+        Path path = createPath("a/b");
+        assertThat(path.resolve("")).isEqualTo(path);
     }
 
     @Test(expectedExceptions = UnsupportedOperationException.class)
