@@ -1,19 +1,17 @@
 package sylvain.juge.memoryfs.user;
 
 import org.testng.annotations.Test;
+import sylvain.juge.memoryfs.util.ProjectPathFinder;
 
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.*;
 
-import static java.nio.file.StandardOpenOption.CREATE;
-import static java.nio.file.StandardOpenOption.WRITE;
-import static java.nio.file.StandardOpenOption.READ;
+import static java.nio.file.StandardOpenOption.*;
 import static org.fest.assertions.api.Assertions.assertThat;
 
 /**
@@ -23,39 +21,128 @@ import static org.fest.assertions.api.Assertions.assertThat;
 public class UserTest {
 
     @Test
-    public void createFsAndWriteFile() throws IOException {
+    public void createFsAndWriteFileThroughChannel() throws IOException {
         URI uri = URI.create("memory:/");
 
-        FileSystem fs = FileSystems.newFileSystem(uri, null);
-        assertThat(fs).isNotNull();
+        // Note : we use indirectly a single instance of memory fs provider.
+        // Thus we share a single instance of fs provider (per fs type), and this one
+        // allows multiple instances, thus we have to keep the place clean
+        //
+        // If this constraint is too restrictive, for example when we need to execute tests in parallel
+        // we may add an option for a "detached" mode. However, in this case the user won't be able to
+        // use static Files.xxx methods, but using direct access to memory fs classes allows it, at the
+        // price of a compile-time dependency.
+        //
+        // Another option is to allow an optional thread-local in the
+        // provider, thus ensuring that every thread only sees a single independant provider, tests will still have to
+        // keep clean, but parallelism is allowed.
 
-        Path file = fs.getPath("file");
+        try (FileSystem fs = FileSystems.newFileSystem(uri, null)) {
+            assertThat(fs).isNotNull();
 
-        // SeekableByteChannel does not have any static constructor
-        // just like FileChannel.open(...)
+            Path file = fs.getPath("file");
 
-        SeekableByteChannel writeChannel = fs.provider().newByteChannel(file, openOptions(WRITE, CREATE));
-        writeChannel.write(ByteBuffer.wrap(new byte[]{1, 2, 3}));
-        // TODO close channel before read
+            // SeekableByteChannel does not have any static constructor
+            // just like FileChannel.open(...)
 
-        SeekableByteChannel readChannel = fs.provider().newByteChannel(file, openOptions(READ));
-        byte[] readBuffer = new byte[3];
-        readChannel.read(ByteBuffer.wrap(readBuffer));
-        assertThat(readBuffer).isEqualTo(new byte[]{1, 2, 3});
-        // TODO close channel after read
+            SeekableByteChannel writeChannel = fs.provider().newByteChannel(file, openOptions(WRITE, CREATE));
+            writeChannel.write(ByteBuffer.wrap(new byte[]{1, 2, 3}));
+            // TODO close channel before read
 
-        // TODO close fs once we don't need it anymore
+            SeekableByteChannel readChannel = fs.provider().newByteChannel(file, openOptions(READ));
+            byte[] readBuffer = new byte[3];
+            readChannel.read(ByteBuffer.wrap(readBuffer));
+            assertThat(readBuffer).isEqualTo(new byte[]{1, 2, 3});
+            // TODO close channel after read
+
+            // TODO close fs once we don't need it anymore
+        }
 
     }
 
-    @Test(enabled = false)
-    public void fileTree(){
-        // create non-trivial directory/file structure
-        // then use directory stream to print it's layout
-        // check result on ascii art
+    @Test
+    public void copyFromDefaultFsToMemoryFs() throws IOException {
+        // this test copies all files in src/main/java folder to a memoryfs instance
+
+        ListPathVisitor toCopyList = new ListPathVisitor();
+
+        Path toCopy = ProjectPathFinder.getFolder("memoryfs").resolve("src/main/java");
+        Files.walkFileTree(toCopy, toCopyList);
+
+        assertThat(toCopyList.getList()).isNotEmpty();
+
+        URI uri = URI.create("memory:/");
+
+        try (FileSystem fs = FileSystems.newFileSystem(uri, null)) {
+
+            Path copyTarget = fs.getPath("/copy");
+
+            // Files.copy(...) only copies one folder (or file), and is not recursive
+            // thus we have to write a custom (but rather simple) file visitor.
+            Files.walkFileTree(toCopy, new CopyVisitor(toCopy, copyTarget));
+
+            ListPathVisitor copyList = new ListPathVisitor();
+            Files.walkFileTree(copyTarget, copyList);
+
+            assertThat(copyList.getList()).hasSameSizeAs(toCopyList.getList());
+        }
+
     }
 
-    private static Set<StandardOpenOption> openOptions(StandardOpenOption... options){
+    private static class CopyVisitor extends SimpleFileVisitor<Path> {
+
+        private final Path src;
+        private final Path dst;
+
+        public CopyVisitor(Path src, Path dst) {
+            this.src = src;
+            this.dst = dst;
+        }
+
+        @Override
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+            return copy(dir);
+        }
+
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+            return copy(file);
+        }
+
+        private FileVisitResult copy(Path item) throws IOException {
+            Path targetPath = dst.resolve(src.relativize(item).toString());
+            Files.copy(src, targetPath);
+            return FileVisitResult.CONTINUE;
+        }
+    }
+
+    private static class ListPathVisitor extends SimpleFileVisitor<Path> {
+
+        private final List<Path> paths;
+
+        private ListPathVisitor() {
+            this.paths = new ArrayList<>();
+        }
+
+        private List<Path> getList() {
+            return paths;
+        }
+
+        @Override
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+            paths.add(dir);
+            return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+            paths.add(file);
+            return FileVisitResult.CONTINUE;
+        }
+
+    }
+
+    private static Set<StandardOpenOption> openOptions(StandardOpenOption... options) {
         return new HashSet<>(Arrays.asList(options));
     }
 }
