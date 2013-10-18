@@ -206,7 +206,7 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
 
     @Override
     public void checkAccess(Path path, AccessMode... modes) throws IOException {
-        throw new UnsupportedOperationException("TODO : implement this");
+        findEntry(path);
     }
 
     @Override
@@ -219,8 +219,17 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
         if (!type.isAssignableFrom(Entry.class)) {
             throw new UnsupportedOperationException("unsupported attribute type : " + type);
         }
+        return type.cast(findEntry(path));
+    }
+
+    private static Entry findEntry(Path path) throws NoSuchFileException {
         Entry entry = asMemoryPath(path).findEntry();
-        return type.cast(entry);
+        if( null == entry){
+            // required for Files.exists(Path) to work, since it assumes file existence when this method
+            // does not throw exception, and does not care when it returns null
+            throw new NoSuchFileException(path.toString());
+        }
+        return entry;
     }
 
     @Override
