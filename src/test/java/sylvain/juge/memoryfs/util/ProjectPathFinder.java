@@ -18,11 +18,14 @@ public final class ProjectPathFinder {
      */
     public static Path getFolder(String rootName){
         URL classpathRoot = ProjectPathFinder.class.getClassLoader().getResource("");
+        System.out.println(classpathRoot);
         // replacing first slash is mandatory on windows
         Path folder = Paths.get(classpathRoot.getFile().replaceFirst("/", ""));
         while (null != folder && !rootName.equals(folder.getFileName().toString())) {
+            System.out.println(folder);
             folder = folder.getParent();
         }
+        System.out.println(folder);
         return null != folder ? folder : null;
     }
 }
