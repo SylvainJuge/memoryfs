@@ -205,11 +205,11 @@ public class MemoryFileSystemTest {
     }
 
     @Test(expectedExceptions = DoesNotExistsException.class)
-    public void failsToCreateFileWithMissingParents(){
+    public void failsToCreateFileWithMissingParents() {
         failsToCreateWithMissingParent(false);
     }
 
-    private static void failsToCreateWithMissingParent(boolean directory){
+    private static void failsToCreateWithMissingParent(boolean directory) {
         MemoryFileSystem fs = newMemoryFs();
 
         MemoryPath path = MemoryPath.create(fs, "/anywhere/beyond/root");
@@ -229,7 +229,7 @@ public class MemoryFileSystemTest {
         failsToCreateWhenAlreadyExists(false);
     }
 
-    private static void failsToCreateWhenAlreadyExists(boolean directory){
+    private static void failsToCreateWhenAlreadyExists(boolean directory) {
         MemoryFileSystem fs = newMemoryFs();
 
         MemoryPath path = MemoryPath.create(fs, "/existing");
@@ -250,7 +250,7 @@ public class MemoryFileSystemTest {
         createWithParents(false);
     }
 
-    private static void createWithParents(boolean directory){
+    private static void createWithParents(boolean directory) {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath path = MemoryPath.create(fs, "/not/in/root");
         for (Path p : path) {
@@ -260,7 +260,7 @@ public class MemoryFileSystemTest {
         assertThat(entry).isNotNull();
         assertThat(entry.isDirectory()).isEqualTo(directory);
 
-        for(Path parent: path.getParent()){
+        for (Path parent : path.getParent()) {
             Entry e = fs.findEntry(parent);
             assertThat(e).describedAs("missing parent folder " + parent).isNotNull();
             assertThat(e.isDirectory()).isTrue();
@@ -280,9 +280,9 @@ public class MemoryFileSystemTest {
     }
 
     @Test
-    public void deleteThenReCreateFile(){
+    public void deleteThenReCreateFile() {
         MemoryFileSystem fs = newMemoryFs();
-        MemoryPath path = MemoryPath.create(fs,"/a/b");
+        MemoryPath path = MemoryPath.create(fs, "/a/b");
         Entry entry = fs.createEntry(path, false, true);
         Entry parentFolder = entry.getParent();
         assertThat(fs.findEntry(path)).isSameAs(entry);
@@ -298,7 +298,7 @@ public class MemoryFileSystemTest {
     }
 
     @Test
-    public void deleteFolderDeletesItsContent(){
+    public void deleteFolderDeletesItsContent() {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath folder = MemoryPath.create(fs, "/a");
         MemoryPath leaf = MemoryPath.create(fs, "/a/b");
@@ -312,7 +312,7 @@ public class MemoryFileSystemTest {
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
-    public void shouldNotAllowToDeleteRoot(){
+    public void shouldNotAllowToDeleteRoot() {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath.createRoot(fs).findEntry().delete();
     }
@@ -331,7 +331,7 @@ public class MemoryFileSystemTest {
     }
 
     @Test(expectedExceptions = InvalidRequestException.class)
-    public void tryToReadFolder(){
+    public void tryToReadFolder() {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath folder = MemoryPath.create(fs, "/folder");
         fs.createEntry(folder, true, true);
@@ -340,23 +340,23 @@ public class MemoryFileSystemTest {
     }
 
     @Test(expectedExceptions = DoesNotExistsException.class)
-    public void tryToReadMissingFile(){
+    public void tryToReadMissingFile() {
         tryOpenChannelMissingFile(READ);
     }
 
     @Test(expectedExceptions = DoesNotExistsException.class)
-    public void tryToWriteMissingFile(){
+    public void tryToWriteMissingFile() {
         tryOpenChannelMissingFile(WRITE);
     }
 
-    public void tryOpenChannelMissingFile(StandardOpenOption... options){
+    public void tryOpenChannelMissingFile(StandardOpenOption... options) {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath folder = MemoryPath.create(fs, "/missingFile");
         fs.newByteChannel(folder, new HashSet<>(Arrays.asList(options)));
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
-    public void tryNotReadNorWriteChannel(){
+    public void tryNotReadNorWriteChannel() {
         // at least one of read|write options is required
         tryChannelWithOptions();
     }
@@ -368,7 +368,7 @@ public class MemoryFileSystemTest {
     }
 
     @Test(expectedExceptions = DoesNotExistsException.class)
-    public void tryToWriteMissingFileWithoutRequestToCreate(){
+    public void tryToWriteMissingFileWithoutRequestToCreate() {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath file = MemoryPath.create(fs, "/file");
         fs.newByteChannel(file, openOptions(WRITE));
@@ -395,7 +395,7 @@ public class MemoryFileSystemTest {
         fs.newByteChannel(file, openOptions(WRITE, CREATE_NEW));
     }
 
-    public MemoryByteChannel writeMissingCreateNew(StandardOpenOption... options){
+    public MemoryByteChannel writeMissingCreateNew(StandardOpenOption... options) {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath file = MemoryPath.create(fs, "/file");
         assertThat(fs.findEntry(file)).isNull();
@@ -407,7 +407,7 @@ public class MemoryFileSystemTest {
         return channel;
     }
 
-    private static Set<StandardOpenOption> openOptions(StandardOpenOption... options){
+    private static Set<StandardOpenOption> openOptions(StandardOpenOption... options) {
         return new HashSet<>(Arrays.asList(options));
     }
 
@@ -429,13 +429,13 @@ public class MemoryFileSystemTest {
         fs.newByteChannel(file, openOptions(WRITE, CREATE)).write(ByteBuffer.wrap(data));
 
         // truncate should just be ignored
-        fs.newByteChannel(file,openOptions(READ, TRUNCATE_EXISTING));
+        fs.newByteChannel(file, openOptions(READ, TRUNCATE_EXISTING));
 
         read(fs, file, data);
     }
 
     @Test
-    public void tryChannelWithUnsupportedOptions(){
+    public void tryChannelWithUnsupportedOptions() {
         // we bypass most of checks by trying to write to an existing file
         // but must fail since we try to use an insupported option.
         for (StandardOpenOption unsuported : Arrays.asList(SPARSE, DELETE_ON_CLOSE, SYNC, DSYNC)) {
@@ -454,7 +454,7 @@ public class MemoryFileSystemTest {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath file = MemoryPath.create(fs, "/file");
 
-        write( fs, file, new byte[]{1, 2, 3, 4}, WRITE, CREATE_NEW);
+        write(fs, file, new byte[]{1, 2, 3, 4}, WRITE, CREATE_NEW);
         read(fs, file, new byte[]{1, 2, 3, 4});
 
         write(fs, file, new byte[]{5, 6, 7, 8}, WRITE, APPEND);
@@ -466,10 +466,10 @@ public class MemoryFileSystemTest {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath file = MemoryPath.create(fs, "/file");
 
-        write( fs, file, new byte[]{1, 2, 3, 4}, WRITE, CREATE_NEW);
+        write(fs, file, new byte[]{1, 2, 3, 4}, WRITE, CREATE_NEW);
         read(fs, file, new byte[]{1, 2, 3, 4});
 
-        write( fs, file, new byte[]{5, 6, 7, 8}, WRITE, TRUNCATE_EXISTING);
+        write(fs, file, new byte[]{5, 6, 7, 8}, WRITE, TRUNCATE_EXISTING);
         read(fs, file, new byte[]{5, 6, 7, 8});
     }
 
@@ -554,7 +554,7 @@ public class MemoryFileSystemTest {
         return new MemoryFileSystemProvider();
     }
 
-    private static void tryChannelWithOptions(StandardOpenOption... options){
+    private static void tryChannelWithOptions(StandardOpenOption... options) {
         Set<StandardOpenOption> set = new HashSet<>(Arrays.asList(options));
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath path = MemoryPath.create(fs, "/file");
