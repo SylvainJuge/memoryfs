@@ -230,17 +230,19 @@ public class MemoryFileSystemProviderTest {
         MemoryFileSystemProvider provider = getNewProvider();
         MemoryFileSystem fs = MemoryFileSystem.builder(provider).build();
 
-        provider.createDirectory(MemoryPath.create(fs, "/a/b"), null);
-        provider.createDirectory(MemoryPath.create(fs, "/c/d"), null);
+        MemoryPath ab = MemoryPath.create(fs, "/a/b");
+        MemoryPath cd = MemoryPath.create(fs, "/c/d");
+        provider.createDirectory(ab, null);
+        provider.createDirectory(cd, null);
 
         // Note : order of elements is not enforced
+        MemoryPath a = MemoryPath.create(fs, "/a");
+        MemoryPath c = MemoryPath.create(fs, "/c");
         assertThat(provider.newDirectoryStream(MemoryPath.createRoot(fs), null))
-                .containsOnly(
-                        MemoryPath.create(fs, "/a"),
-                        MemoryPath.create(fs, "/a/b"),
-                        MemoryPath.create(fs, "/c"),
-                        MemoryPath.create(fs, "/c/d")
-                );
+                .containsOnly(a,c);
+
+        assertThat(provider.newDirectoryStream(a,null)).containsOnly(ab);
+        assertThat(provider.newDirectoryStream(c,null)).containsOnly(cd);
     }
 
     @Test

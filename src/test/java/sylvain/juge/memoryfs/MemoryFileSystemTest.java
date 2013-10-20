@@ -5,7 +5,6 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.nio.channels.NonWritableChannelException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
@@ -174,6 +173,29 @@ public class MemoryFileSystemTest {
         assertThat(dirEntry.getParent()).isSameAs(fs.findEntry(root));
 
         assertThat(fs.findEntry(directory)).isSameAs(dirEntry);
+    }
+
+    @Test
+    public void directoryStreamListsFolderContent() throws IOException {
+        MemoryFileSystem fs = newMemoryFs();
+        MemoryPath root = MemoryPath.createRoot(fs);
+
+        // should list only files within folder, not deeper
+
+        Path file = root.resolve("file");
+        Path folder = root.resolve("folder");
+        Path file1 = root.resolve("folder/file1");
+        Path file2 = root.resolve("folder/file2");
+
+        fs.createEntry(file, false, false);
+        fs.createEntry(folder, true, false);
+        fs.createEntry(file1, false, false);
+        fs.createEntry(file2, false, false);
+
+        // only file and folder must be in directory stream.
+
+        DirectoryStream<Path> stream = fs.newDirectoryStream(root);
+        assertThat(stream).containsExactly(file, folder);
     }
 
 
