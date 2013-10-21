@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import static sylvain.juge.memoryfs.MemoryFileSystem.SCHEME;
 import static sylvain.juge.memoryfs.MemoryFileSystem.SEPARATOR;
 
 public class MemoryPath implements Path {
@@ -302,7 +303,16 @@ public class MemoryPath implements Path {
     @Override
     public URI toUri() {
         if (null == uri) {
-            uri = fs.toUri((absolute ? "" : SEPARATOR) + getPath());
+            StringBuilder sb = new StringBuilder(SCHEME).append(":");
+            if (!absolute) {
+                sb.append(SEPARATOR);
+            }
+            String fsId = fs.getId();
+            if (!fsId.isEmpty()) {
+                sb.append(SEPARATOR).append(fsId);
+            }
+            sb.append(getPath());
+            uri = URI.create(sb.toString());
         }
         return uri;
     }

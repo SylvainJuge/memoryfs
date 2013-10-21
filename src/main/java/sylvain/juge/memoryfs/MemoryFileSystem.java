@@ -78,24 +78,8 @@ public class MemoryFileSystem extends FileSystem {
         return new Builder(provider);
     }
 
-    URI toUri(String path) {
-        if (!path.startsWith(SEPARATOR)) {
-            throw new InvalidPathException(path, "path must be absolute for URI conversion");
-        }
-        StringBuilder sb = new StringBuilder(SCHEME).append(":");
-        if (!id.isEmpty()) {
-            sb.append(SEPARATOR).append(id);
-        }
-        sb.append(path);
-        return URI.create(sb.toString());
-    }
-
     String getId() {
         return id;
-    }
-
-    private String idString() {
-        return SCHEME + ":/" + id;
     }
 
     /**
@@ -235,7 +219,7 @@ public class MemoryFileSystem extends FileSystem {
 
     @Override
     public PathMatcher getPathMatcher(String syntaxAndPattern) {
-        return null;
+        throw new UnsupportedOperationException("not supported");
     }
 
     @Override
@@ -250,7 +234,7 @@ public class MemoryFileSystem extends FileSystem {
 
     @Override
     public String toString() {
-        return idString();
+        return SCHEME + ":/" + id;
     }
 
     public MemoryByteChannel newByteChannel(Path path, Set<? extends OpenOption> options){

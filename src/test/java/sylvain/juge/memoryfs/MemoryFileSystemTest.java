@@ -242,7 +242,7 @@ public class MemoryFileSystemTest {
         Path fileConflict = MemoryPath.createRoot(fs).resolve("fileConflict");
         fs.createEntry(fileConflict, false, false);
 
-        Path fileToCreate = fileConflict.resolve("file");
+        Path fileToCreate = fileConflict.resolve("subfolder/file");
         fs.createEntry(fileToCreate, false, true);
         fail("should have thrown exception");
     }
@@ -255,6 +255,11 @@ public class MemoryFileSystemTest {
     @Test(expectedExceptions = DoesNotExistsException.class)
     public void failsToCreateFileWithMissingParents() {
         failsToCreateWithMissingParent(false);
+    }
+
+    @Test(expectedExceptions = ProviderMismatchException.class)
+    public void safeCastWithUnexpectedClass(){
+        MemoryFileSystem.asMemoryFileSystem(FileSystems.getDefault());
     }
 
     private static void failsToCreateWithMissingParent(boolean directory) {
@@ -590,8 +595,10 @@ public class MemoryFileSystemTest {
         return result;
     }
 
-    @Test(enabled = false)
-    public void getPathMatcher() {
+    @Test(expectedExceptions = UnsupportedOperationException.class)
+    public void pathMatcherNotImplemented() {
+        newMemoryFs().getPathMatcher(null);
+
         // /* : all items in root
         // /a/* : all items in folder a
         // /abc* : all items in root that start with "abc"
@@ -603,7 +610,6 @@ public class MemoryFileSystemTest {
         // * : will match anything
         // ** : will match anything at any depth
         // use pcre regex for other cases.
-        throw new RuntimeException("TODO : implement getPathMatcher");
     }
 
     private static MemoryFileSystem newMemoryFs() {
