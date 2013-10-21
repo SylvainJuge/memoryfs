@@ -11,6 +11,7 @@ import java.util.*;
 
 import static java.nio.file.StandardOpenOption.*;
 import static org.fest.assertions.api.Assertions.assertThat;
+import static org.fest.assertions.api.Assertions.fail;
 
 public class MemoryFileSystemTest {
 
@@ -196,6 +197,54 @@ public class MemoryFileSystemTest {
 
         DirectoryStream<Path> stream = fs.newDirectoryStream(root);
         assertThat(stream).containsExactly(file, folder);
+    }
+
+    @Test(expectedExceptions = UnsupportedOperationException.class)
+    public void directoryStreamIteratorNotModifiable() throws IOException {
+        MemoryFileSystem fs = newMemoryFs();
+        MemoryPath root = MemoryPath.createRoot(fs);
+
+        fs.newDirectoryStream(root).iterator().remove();
+    }
+
+    @Test(expectedExceptions = NoSuchElementException.class)
+    public void directoryStreamIteratorHasNoNextReturnsNull() throws IOException {
+        MemoryFileSystem fs = newMemoryFs();
+        MemoryPath root = MemoryPath.createRoot(fs);
+
+        DirectoryStream<Path> stream = fs.newDirectoryStream(root);
+        Iterator<Path> it = stream.iterator();
+        assertThat(it.hasNext()).isFalse();
+        it.next();
+    }
+
+    @Test(expectedExceptions = NotDirectoryException.class)
+    public void tryDirectoryStreamOnFile() throws IOException {
+        MemoryFileSystem fs = newMemoryFs();
+        Path file = MemoryPath.createRoot(fs).resolve("file");
+        fs.createEntry(file, false, false);
+
+        fs.newDirectoryStream(file);
+    }
+
+    @Test(expectedExceptions = DoesNotExistsException.class)
+    public void tryDirectoryStreamOnNonExistingFolder() throws IOException {
+        MemoryFileSystem fs = newMemoryFs();
+        Path folder = MemoryPath.createRoot(fs).resolve("folder");
+
+        fs.newDirectoryStream(folder);
+    }
+
+    @Test(expectedExceptions = ConflictException.class)
+    public void tryToCreateConflictByCreatingParents(){
+
+        MemoryFileSystem fs = newMemoryFs();
+        Path fileConflict = MemoryPath.createRoot(fs).resolve("fileConflict");
+        fs.createEntry(fileConflict, false, false);
+
+        Path fileToCreate = fileConflict.resolve("file");
+        fs.createEntry(fileToCreate, false, true);
+        fail("should have thrown exception");
     }
 
     @Test(expectedExceptions = DoesNotExistsException.class)
@@ -470,6 +519,18 @@ public class MemoryFileSystemTest {
 
         write(fs, file, new byte[]{5, 6, 7, 8}, WRITE, TRUNCATE_EXISTING);
         read(fs, file, new byte[]{5, 6, 7, 8});
+    }
+
+    // watch service not implemented
+    @Test(expectedExceptions = UnsupportedOperationException.class)
+    public void watchServiceNotImplemented() throws IOException {
+        newMemoryFs().newWatchService();
+    }
+
+    // user principal service not implemented
+    @Test(expectedExceptions = UnsupportedOperationException.class)
+    public void userPrincipalServiceNotImplemented(){
+        newMemoryFs().getUserPrincipalLookupService();
     }
 
     private static void write(MemoryFileSystem fs, Path path, byte[] toWrite, StandardOpenOption... options) throws IOException {

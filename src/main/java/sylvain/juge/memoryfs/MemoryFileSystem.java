@@ -160,7 +160,9 @@ public class MemoryFileSystem extends FileSystem {
     DirectoryStream<Path> newDirectoryStream(Path path) throws IOException {
 
         final Entry startFolder = findEntry(path);
-        if (null == startFolder || !startFolder.isDirectory()) {
+        if (null == startFolder) {
+            throw new DoesNotExistsException(path);
+        } else if (!startFolder.isDirectory()) {
             throw new NotDirectoryException("not a valid directory : " + path);
         }
 
@@ -313,7 +315,7 @@ public class MemoryFileSystem extends FileSystem {
         @Override
         public Path next() {
             if( null == current){
-                return null;
+                throw new NoSuchElementException();
             }
             Path result = MemoryPath.create(fs, current.getPath());
             current = current.getNext();
