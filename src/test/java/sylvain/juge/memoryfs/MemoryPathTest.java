@@ -71,15 +71,15 @@ public class MemoryPathTest {
     }
 
     @Test
-    public void checkPathParent(){
+    public void checkPathParent() {
         assertThat(createPath("/").getParent()).isNull();
         assertThat(createPath("a").getParent()).isNull();
-        checkParent("/a","/");
-        checkParent("/a/b","/a");
-        checkParent("a/b","a");
+        checkParent("/a", "/");
+        checkParent("/a/b", "/a");
+        checkParent("a/b", "a");
     }
 
-    private static void checkParent(String path, String expectedParent){
+    private static void checkParent(String path, String expectedParent) {
         assertThat(createPath(path).getParent()).isEqualTo(createPath(expectedParent));
     }
 
@@ -300,7 +300,7 @@ public class MemoryPathTest {
     }
 
     @Test
-    public void endsWithLongerReturnFalse(){
+    public void endsWithLongerReturnFalse() {
         assertThat(createPath("/a/b").endsWith(createPath("/a/b/c"))).isFalse();
     }
 
@@ -452,12 +452,12 @@ public class MemoryPathTest {
 
     @Test
     public void resolveString() {
-        checkResolvePathString("a/b","c/d","a/b/c/d");
-        checkResolvePathString("a/b","/c","/c");
-        checkResolvePathString("/","c","/c");
+        checkResolvePathString("a/b", "c/d", "a/b/c/d");
+        checkResolvePathString("a/b", "/c", "/c");
+        checkResolvePathString("/", "c", "/c");
     }
 
-    private void checkResolvePathString(String path, String toResolve, String expected){
+    private void checkResolvePathString(String path, String toResolve, String expected) {
         MemoryPath initialPath = createPath(path);
         Path resolved = initialPath.resolve(toResolve);
         assertThat(resolved).isEqualTo(createPath(expected));
@@ -520,7 +520,7 @@ public class MemoryPathTest {
     }
 
     @Test(expectedExceptions = UnsupportedOperationException.class)
-    public void pathIteratorDoesNotAllowRemove(){
+    public void pathIteratorDoesNotAllowRemove() {
         createPath("/").iterator().remove();
     }
 

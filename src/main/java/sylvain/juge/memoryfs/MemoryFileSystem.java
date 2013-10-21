@@ -168,7 +168,7 @@ public class MemoryFileSystem extends FileSystem {
 
             @Override
             public Iterator<Path> iterator() {
-                return new DirectoryStreamPathIterator(MemoryFileSystem.this, startFolder);
+                    return  new DirectoryStreamPathIterator(MemoryFileSystem.this, startFolder);
             }
 
             @Override

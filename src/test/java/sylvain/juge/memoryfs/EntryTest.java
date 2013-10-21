@@ -23,7 +23,7 @@ public class EntryTest {
     // -> files & folders : with same content (but distinct from original copy)
 
     @Test
-    public void variousValidFileNames(){
+    public void variousValidFileNames() {
         List<String> allowed = Arrays.asList(".a", "..a", "a..", "a.a", "a..b");
         for (String name : allowed) {
             Entry root = Entry.newRoot();
@@ -33,7 +33,7 @@ public class EntryTest {
     }
 
     @Test
-    public void tryToCreateFileWithInvalidName(){
+    public void tryToCreateFileWithInvalidName() {
         Entry root = Entry.newRoot();
         for (String name : Arrays.asList("", "*", "**", "a**a", "a*a", "*a", "*a", "/", "/a", "a/", "a/a", ".", "..")) {
             boolean thrown = false;
@@ -209,10 +209,10 @@ public class EntryTest {
     }
 
     @Test
-    public void rename(){
+    public void rename() {
         Entry root = Entry.newRoot();
-        Entry folder = Entry.newDirectory(root,"a");
-        Entry file = Entry.newFile(folder,"b");
+        Entry folder = Entry.newDirectory(root, "a");
+        Entry file = Entry.newFile(folder, "b");
 
         // rename file
         file.rename("c");
@@ -245,7 +245,7 @@ public class EntryTest {
     }
 
     @Test(expectedExceptions = ConflictException.class)
-    public void tryToCreateNameConflictThroughRename(){
+    public void tryToCreateNameConflictThroughRename() {
         Entry root = Entry.newRoot();
         Entry.newFile(root, "a");
         Entry.newFile(root, "b").rename("a");
@@ -298,12 +298,12 @@ public class EntryTest {
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
-    public void moveNull(){
+    public void moveNull() {
         Entry.newFile(Entry.newRoot(), "file").move(null);
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
-    public void tryToMoveToFile(){
+    public void tryToMoveToFile() {
         Entry root = Entry.newRoot();
         Entry a = Entry.newFile(root, "a");
         Entry b = Entry.newFile(root, "b");
@@ -311,18 +311,18 @@ public class EntryTest {
     }
 
     @Test(expectedExceptions = ConflictException.class)
-    public void tryToCreateNameConflictThroughMove(){
+    public void tryToCreateNameConflictThroughMove() {
 
         Entry root = Entry.newRoot();
-        Entry a = Entry.newFile(root,"a");
+        Entry a = Entry.newFile(root, "a");
         Entry folder = Entry.newDirectory(root, "folder");
-        Entry.newFile(folder,"a");
+        Entry.newFile(folder, "a");
 
         a.move(folder);
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
-    public void tryToMoveFolderWithinItself(){
+    public void tryToMoveFolderWithinItself() {
         Entry root = Entry.newRoot();
         Entry folder1 = Entry.newDirectory(root, "folder1");
         Entry folder2 = Entry.newDirectory(folder1, "folder2");
@@ -363,14 +363,14 @@ public class EntryTest {
     }
 
     @Test
-    public void fileIsCopyOfIself(){
+    public void fileIsCopyOfIself() {
         // test self test
         Entry file = Entry.newFile(Entry.newRoot(), "file");
         assertEntry(file).isCopyOf(file);
     }
 
     @Test
-    public void copyFile(){
+    public void copyFile() {
         // copy a single file
         // file data should be identical, but not the same instance
         Entry root = Entry.newRoot();
@@ -380,14 +380,14 @@ public class EntryTest {
     }
 
     @Test(expectedExceptions = ConflictException.class)
-    public void tryToCreateConflictThroughCopy(){
+    public void tryToCreateConflictThroughCopy() {
         Entry root = Entry.newRoot();
         Entry file = Entry.newFile(root, "file");
         file.copy(root, "file");
     }
 
     @Test
-    public void createFileWithData(){
+    public void createFileWithData() {
         Entry root = Entry.newRoot();
         String name = "fileName";
         Entry file = newFileWithNameAsData(root, name);
@@ -396,14 +396,14 @@ public class EntryTest {
     }
 
     @Test(enabled = false)
-    public void copyFolder(){
+    public void copyFolder() {
         Entry root = Entry.newRoot();
         Entry folderToCopy = Entry.newDirectory(root, "toCopy");
         Entry folder = Entry.newDirectory(folderToCopy, "folder");
         Entry fileInFolder = newFileWithNameAsData(folder, "fileInFolder");
         Entry file = newFileWithNameAsData(folderToCopy, "file");
 
-        Entry copy = folderToCopy.copy(root,"copy");
+        Entry copy = folderToCopy.copy(root, "copy");
         assertEntry(copy)
                 .hasPath("/copy");
 
@@ -424,8 +424,8 @@ public class EntryTest {
         byte[] actualBytes = new byte[expected.length];
 
         try (InputStream input = data.asInputStream()) {
-            for(int i=0;i<actualBytes.length;i++){
-                actualBytes[i] = (byte)input.read();
+            for (int i = 0; i < actualBytes.length; i++) {
+                actualBytes[i] = (byte) input.read();
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -434,8 +434,8 @@ public class EntryTest {
         assertThat(actualBytes).isEqualTo(expected);
     }
 
-    private static Entry newFileWithNameAsData(Entry parent, String name){
-        Entry result = Entry.newFile(parent,name);
+    private static Entry newFileWithNameAsData(Entry parent, String name) {
+        Entry result = Entry.newFile(parent, name);
         try {
             result.getData().asOutputStream().write(name.getBytes());
         } catch (IOException e) {
@@ -544,8 +544,8 @@ public class EntryTest {
             return this;
         }
 
-        public EntryAssert isCopyOf(Entry expectedCopy){
-            if(entry.isDirectory()){
+        public EntryAssert isCopyOf(Entry expectedCopy) {
+            if (entry.isDirectory()) {
                 // Note : folder copies must allow different ordering of elements and still be "equivalent"
                 // only topology have to be the same, not all implementation details like next/previous.
                 fail("not supported yet");
@@ -554,15 +554,15 @@ public class EntryTest {
             return this;
         }
 
-        public EntryAssert isDistinctCopyOf(Entry expectedCopy){
+        public EntryAssert isDistinctCopyOf(Entry expectedCopy) {
             isCopyOf(expectedCopy);
             assertThat(entry).isNotSameAs(expectedCopy);
             assertThat(entry.getData()).isNotSameAs(expectedCopy.getData());
             return this;
         }
 
-        public EntryAssert hasSameData(Entry expectedSameData){
-             assertThat(entry.getData().asInputStream())
+        public EntryAssert hasSameData(Entry expectedSameData) {
+            assertThat(entry.getData().asInputStream())
                     .hasContentEqualTo(expectedSameData.getData().asInputStream());
             assertThat(expectedSameData.getData().hashCode()).isEqualTo(entry.getData().hashCode());
             return this;

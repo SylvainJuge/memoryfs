@@ -7,13 +7,14 @@ import java.nio.file.Paths;
 
 public final class ProjectPathFinder {
 
-    private ProjectPathFinder(){
+    private ProjectPathFinder() {
         // uncallable constructor
     }
 
     /**
      * Searches folder with name {@code rootName} starting from current classpath root, then
      * upper until it reaches root or reaches first folder with this name.
+     *
      * @param rootName project folder name
      * @return null if not found, path to folder otherwise
      */

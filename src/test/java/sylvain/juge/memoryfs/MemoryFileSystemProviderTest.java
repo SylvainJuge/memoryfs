@@ -8,7 +8,10 @@ import java.net.URI;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.spi.FileSystemProvider;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ServiceLoader;
+import java.util.Set;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.fest.assertions.api.Fail.fail;
@@ -239,10 +242,10 @@ public class MemoryFileSystemProviderTest {
         MemoryPath a = MemoryPath.create(fs, "/a");
         MemoryPath c = MemoryPath.create(fs, "/c");
         assertThat(provider.newDirectoryStream(MemoryPath.createRoot(fs), null))
-                .containsOnly(a,c);
+                .containsOnly(a, c);
 
-        assertThat(provider.newDirectoryStream(a,null)).containsOnly(ab);
-        assertThat(provider.newDirectoryStream(c,null)).containsOnly(cd);
+        assertThat(provider.newDirectoryStream(a, null)).containsOnly(ab);
+        assertThat(provider.newDirectoryStream(c, null)).containsOnly(cd);
     }
 
     @Test
@@ -283,7 +286,7 @@ public class MemoryFileSystemProviderTest {
         // empty by design, we just need an empty subtype of BasicFileAttributes without writing too much
     }
 
-    private static void checkDirectoryAttributes(BasicFileAttributes a){
+    private static void checkDirectoryAttributes(BasicFileAttributes a) {
         assertThat(a).isNotNull();
         assertThat(a.isDirectory()).describedAs("must be a directory").isTrue();
         assertThat(a.isRegularFile()).describedAs("directory is not a regular file").isFalse();

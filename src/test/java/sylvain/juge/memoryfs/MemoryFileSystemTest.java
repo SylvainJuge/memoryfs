@@ -198,7 +198,6 @@ public class MemoryFileSystemTest {
         assertThat(stream).containsExactly(file, folder);
     }
 
-
     @Test(expectedExceptions = DoesNotExistsException.class)
     public void failsToCreateFolderWithMissingParents() {
         failsToCreateWithMissingParent(true);
