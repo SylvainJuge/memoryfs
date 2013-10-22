@@ -52,6 +52,12 @@ public class MemoryFileSystemTest {
     }
 
     @Test
+    public void hasNonDefaultToString(){
+        MemoryFileSystem fs = newMemoryFs();
+        assertThat(fs.toString().startsWith(fs.getClass().getName()+"@")).isFalse();
+    }
+
+    @Test
     public void doesNotSupportAnyAttributeView(){
         assertThat(newMemoryFs().supportedFileAttributeViews()).isEmpty();
     }
