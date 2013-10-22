@@ -464,16 +464,6 @@ public class MemoryFileSystemTest {
         return new HashSet<>(Arrays.asList(options));
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
-    public void tryToCreateWithReadChannel() throws IOException {
-        MemoryFileSystem fs = newMemoryFs();
-        MemoryPath file = MemoryPath.create(fs, "/file");
-
-        fs.newByteChannel(file, openOptions(WRITE, CREATE));
-
-        fs.newByteChannel(file, openOptions(READ, CREATE));
-    }
-
     @Test
     public void tryToTruncateWithReadChannel() throws IOException {
         MemoryFileSystem fs = newMemoryFs();

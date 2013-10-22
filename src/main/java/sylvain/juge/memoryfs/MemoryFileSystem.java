@@ -238,47 +238,43 @@ public class MemoryFileSystem extends FileSystem {
     }
 
     public MemoryByteChannel newByteChannel(Path path, Set<? extends OpenOption> options){
-        // TODO : make this more readable
-        if( options.contains(SPARSE)
-                || options.contains(DELETE_ON_CLOSE)
-                || options.contains(SYNC)
-                || options.contains(DSYNC)
-                ){
+        if (hasAnyOption(options, SPARSE, DELETE_ON_CLOSE, SYNC, DSYNC)) {
             throw new UnsupportedOperationException();
-
         }
-        Path absolutePath = path.toAbsolutePath();
+        boolean isRead = hasAnyOption(options, READ);
+        boolean isWrite = hasAnyOption(options, WRITE);
+        if (isRead == isWrite) {
+            throw new IllegalArgumentException("exactly one of read or write expected, mutualy exclusive");
+        }
 
+        boolean create = isWrite && hasAnyOption(options, CREATE, CREATE_NEW);
+        boolean createNew = isWrite && hasAnyOption(options, CREATE_NEW);
+        boolean truncate = create && hasAnyOption(options, TRUNCATE_EXISTING);
+
+        Path absolutePath = path.toAbsolutePath();
         Entry entry = findEntry(absolutePath);
-        if (options.contains(READ)) {
-            if (options.contains(WRITE)) {
-                throw new IllegalArgumentException("read and write are mutualy exclusive options");
-            }
-            if( options.contains(CREATE) || options.contains(CREATE_NEW)){
-                throw new IllegalArgumentException("create inconsistent options ");
-            }
-            if (null == entry) {
-                throw new DoesNotExistsException(absolutePath);
-            } else if (entry.isDirectory()) {
-                throw new InvalidRequestException("target path is a directory : " + absolutePath);
-            }
+
+        if (isRead) {
+            if (null == entry) throw new DoesNotExistsException(absolutePath);
+            if (entry.isDirectory()) throw new InvalidRequestException("target path is a directory : " + absolutePath);
             return MemoryByteChannel.newReadChannel(entry.getData());
-        } else if (options.contains(WRITE)) {
-            if (null != entry && options.contains(CREATE_NEW)) {
-                throw new ConflictException("impossible to create new file, it already exists");
-            }
+        } else {
             if (null == entry) {
-                if (!options.contains(CREATE) && !options.contains(CREATE_NEW)) {
-                    throw new DoesNotExistsException(path);
-                } else {
-                    entry = createEntry(absolutePath, false, true);
-                }
-            } else if( options.contains(TRUNCATE_EXISTING)){
-                entry.getData().truncate(0);
+                if (!create) throw new DoesNotExistsException(path);
+                entry = createEntry(absolutePath, false, true);
+            } else {
+                if (createNew) throw new ConflictException("impossible to create new file, it already exists");
+                if (truncate) entry.getData().truncate(0);
             }
             return MemoryByteChannel.newWriteChannel(entry.getData(), false);
         }
-        throw new IllegalArgumentException("read or write option is required");
+    }
+
+    private static boolean hasAnyOption(Set<? extends OpenOption> set, OpenOption... option){
+        for (OpenOption o : option) {
+            if(set.contains(o)) return true;
+        }
+        return false;
     }
 
     private static class DirectoryStreamPathIterator implements Iterator<Path> {
