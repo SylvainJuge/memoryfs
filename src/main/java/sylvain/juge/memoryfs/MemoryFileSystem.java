@@ -182,7 +182,6 @@ public class MemoryFileSystem extends FileSystem {
 
     @Override
     public boolean isReadOnly() {
-        // TODO : see usage at jdk level to see how we can use it
         return false;
     }
 

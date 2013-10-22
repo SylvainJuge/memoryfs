@@ -44,6 +44,24 @@ public class MemoryFileSystemTest {
     }
 
     @Test
+    public void openCloseState() throws IOException {
+        MemoryFileSystem fs = newMemoryFs();
+        assertThat(fs.isOpen()).isTrue();
+        fs.close();
+        assertThat(fs.isOpen()).isFalse();
+    }
+
+    @Test
+    public void doesNotSupportAnyAttributeView(){
+        assertThat(newMemoryFs().supportedFileAttributeViews()).isEmpty();
+    }
+
+    @Test
+    public void separatorIsSlash(){
+        assertThat(newMemoryFs().getSeparator()).isEqualTo("/");
+    }
+
+    @Test
     public void buildThroughBuilderWithExplicitId() {
         MemoryFileSystem fs = MemoryFileSystem
                 .builder(newProvider())
@@ -603,7 +621,9 @@ public class MemoryFileSystemTest {
     }
 
     private static MemoryFileSystem newMemoryFs() {
-        return MemoryFileSystem.builder(newProvider()).build();
+        MemoryFileSystem fs = MemoryFileSystem.builder(newProvider()).build();
+        assertThat(fs.isReadOnly()).isFalse();
+        return fs;
     }
 
     private static MemoryFileSystemProvider newProvider() {
