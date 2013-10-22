@@ -392,7 +392,7 @@ public class EntryTest {
         String name = "fileName";
         Entry file = newFileWithNameAsData(root, name);
 
-        checkData(file.getData(), name.getBytes());
+        assertEntry(file).hasData(name.getBytes());
     }
 
     @Test(enabled = false)
@@ -416,22 +416,6 @@ public class EntryTest {
         // things to test :
         // - empty data
         // - identical data as another file
-    }
-
-    private static void checkData(FileData data, byte[] expected) {
-        assertThat(data.size()).isEqualTo(expected.length);
-
-        byte[] actualBytes = new byte[expected.length];
-
-        try (InputStream input = data.asInputStream()) {
-            for (int i = 0; i < actualBytes.length; i++) {
-                actualBytes[i] = (byte) input.read();
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        assertThat(actualBytes).isEqualTo(expected);
     }
 
     private static Entry newFileWithNameAsData(Entry parent, String name) {
@@ -482,6 +466,7 @@ public class EntryTest {
             assertThat(entry.isOther()).isFalse();
             assertThat(entry.isSymbolicLink()).isFalse();
             assertThat(entry.getData()).isNotNull();
+            assertThat(entry.getData().size()).isEqualTo(entry.size());
             return this;
         }
 
@@ -561,7 +546,22 @@ public class EntryTest {
             return this;
         }
 
+        public EntryAssert hasData(byte[] expected) {
+            isFile();
+            byte[] actualBytes = new byte[expected.length];
+            try (InputStream input = entry.getData().asInputStream()) {
+                for (int i = 0; i < actualBytes.length; i++) {
+                    actualBytes[i] = (byte) input.read();
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            assertThat(actualBytes).isEqualTo(expected);
+            return this;
+        }
+
         public EntryAssert hasSameData(Entry expectedSameData) {
+            isFile();
             assertThat(entry.getData().asInputStream())
                     .hasContentEqualTo(expectedSameData.getData().asInputStream());
             assertThat(expectedSameData.getData().hashCode()).isEqualTo(entry.getData().hashCode());

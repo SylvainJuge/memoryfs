@@ -188,7 +188,7 @@ class Entry implements BasicFileAttributes {
 
     @Override
     public long size() {
-        return 0;
+        return isDirectory ? 0 : data.size();
     }
 
     @Override
