@@ -27,7 +27,17 @@ public class MemoryPathTest {
         assertThat(path).isNotNull();
         assertThat(path.isRoot()).isTrue();
         assertThat(path.isAbsolute()).isTrue();
+        assertThat(path.toUri().toString()).isEqualTo("memory:/");
     }
+
+    @Test
+    public void createRootWithNonDefaultFsId(){
+        MemoryFileSystemProvider provider = new MemoryFileSystemProvider();
+        MemoryFileSystem fs = MemoryFileSystem.builder(provider).id("id").build();
+        MemoryPath root = MemoryPath.createRoot(fs);
+        assertThat(root.toUri().toString()).isEqualTo("memory:/id/");
+    }
+
 
     @Test
     public void asMemoryPath() {

@@ -15,6 +15,7 @@ public class MemoryPath implements Path {
 
     private static final String TWO_DOTS = "..";
     private static final String ONE_DOT = ".";
+
     private final MemoryFileSystem fs;
     private final List<String> parts;
     private final boolean absolute;

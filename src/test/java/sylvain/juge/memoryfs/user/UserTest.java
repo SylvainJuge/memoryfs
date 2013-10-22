@@ -55,7 +55,6 @@ public class UserTest {
             assertThat(readBuffer).isEqualTo(new byte[]{1, 2, 3});
             // TODO close channel after read
 
-            // TODO close fs once we don't need it anymore
         }
 
     }
