@@ -242,7 +242,9 @@ public class MemoryFileSystem extends FileSystem {
         }
         boolean isRead = hasAnyOption(options, READ);
         boolean isWrite = hasAnyOption(options, WRITE);
-        if (isRead == isWrite) {
+        if (!isRead && !isWrite) {
+            isRead = true;
+        } else if (isRead && isWrite) {
             throw new IllegalArgumentException("exactly one of read or write expected, mutualy exclusive");
         }
 

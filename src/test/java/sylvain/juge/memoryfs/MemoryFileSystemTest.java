@@ -432,15 +432,20 @@ public class MemoryFileSystemTest {
         fs.newByteChannel(folder, new HashSet<>(Arrays.asList(options)));
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
-    public void tryNotReadNorWriteChannel() {
-        // at least one of read|write options is required
-        tryChannelWithOptions();
+    @Test
+    public void noReadWriteOptionDefaultsToRead() throws IOException {
+        MemoryFileSystem fs = newMemoryFs();
+        MemoryPath file = MemoryPath.create(fs, "/file");
+        fs.createEntry(file, false, false);
+        MemoryByteChannel channel = fs.newByteChannel(file, openOptions());
+
+        // if channel is not a read channel, this call will throw an exception
+        channel.read(ByteBuffer.wrap(new byte[0]));
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void tryReadAndWriteChannel() {
-        // at least one of read|write options is required
+        // at most one of read or write options is required
         tryChannelWithOptions(READ, WRITE);
     }
 
