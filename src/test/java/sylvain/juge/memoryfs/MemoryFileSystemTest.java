@@ -394,6 +394,50 @@ public class MemoryFileSystemTest {
         MemoryPath.createRoot(fs).findEntry().delete();
     }
 
+
+    @Test
+    public void copyDirectoryDoesNotCopyItsContent() {
+        // This is defautlt copy behavior, we have to use a dedicated visitor
+        // to perform an in-depth copy
+        copyOrMoveDirectoryContent(true);
+    }
+
+    @Test
+    public void moveDirectoryMovesItsContent() {
+        // When moving a folder, everything inside have to remain in place
+        copyOrMoveDirectoryContent(false);
+    }
+
+    private static void copyOrMoveDirectoryContent(boolean copy) {
+        // copy directory does not copy content
+        // move directory moves content
+
+        MemoryFileSystem fs = newMemoryFs();
+        Path root = MemoryPath.createRoot(fs);
+        Path source = root.resolve("source");
+        Path fileInFolder = source.resolve("file");
+
+        fs.createEntry(source, true, false);
+        Entry fileEntry = fs.createEntry(fileInFolder, false, false);
+
+        Path target = root.resolve("target");
+
+        if (copy) {
+            fs.copy(source, target);
+        } else {
+            fs.move(source, target);
+        }
+
+        Entry targetEntry = fs.findEntry(target);
+        assertThat(targetEntry.isDirectory());
+        if (copy) {
+            assertThat(targetEntry.getEntries()).isNull();
+        } else {
+            assertThat(targetEntry.getEntries()).isSameAs(fileEntry);
+        }
+    }
+
+
     @Test
     public void readChannel() throws IOException {
         MemoryFileSystem fs = newMemoryFs();

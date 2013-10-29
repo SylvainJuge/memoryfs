@@ -106,6 +106,81 @@ public class MemoryFileSystem extends FileSystem {
         return childEntry;
     }
 
+    // createDirectory( Path, boolean createParents )
+    // createFile( Path, boolean createParents )
+    // copyFile( Path, Entry source )
+
+    Entry copy(Path source, Path target, CopyOption... options){
+        // Copies a single file/folder withint the same fs instance,
+        // and does not perform recursive copy for folders (see Files#copy(...) for details)
+
+        MemoryFileSystem fs = asMemoryFileSystem(source.getFileSystem());
+
+        Entry sourceEntry = fs.findEntry(source);
+        Entry targetEntry = fs.findEntry(target);
+
+        if( null == targetEntry ){
+
+            Entry targetParent = fs.findEntry(target.getParent());
+            if( null == targetParent){
+                targetParent = fs.createEntry(target.getParent(), true, true);
+            }
+            sourceEntry.copy(targetParent, target.getFileName().toString());
+
+        } else {
+
+            if( targetEntry.isDirectory() != sourceEntry.isDirectory()){
+                throw new ConflictException("copy target already exists and is not of same type");
+            }
+            if(!hasOption(StandardCopyOption.REPLACE_EXISTING, options)){
+                throw new ConflictException("conflict");
+            }
+
+            if(sourceEntry.isDirectory()){
+                sourceEntry.delete();
+            } else {
+                throw new RuntimeException("wip : copy file");
+            }
+
+        }
+        return targetEntry;
+    }
+
+    private static boolean hasOption(CopyOption option, CopyOption... options) {
+        for (CopyOption o : options) {
+            if (option.equals(o)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void move(Path source, Path target, CopyOption... options) {
+
+        MemoryFileSystem fs = asMemoryFileSystem(source.getFileSystem());
+        Entry sourceEntry = fs.findEntry(source);
+        if (null == sourceEntry) {
+            throw new DoesNotExistsException(source);
+        }
+        Entry targetEntry = fs.findEntry(target);
+        if (null != targetEntry) {
+            // TODO : allow overwrite if it's a file, merge if it's a folder
+            throw new ConflictException("");
+        }
+
+        Path targetParent = target.getParent();
+        Entry parentEntry = fs.findEntry(targetParent);
+        if( null == parentEntry){
+            parentEntry = fs.createEntry(targetParent, true, true);
+        }
+        // TODO : what to do when there is a name conflict ?
+        String targetFileName = target.getFileName().toString();
+
+        sourceEntry.rename(targetFileName);
+        sourceEntry.move(parentEntry);
+
+    }
+
     Entry createEntry(Path path, boolean directory, boolean createParents) {
         Path parent = path.getParent();
         Entry parentEntry = findEntry(parent);

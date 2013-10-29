@@ -141,12 +141,9 @@ class Entry implements BasicFileAttributes {
         }
     }
 
-    public Entry copy(Entry targetParent, String targetName){
-        if (isDirectory) {
-            throw new RuntimeException("don't support folder copy yet");
-        }
+    public Entry copy(Entry targetParent, String targetName) {
         FileData dataCopy = isDirectory ? null : FileData.copy(data);
-        Entry entry = new Entry(parent,isDirectory, targetName, dataCopy);
+        Entry entry = new Entry(parent, isDirectory, targetName, dataCopy);
         targetParent.addEntry(entry);
         return entry;
     }
