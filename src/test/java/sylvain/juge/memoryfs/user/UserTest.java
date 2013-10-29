@@ -60,7 +60,7 @@ public class UserTest {
     }
 
     @Test
-    public void copyFromDefaultFsToMemoryFs() throws IOException {
+    public void copyFromDefaultFsToMemoryFsUsingTreeWalking() throws IOException {
         // this test copies all files in src/main/java folder to a memoryfs instance
 
         ListPathVisitor toCopyList = new ListPathVisitor();

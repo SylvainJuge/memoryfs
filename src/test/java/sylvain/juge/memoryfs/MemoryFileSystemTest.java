@@ -52,18 +52,18 @@ public class MemoryFileSystemTest {
     }
 
     @Test
-    public void hasNonDefaultToString(){
+    public void hasNonDefaultToString() {
         MemoryFileSystem fs = newMemoryFs();
-        assertThat(fs.toString().startsWith(fs.getClass().getName()+"@")).isFalse();
+        assertThat(fs.toString().startsWith(fs.getClass().getName() + "@")).isFalse();
     }
 
     @Test
-    public void doesNotSupportAnyAttributeView(){
+    public void doesNotSupportAnyAttributeView() {
         assertThat(newMemoryFs().supportedFileAttributeViews()).isEmpty();
     }
 
     @Test
-    public void separatorIsSlash(){
+    public void separatorIsSlash() {
         assertThat(newMemoryFs().getSeparator()).isEqualTo("/");
     }
 
@@ -260,7 +260,7 @@ public class MemoryFileSystemTest {
     }
 
     @Test(expectedExceptions = ConflictException.class)
-    public void tryToCreateConflictByCreatingParents(){
+    public void tryToCreateConflictByCreatingParents() {
 
         MemoryFileSystem fs = newMemoryFs();
         Path fileConflict = MemoryPath.createRoot(fs).resolve("fileConflict");
@@ -282,7 +282,7 @@ public class MemoryFileSystemTest {
     }
 
     @Test(expectedExceptions = ProviderMismatchException.class)
-    public void safeCastWithUnexpectedClass(){
+    public void safeCastWithUnexpectedClass() {
         MemoryFileSystem.asMemoryFileSystem(FileSystems.getDefault());
     }
 
@@ -374,6 +374,8 @@ public class MemoryFileSystemTest {
         assertThat(reCreatedEntry.getParent()).isSameAs(parentFolder);
     }
 
+    // Note : probably already partialy tested at entry level
+    // see if it allows more coverage, otherwise delete this test
     @Test
     public void deleteFolderDeletesItsContent() {
         MemoryFileSystem fs = newMemoryFs();
@@ -597,7 +599,7 @@ public class MemoryFileSystemTest {
 
     // user principal service not implemented
     @Test(expectedExceptions = UnsupportedOperationException.class)
-    public void userPrincipalServiceNotImplemented(){
+    public void userPrincipalServiceNotImplemented() {
         newMemoryFs().getUserPrincipalLookupService();
     }
 

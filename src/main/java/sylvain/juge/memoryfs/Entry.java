@@ -106,6 +106,7 @@ class Entry implements BasicFileAttributes {
         }
         if (null == newParent) {
             // TODO : use a classic NPE probably more appropriate
+            // simply use Objects.requireNonNull(newParent);
             throw new IllegalArgumentException("parent entry required");
         }
         if (!newParent.isDirectory) {
