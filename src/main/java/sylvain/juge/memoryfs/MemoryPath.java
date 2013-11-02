@@ -297,7 +297,7 @@ public class MemoryPath implements Path {
         for (int j = 0; j < trailingCount; j++) {
             relativePath.add(TWO_DOTS);
         }
-        relativePath.addAll(path.parts.subList(i, parts.size()));
+        relativePath.addAll(path.parts.subList(i, path.parts.size()));
         return new MemoryPath(fs, relativePath, 0, relativePath.size(), false);
     }
 

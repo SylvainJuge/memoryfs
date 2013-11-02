@@ -482,6 +482,8 @@ public class MemoryPathTest {
         checkRelativize("/a/b", "/a/b/c/d", "c/d");
         checkRelativize("/a/b", "/c/d", "../../c/d");
 
+        checkRelativize("/","/a/b","a/b");
+
         // equal paths : return the path itself
         checkRelativize("a/b", "a/b", ".");
 
