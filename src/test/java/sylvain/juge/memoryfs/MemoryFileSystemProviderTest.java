@@ -286,6 +286,14 @@ public class MemoryFileSystemProviderTest {
         // empty by design, we just need an empty subtype of BasicFileAttributes without writing too much
     }
 
+    @Test(expectedExceptions = NoSuchFileException.class)
+    public void deleteMissingFile() throws IOException {
+        MemoryFileSystemProvider provider = getNewProvider();
+        MemoryFileSystem fs = MemoryFileSystem.builder(provider).build();
+        provider.delete(MemoryPath.create(fs, "/missing"));
+
+    }
+
     private static void checkDirectoryAttributes(BasicFileAttributes a) {
         assertThat(a).isNotNull();
         assertThat(a.isDirectory()).describedAs("must be a directory").isTrue();

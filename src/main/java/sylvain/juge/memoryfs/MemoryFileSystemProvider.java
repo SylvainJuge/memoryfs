@@ -155,7 +155,11 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
 
     @Override
     public void delete(Path path) throws IOException {
-        asMemoryFileSystem(path.getFileSystem()).findEntry(path).delete();
+        Entry entry = asMemoryFileSystem(path.getFileSystem()).findEntry(path);
+        if (null == entry) {
+            throw new NoSuchFileException(path.toString());
+        }
+        entry.delete();
     }
 
     // test cases
