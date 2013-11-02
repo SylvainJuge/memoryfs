@@ -8,9 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.ProviderMismatchException;
 import java.nio.file.WatchEvent;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 import static sylvain.juge.memoryfs.TestEquals.checkHashCodeEqualsConsistency;
@@ -28,6 +26,10 @@ public class MemoryPathTest {
         assertThat(path.isRoot()).isTrue();
         assertThat(path.isAbsolute()).isTrue();
         assertThat(path.toUri().toString()).isEqualTo("memory:/");
+
+        assertThat(path.getNameCount()).isEqualTo(0);
+        assertThat(path).isEmpty();
+        assertThat(path.iterator().hasNext()).isFalse();
     }
 
     @Test
@@ -44,6 +46,8 @@ public class MemoryPathTest {
         Path path = MemoryPath.createRoot(defaultFs);
         MemoryPath memoryPath = MemoryPath.asMemoryPath(path);
         assertThat(memoryPath).isSameAs(path);
+
+        assertThat(MemoryPath.asMemoryPath(null)).isNull();
     }
 
     @Test(expectedExceptions = ProviderMismatchException.class)
@@ -69,7 +73,7 @@ public class MemoryPathTest {
     }
 
     @Test
-    public void relativePathToUri() {
+    public void relativePathParts() {
         MemoryPath path = createPath("relative/path");
 
         assertThat(path.isAbsolute()).isFalse();
@@ -77,7 +81,8 @@ public class MemoryPathTest {
 
         checkParts(path,
                 "relative",
-                "relative/path");
+                "path");
+
     }
 
     @Test
@@ -93,17 +98,16 @@ public class MemoryPathTest {
         assertThat(createPath(path).getParent()).isEqualTo(createPath(expectedParent));
     }
 
-
     @Test
-    public void absolutePathToUri() {
+    public void absolutePathParts() {
         MemoryPath path = createPath("/absolute/path");
 
         assertThat(path.isAbsolute()).isTrue();
         assertThat(path.getRoot()).isEqualTo(createPath("/"));
 
         checkParts(path,
-                "/absolute",
-                "/absolute/path");
+                "absolute",
+                "path");
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
@@ -285,10 +289,11 @@ public class MemoryPathTest {
     @Test
     public void startsWithPrefixPaths() {
         for (MemoryPath p : samplePaths) {
-            for (int i = 0; i < p.getNameCount(); i++) {
-                MemoryPath prefix = (MemoryPath) p.getName(i);
+            MemoryPath prefix = p;
+            while (null != prefix) {
                 assertThat(p.startsWith(prefix)).isTrue();
                 assertThat(p.startsWith(prefix.getPath())).isTrue();
+                prefix = MemoryPath.asMemoryPath(prefix.getParent());
             }
         }
     }
@@ -583,29 +588,28 @@ public class MemoryPathTest {
         }
         assertThat(p).containsSequence(expectedPaths);
 
-        // test each of them through getName
+        // test each of them through getName and through iterator
+        Iterator<Path> it = p.iterator();
         i = 0;
         for (Path part : expectedPaths) {
+
+            assertThat(it.hasNext()).isTrue();
+            assertThat(part).isEqualTo(it.next());
+
             assertThat(part).isEqualTo(p.getName(i));
-            if (i == 0) {
-                // getName(0) return identity;
-                assertThat(p.getParent()).isEqualTo(part);
-            }
+            assertThat(part.isAbsolute()).isFalse();
             i++;
-
-            // toUri converts to absolute path, thus we can't test a lot more than suffix
-            assertThat(p.toUri().getPath()).startsWith(part.toUri().getPath());
-
-            // if path is absolute, then its parts path must be absolute
-            // also, both paths must have the same root
-            if (p.isAbsolute()) {
-                assertThat(part.isAbsolute()).isTrue();
-                assertThat(part.getRoot()).isEqualTo(p.getRoot());
-            } else {
-                assertThat(part.isAbsolute()).isFalse();
-                assertThat(part.getRoot()).isNull();
-            }
         }
+
+        // ensure that iterator has properly reached end
+        assertThat(it.hasNext()).isFalse();
+        boolean thrown = false;
+        try {
+            assertThat(it.next()).isNull();
+        } catch (NoSuchElementException e) {
+            thrown = true;
+        }
+        assertThat(thrown).isTrue();
     }
 
     private static void checkFileName(Path path, String expectedFileName) {

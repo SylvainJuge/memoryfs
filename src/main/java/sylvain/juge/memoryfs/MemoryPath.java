@@ -7,6 +7,7 @@ import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import static sylvain.juge.memoryfs.MemoryFileSystem.SCHEME;
 import static sylvain.juge.memoryfs.MemoryFileSystem.SEPARATOR;
@@ -25,7 +26,7 @@ public class MemoryPath implements Path {
     private String path = null;
 
     static MemoryPath asMemoryPath(Path path) {
-        if (path instanceof MemoryPath) {
+        if (path instanceof MemoryPath || null == path) {
             return (MemoryPath) path;
         }
         throw new ProviderMismatchException();
@@ -114,7 +115,7 @@ public class MemoryPath implements Path {
         if (parts.size() == 1) {
             return getRoot();
         }
-        return getName(parts.size() - 2);
+        return new MemoryPath(fs, parts, 0, parts.size() - 1, absolute);
     }
 
     @Override
@@ -127,11 +128,7 @@ public class MemoryPath implements Path {
         if (index < 0 || parts.size() <= index) {
             throw new IllegalArgumentException("invalid name index : " + index);
         }
-        // last item is current path itself
-        if (index == parts.size() - 1) {
-            return this;
-        }
-        return new MemoryPath(fs, parts, 0, index + 1, absolute);
+        return new MemoryPath(fs, parts, index, index + 1, false);
     }
 
     @Override
@@ -438,7 +435,10 @@ public class MemoryPath implements Path {
 
         @Override
         public Path next() {
-            return path.getName(i++);
+            if(hasNext()){
+                return path.getName(i++);
+            }
+            throw new NoSuchElementException("iterator has no more elements");
         }
 
         @Override

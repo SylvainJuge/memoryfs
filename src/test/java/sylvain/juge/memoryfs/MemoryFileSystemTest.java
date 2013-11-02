@@ -330,18 +330,15 @@ public class MemoryFileSystemTest {
     private static void createWithParents(boolean directory) {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath path = MemoryPath.create(fs, "/not/in/root");
-        for (Path p : path) {
-            assertThat(fs.findEntry(p)).isNull();
-        }
+        assertThat(fs.findEntry(path)).isNull();
+
         Entry entry = fs.createEntry(path, directory, true);
         assertThat(entry).isNotNull();
         assertThat(entry.isDirectory()).isEqualTo(directory);
 
-        for (Path parent : path.getParent()) {
-            Entry e = fs.findEntry(parent);
-            assertThat(e).describedAs("missing parent folder " + parent).isNotNull();
-            assertThat(e.isDirectory()).isTrue();
-        }
+        Entry parentFolder = fs.findEntry(path.getParent());
+        assertThat(parentFolder.isDirectory()).isTrue();
+        assertThat(parentFolder).describedAs("missing parent folder " + path.getParent()).isNotNull();
     }
 
     @Test(expectedExceptions = ConflictException.class)
