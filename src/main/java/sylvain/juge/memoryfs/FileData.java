@@ -19,7 +19,7 @@ final class FileData {
     }
 
     public InputStream asInputStream() {
-        return new ByteArrayInputStream(stream.internalBuffer());
+        return new ByteArrayInputStream(stream.internalBuffer(), 0, stream.size());
     }
 
     public OutputStream asOutputStream() {

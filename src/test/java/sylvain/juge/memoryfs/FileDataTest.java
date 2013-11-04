@@ -3,9 +3,11 @@ package sylvain.juge.memoryfs;
 import org.testng.annotations.Test;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.Arrays;
 
 import static org.fest.assertions.api.Assertions.assertThat;
+import static org.fest.assertions.api.Assertions.fail;
 
 public class FileDataTest {
 
@@ -71,6 +73,11 @@ public class FileDataTest {
 
         public FileDataAssert isEmpty() {
             assertThat(data.size()).isEqualTo(0);
+            try {
+                assertThat(data.asInputStream().read()).isLessThan(0);
+            } catch (IOException e) {
+                fail(e.getMessage());
+            }
             return this;
         }
 
