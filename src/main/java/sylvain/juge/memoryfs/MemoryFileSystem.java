@@ -117,6 +117,10 @@ public class MemoryFileSystem extends FileSystem {
         MemoryFileSystem fs = asMemoryFileSystem(source.getFileSystem());
 
         Entry sourceEntry = fs.findEntry(source);
+        if (null == sourceEntry) {
+            throw new DoesNotExistsException(source);
+        }
+
         Entry targetEntry = fs.findEntry(target);
 
         if( null == targetEntry ){

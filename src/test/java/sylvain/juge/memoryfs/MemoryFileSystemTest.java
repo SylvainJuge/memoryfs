@@ -436,6 +436,75 @@ public class MemoryFileSystemTest {
         }
     }
 
+    @Test(expectedExceptions = ConflictException.class)
+    public void tryToCopyCreateConflict() {
+        tryToCopyOrMoveCreateConflict(true);
+    }
+
+    @Test(expectedExceptions = ConflictException.class)
+    public void tryToMoveCreateConflict() {
+        tryToCopyOrMoveCreateConflict(false);
+    }
+
+    public void tryToCopyOrMoveCreateConflict(boolean copy) {
+        MemoryFileSystem fs = newMemoryFs();
+        Path root = MemoryPath.createRoot(fs);
+        Path folder = root.resolve("folder");
+        Path conflict = root.resolve("conflict");
+        fs.createEntry(folder, true, false);
+        fs.createEntry(conflict, false, false);
+
+        if (copy) {
+            fs.copy(folder, conflict);
+        } else {
+            fs.move(folder, conflict);
+        }
+    }
+
+
+    // TODO : copy and move tests are almost the same
+    // same parameters
+    // only the assertions after move/copy differ
+    // copy : copy target is the same after copy, original still exists
+    // move : copy target is the same as original after move, original does not exists anymove
+
+    @Test(expectedExceptions = DoesNotExistsException.class)
+    public void tryToCopyMissingFile() {
+        tyToCopyOrMoveMissingFile(true);
+    }
+
+    @Test(expectedExceptions = DoesNotExistsException.class)
+    public void tryToMoveMissingFile() {
+        tyToCopyOrMoveMissingFile(false);
+    }
+
+    private static void tyToCopyOrMoveMissingFile(boolean copy) {
+        // self-explainatory
+        MemoryFileSystem fs = newMemoryFs();
+        Path root = MemoryPath.createRoot(fs);
+        Path missing = root.resolve("missing");
+        Path target = root.resolve("target");
+        if (copy) {
+            fs.copy(missing, target);
+        } else {
+            fs.move(missing, target);
+        }
+    }
+
+    // copy :
+    // - copy file must copy its data, copy folder should not copy its content
+    // - do we need to create parents when they do not exist ?
+    // - overwrite allows to overwrite files and merge folders
+    // - if conflict without overwrite, must throw an exception
+
+    // Nice improvement : provide option to copy recursively
+
+    // move :
+    // - do we need to create parents when they do not exist ?
+    // overwrite allows to overwrite if there is a (name) conflict
+    // if conflict without overwrite, what should we do ? merge ?
+    // -> Supporting an atomic move may be useful when such conflicts may arise
+
 
     @Test
     public void readChannel() throws IOException {
