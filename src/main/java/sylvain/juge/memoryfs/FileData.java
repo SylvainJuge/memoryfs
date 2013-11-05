@@ -31,13 +31,14 @@ final class FileData {
     }
 
     public static FileData copy(FileData data){
-        return null == data ? null : fromData(data.stream.internalBuffer());
+        return null == data ? null : new FileData(new InternalOutputStream(data.stream));
     }
 
     public static FileData newEmpty() {
         return new FileData(new InternalOutputStream());
     }
 
+    // only used for test, may be dropped unless used somewhere else
     public static FileData fromData(byte[] data) {
         return new FileData(new InternalOutputStream(data));
     }
@@ -66,6 +67,12 @@ final class FileData {
 
         private InternalOutputStream() {
             super();
+        }
+
+        private InternalOutputStream(InternalOutputStream data){
+            super(data.count);
+            count = data.count;
+            System.arraycopy(data.buf, 0, buf, 0, data.count);
         }
 
         private InternalOutputStream(byte[] data) {

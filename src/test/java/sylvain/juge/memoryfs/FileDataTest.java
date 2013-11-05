@@ -4,6 +4,7 @@ import org.testng.annotations.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 
 import static org.fest.assertions.api.Assertions.assertThat;
@@ -28,6 +29,7 @@ public class FileDataTest {
         byte[] data = new byte[]{1, 2, 3, 4};
         FileData data1 = assertData(FileData.fromData(data))
                 .hasContent(data)
+                .hasSize(4)
                 .value();
         FileData data2 = assertData(FileData.fromData(data))
                 .isDistinctCopyOf(data1)
@@ -53,10 +55,12 @@ public class FileDataTest {
         byte[] bytes = new byte[]{1, 2, 3, 4};
         FileData data = assertData(FileData.fromData(bytes))
                 .hasContent(bytes)
+                .hasSize(4)
                 .value();
         FileData copy = FileData.copy(data);
         assertData(copy)
                 .hasContent(bytes)
+                .hasSize(data.size())
                 .isDistinctCopyOf(data);
     }
 
@@ -83,7 +87,13 @@ public class FileDataTest {
 
         public FileDataAssert hasContent(byte[] content) {
             ByteArrayInputStream expected = new ByteArrayInputStream(content);
-            assertThat(data.asInputStream()).hasContentEqualTo(expected);
+            InputStream input = data.asInputStream();
+            assertThat(input).hasContentEqualTo(expected);
+            try {
+                assertThat(input.read()).isLessThan(0);
+            } catch (IOException e) {
+                fail(e.getMessage());
+            }
             return this;
         }
 
@@ -93,10 +103,14 @@ public class FileDataTest {
             return this;
         }
 
+        public FileDataAssert hasSize(long size) {
+            assertThat(data.size()).isEqualTo(size);
+            return this;
+        }
+
         public FileData value() {
             return data;
         }
-
 
     }
 }

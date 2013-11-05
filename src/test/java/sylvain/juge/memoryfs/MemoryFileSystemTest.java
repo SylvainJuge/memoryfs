@@ -2,7 +2,10 @@ package sylvain.juge.memoryfs;
 
 import org.testng.annotations.Test;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.file.*;
@@ -513,19 +516,29 @@ public class MemoryFileSystemTest {
 
     }
 
-    @Test(enabled = false)
-    public void copyFileCopiesItsContent() {
+    @Test
+    public void copyFileCopiesItsContent() throws IOException {
         // create file with reference data
         // copy this file
         // alter original file data
         // copy must have the initial reference data (thus a copy)
-    }
 
-    // TODO : copy and move tests are almost the same
-    // same parameters
-    // only the assertions after move/copy differ
-    // copy : copy target is the same after copy, original still exists
-    // move : copy target is the same as original after move, original does not exists anymove
+        MemoryFileSystem fs = newMemoryFs();
+        Path root = MemoryPath.createRoot(fs);
+        Path original = root.resolve("original");
+
+        Files.createFile(original);
+        Files.write(original, new byte[]{1, 2, 3});
+
+        Path copy = root.resolve("copy");
+        fs.copy(original, copy);
+
+        Files.write(original, new byte[]{4, 5, 6});
+        assertThat(Files.readAllBytes(original)).isEqualTo(new byte[]{4, 5, 6});
+
+        assertThat(Files.readAllBytes(copy)).isEqualTo(new byte[]{1, 2, 3});
+
+    }
 
     @Test(expectedExceptions = DoesNotExistsException.class)
     public void tryToCopyMissingFile() {
