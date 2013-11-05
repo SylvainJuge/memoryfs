@@ -110,7 +110,7 @@ public class MemoryFileSystem extends FileSystem {
     // createFile( Path, boolean createParents )
     // copyFile( Path, Entry source )
 
-    Entry copy(Path source, Path target, CopyOption... options){
+    Entry copy(Path source, Path target, CopyOption... options) {
         // Copies a single file/folder withint the same fs instance,
         // and does not perform recursive copy for folders (see Files#copy(...) for details)
 
@@ -123,24 +123,24 @@ public class MemoryFileSystem extends FileSystem {
 
         Entry targetEntry = fs.findEntry(target);
 
-        if( null == targetEntry ){
+        if (null == targetEntry) {
 
             Entry targetParent = fs.findEntry(target.getParent());
-            if( null == targetParent){
+            if (null == targetParent) {
                 targetParent = fs.createEntry(target.getParent(), true, true);
             }
             sourceEntry.copy(targetParent, target.getFileName().toString());
 
         } else {
 
-            if( targetEntry.isDirectory() != sourceEntry.isDirectory()){
+            if (targetEntry.isDirectory() != sourceEntry.isDirectory()) {
                 throw new ConflictException("copy target already exists and is not of same type");
             }
-            if(!hasOption(StandardCopyOption.REPLACE_EXISTING, options)){
+            if (!hasOption(REPLACE_EXISTING, options)) {
                 throw new ConflictException("conflict");
             }
 
-            if(sourceEntry.isDirectory()){
+            if (sourceEntry.isDirectory()) {
                 sourceEntry.delete();
             } else {
                 throw new RuntimeException("wip : copy file");
@@ -150,7 +150,7 @@ public class MemoryFileSystem extends FileSystem {
         return targetEntry;
     }
 
-    private static boolean hasOption(CopyOption option, CopyOption... options) {
+    private static boolean hasOption(CopyOption option, CopyOption[] options) {
         for (CopyOption o : options) {
             if (option.equals(o)) {
                 return true;
@@ -246,7 +246,7 @@ public class MemoryFileSystem extends FileSystem {
 
             @Override
             public Iterator<Path> iterator() {
-                    return  new DirectoryStreamPathIterator(MemoryFileSystem.this, startFolder);
+                return new DirectoryStreamPathIterator(MemoryFileSystem.this, startFolder);
             }
 
             @Override
@@ -328,7 +328,7 @@ public class MemoryFileSystem extends FileSystem {
         return SCHEME + ":/" + id;
     }
 
-    public MemoryByteChannel newByteChannel(Path path, Set<? extends OpenOption> options){
+    public MemoryByteChannel newByteChannel(Path path, Set<? extends OpenOption> options) {
         if (hasAnyOption(options, SPARSE, DELETE_ON_CLOSE, SYNC, DSYNC)) {
             throw new UnsupportedOperationException();
         }
@@ -363,9 +363,9 @@ public class MemoryFileSystem extends FileSystem {
         }
     }
 
-    private static boolean hasAnyOption(Set<? extends OpenOption> set, OpenOption... option){
+    private static boolean hasAnyOption(Set<? extends OpenOption> set, OpenOption... option) {
         for (OpenOption o : option) {
-            if(set.contains(o)) return true;
+            if (set.contains(o)) return true;
         }
         return false;
     }
@@ -387,7 +387,7 @@ public class MemoryFileSystem extends FileSystem {
 
         @Override
         public Path next() {
-            if( null == current){
+            if (null == current) {
                 throw new NoSuchElementException();
             }
             Path result = MemoryPath.create(fs, current.getPath());
