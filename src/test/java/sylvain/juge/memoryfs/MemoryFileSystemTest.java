@@ -2,10 +2,7 @@ package sylvain.juge.memoryfs;
 
 import org.testng.annotations.Test;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.file.*;
@@ -501,7 +498,7 @@ public class MemoryFileSystemTest {
             fs.move(iceberg, titanic, StandardCopyOption.REPLACE_EXISTING);
         }
 
-        if(copy){
+        if (copy) {
             // with copy, original iceberg is still in place
             assertThat(fs.findEntry(iceberg)).isSameAs(icebergEntry);
         } else {
@@ -611,23 +608,23 @@ public class MemoryFileSystemTest {
         MemoryPath folder = MemoryPath.create(fs, "/folder");
         fs.createEntry(folder, true, true);
 
-        fs.newByteChannel(folder, Collections.singleton(READ));
+        fs.newByteChannel(folder, EnumSet.of(READ));
     }
 
     @Test(expectedExceptions = DoesNotExistsException.class)
     public void tryToReadMissingFile() {
-        tryOpenChannelMissingFile(READ);
+        tryOpenChannelMissingFile(EnumSet.of(READ));
     }
 
     @Test(expectedExceptions = DoesNotExistsException.class)
     public void tryToWriteMissingFile() {
-        tryOpenChannelMissingFile(WRITE);
+        tryOpenChannelMissingFile(EnumSet.of(WRITE));
     }
 
-    public void tryOpenChannelMissingFile(StandardOpenOption... options) {
+    public void tryOpenChannelMissingFile(Set<? extends OpenOption> options) {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath folder = MemoryPath.create(fs, "/missingFile");
-        fs.newByteChannel(folder, new HashSet<>(Arrays.asList(options)));
+        fs.newByteChannel(folder, options);
     }
 
     @Test
@@ -635,7 +632,7 @@ public class MemoryFileSystemTest {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath file = MemoryPath.create(fs, "/file");
         fs.createEntry(file, false, false);
-        MemoryByteChannel channel = fs.newByteChannel(file, openOptions());
+        MemoryByteChannel channel = fs.newByteChannel(file, EnumSet.noneOf(StandardOpenOption.class));
 
         // if channel is not a read channel, this call will throw an exception
         channel.read(ByteBuffer.wrap(new byte[0]));
@@ -644,25 +641,27 @@ public class MemoryFileSystemTest {
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void tryReadAndWriteChannel() {
         // at most one of read or write options is required
-        tryChannelWithOptions(READ, WRITE);
+        MemoryFileSystem fs = newMemoryFs();
+        MemoryPath path = MemoryPath.create(fs, "/file");
+        fs.newByteChannel(path, EnumSet.of(READ, WRITE));
     }
 
     @Test(expectedExceptions = DoesNotExistsException.class)
     public void tryToWriteMissingFileWithoutRequestToCreate() {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath file = MemoryPath.create(fs, "/file");
-        fs.newByteChannel(file, openOptions(WRITE));
+        fs.newByteChannel(file, EnumSet.of(WRITE));
     }
 
     @Test
     public void writeMissingFileAndRequestCreate() {
-        writeMissingCreateNew(WRITE, CREATE);
+        writeMissingCreateNew(EnumSet.of(WRITE, CREATE));
     }
     // TODO : write existing file and request create : should ignore that file exists
 
     @Test
     public void writeMissingFileAndRequestCreateNew() {
-        writeMissingCreateNew(WRITE, CREATE_NEW);
+        writeMissingCreateNew(EnumSet.of(WRITE, CREATE_NEW));
     }
 
     @Test(expectedExceptions = ConflictException.class)
@@ -672,23 +671,19 @@ public class MemoryFileSystemTest {
         fs.createEntry(file, false, true);
         assertThat(fs.findEntry(file)).isNotNull();
 
-        fs.newByteChannel(file, openOptions(WRITE, CREATE_NEW));
+        fs.newByteChannel(file, EnumSet.of(WRITE, CREATE_NEW));
     }
 
-    public MemoryByteChannel writeMissingCreateNew(StandardOpenOption... options) {
+    public MemoryByteChannel writeMissingCreateNew(Set<? extends OpenOption> options) {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath file = MemoryPath.create(fs, "/file");
         assertThat(fs.findEntry(file)).isNull();
 
-        MemoryByteChannel channel = fs.newByteChannel(file, openOptions(options));
+        MemoryByteChannel channel = fs.newByteChannel(file, options);
         assertThat(channel).isNotNull();
 
         assertThat(fs.findEntry(file)).isNotNull();
         return channel;
-    }
-
-    private static Set<StandardOpenOption> openOptions(StandardOpenOption... options) {
-        return new HashSet<>(Arrays.asList(options));
     }
 
     @Test
@@ -696,10 +691,10 @@ public class MemoryFileSystemTest {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath file = MemoryPath.create(fs, "/file");
         byte[] data = {1, 2, 3};
-        fs.newByteChannel(file, openOptions(WRITE, CREATE)).write(ByteBuffer.wrap(data));
+        fs.newByteChannel(file, EnumSet.of(WRITE, CREATE)).write(ByteBuffer.wrap(data));
 
         // truncate should just be ignored
-        fs.newByteChannel(file, openOptions(READ, TRUNCATE_EXISTING));
+        fs.newByteChannel(file, EnumSet.of(READ, TRUNCATE_EXISTING));
 
         read(fs, file, data);
     }
@@ -711,7 +706,7 @@ public class MemoryFileSystemTest {
         for (StandardOpenOption unsuported : Arrays.asList(SPARSE, DELETE_ON_CLOSE, SYNC, DSYNC)) {
             boolean thrown = false;
             try {
-                writeMissingCreateNew(WRITE, CREATE, unsuported);
+                writeMissingCreateNew(EnumSet.of(WRITE, CREATE, unsuported));
             } catch (UnsupportedOperationException e) {
                 thrown = true;
             }
@@ -724,10 +719,10 @@ public class MemoryFileSystemTest {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath file = MemoryPath.create(fs, "/file");
 
-        write(fs, file, new byte[]{1, 2, 3, 4}, WRITE, CREATE_NEW);
+        write(fs, file, new byte[]{1, 2, 3, 4}, EnumSet.of(WRITE, CREATE_NEW));
         read(fs, file, new byte[]{1, 2, 3, 4});
 
-        write(fs, file, new byte[]{5, 6, 7, 8}, WRITE, APPEND);
+        write(fs, file, new byte[]{5, 6, 7, 8}, EnumSet.of(WRITE, APPEND));
         read(fs, file, new byte[]{1, 2, 3, 4, 5, 6, 7, 8});
     }
 
@@ -736,10 +731,10 @@ public class MemoryFileSystemTest {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath file = MemoryPath.create(fs, "/file");
 
-        write(fs, file, new byte[]{1, 2, 3, 4}, WRITE, CREATE_NEW);
+        write(fs, file, new byte[]{1, 2, 3, 4}, EnumSet.of(WRITE, CREATE_NEW));
         read(fs, file, new byte[]{1, 2, 3, 4});
 
-        write(fs, file, new byte[]{5, 6, 7, 8}, WRITE, TRUNCATE_EXISTING);
+        write(fs, file, new byte[]{5, 6, 7, 8}, EnumSet.of(WRITE, TRUNCATE_EXISTING));
         read(fs, file, new byte[]{5, 6, 7, 8});
     }
 
@@ -755,8 +750,8 @@ public class MemoryFileSystemTest {
         newMemoryFs().getUserPrincipalLookupService();
     }
 
-    private static void write(MemoryFileSystem fs, Path path, byte[] toWrite, StandardOpenOption... options) throws IOException {
-        MemoryByteChannel firstChannel = fs.newByteChannel(path, openOptions(options));
+    private static void write(MemoryFileSystem fs, Path path, byte[] toWrite, Set<? extends OpenOption> options) throws IOException {
+        MemoryByteChannel firstChannel = fs.newByteChannel(path, options);
         write(firstChannel, toWrite);
     }
 
@@ -767,7 +762,7 @@ public class MemoryFileSystemTest {
     }
 
     private static void read(MemoryFileSystem fs, Path path, byte[] expected) throws IOException {
-        MemoryByteChannel channel = fs.newByteChannel(path, openOptions(READ));
+        MemoryByteChannel channel = fs.newByteChannel(path, EnumSet.of(READ));
         assertThat(channel).isNotNull();
         assertThat(channel.isOpen()).isTrue();
         byte[] actual = new byte[expected.length];
@@ -839,10 +834,4 @@ public class MemoryFileSystemTest {
         return new MemoryFileSystemProvider();
     }
 
-    private static void tryChannelWithOptions(StandardOpenOption... options) {
-        Set<StandardOpenOption> set = new HashSet<>(Arrays.asList(options));
-        MemoryFileSystem fs = newMemoryFs();
-        MemoryPath path = MemoryPath.create(fs, "/file");
-        fs.newByteChannel(path, set);
-    }
 }

@@ -45,11 +45,11 @@ public class UserTest {
             // SeekableByteChannel does not have any static constructor
             // just like FileChannel.open(...)
 
-            SeekableByteChannel writeChannel = fs.provider().newByteChannel(file, openOptions(WRITE, CREATE));
+            SeekableByteChannel writeChannel = fs.provider().newByteChannel(file, EnumSet.of(WRITE, CREATE));
             writeChannel.write(ByteBuffer.wrap(new byte[]{1, 2, 3}));
             // TODO close channel before read
 
-            SeekableByteChannel readChannel = fs.provider().newByteChannel(file, openOptions(READ));
+            SeekableByteChannel readChannel = fs.provider().newByteChannel(file, EnumSet.of(READ));
             byte[] readBuffer = new byte[3];
             readChannel.read(ByteBuffer.wrap(readBuffer));
             assertThat(readBuffer).isEqualTo(new byte[]{1, 2, 3});
@@ -139,9 +139,5 @@ public class UserTest {
             return FileVisitResult.CONTINUE;
         }
 
-    }
-
-    private static Set<StandardOpenOption> openOptions(StandardOpenOption... options) {
-        return new HashSet<>(Arrays.asList(options));
     }
 }

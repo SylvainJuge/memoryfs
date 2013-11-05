@@ -33,7 +33,7 @@ public class MemoryPathTest {
     }
 
     @Test
-    public void createRootWithNonDefaultFsId(){
+    public void createRootWithNonDefaultFsId() {
         MemoryFileSystemProvider provider = new MemoryFileSystemProvider();
         MemoryFileSystem fs = MemoryFileSystem.builder(provider).id("id").build();
         MemoryPath root = MemoryPath.createRoot(fs);
@@ -487,7 +487,7 @@ public class MemoryPathTest {
         checkRelativize("/a/b", "/a/b/c/d", "c/d");
         checkRelativize("/a/b", "/c/d", "../../c/d");
 
-        checkRelativize("/","/a/b","a/b");
+        checkRelativize("/", "/a/b", "a/b");
 
         // equal paths : return the path itself
         checkRelativize("a/b", "a/b", ".");
