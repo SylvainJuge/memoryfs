@@ -140,9 +140,7 @@ public class MemoryFileSystem extends FileSystem {
                 throw new ConflictException("conflict");
             }
 
-            if (sourceEntry.isDirectory()) {
-                sourceEntry.delete();
-            } else {
+            if (!sourceEntry.isDirectory()) {
                 throw new RuntimeException("wip : copy file");
             }
 

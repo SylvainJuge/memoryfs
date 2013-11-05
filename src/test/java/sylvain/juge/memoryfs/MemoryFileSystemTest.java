@@ -461,7 +461,7 @@ public class MemoryFileSystemTest {
         }
     }
 
-    @Test(enabled = false)
+    @Test
     public void copyDirectoryConflictOverwriteDoesNotDelete() {
         copyOrMoveDirectoryConflictOverwriteDoesNotDelete(true);
     }
