@@ -461,6 +461,65 @@ public class MemoryFileSystemTest {
         }
     }
 
+    @Test(enabled = false)
+    public void copyDirectoryConflictOverwriteDoesNotDelete() {
+        copyOrMoveDirectoryConflictOverwriteDoesNotDelete(true);
+    }
+
+    @Test
+    public void moveDirectoryConflictOverwriteDoesNotDelete() {
+        copyOrMoveDirectoryConflictOverwriteDoesNotDelete(false);
+    }
+
+    private static void copyOrMoveDirectoryConflictOverwriteDoesNotDelete(boolean copy) {
+        // when there is a conflict while copying/moving a directory,
+        // the overwrite option should just skip error, and the existing
+        // folder content must remain unaltered (only attributes may be copied, and since we don't handle them yet...)
+
+        // create folder with one file
+        // create another folder, and copy/move to 1st folder as target with overwrite
+        // the file within initial folder must still be there
+
+        // in plain english : we move/copy iceberg into titanic
+        // and the captain must still be there
+
+        MemoryFileSystem fs = newMemoryFs();
+        Path root = MemoryPath.createRoot(fs);
+        Path titanic = root.resolve("titanic");
+        Path boatCaptain = titanic.resolve("captain");
+        Entry captainEntry = fs.createEntry(boatCaptain, false, true);
+
+        Path iceberg = root.resolve("iceberg");
+        Entry icebergEntry = fs.createEntry(iceberg, true, false);
+
+        if (copy) {
+            fs.copy(iceberg, titanic, StandardCopyOption.REPLACE_EXISTING);
+        } else {
+            fs.move(iceberg, titanic, StandardCopyOption.REPLACE_EXISTING);
+        }
+
+        if(copy){
+            // with copy, original iceberg is still in place
+            assertThat(fs.findEntry(iceberg)).isSameAs(icebergEntry);
+        } else {
+            // with move, it has been merged with the boat
+            assertThat(fs.findEntry(iceberg)).isNull();
+        }
+
+        // whatever the scenario, captain is still on the boat
+        assertThat(fs.findEntry(boatCaptain)).isSameAs(captainEntry);
+
+        // since we don't handle attributes, there is nothing special to check on target folder
+
+    }
+
+    @Test(enabled = false)
+    public void copyFileCopiesItsContent() {
+        // create file with reference data
+        // copy this file
+        // alter original file data
+        // copy must have the initial reference data (thus a copy)
+    }
 
     // TODO : copy and move tests are almost the same
     // same parameters
@@ -489,6 +548,20 @@ public class MemoryFileSystemTest {
         } else {
             fs.move(missing, target);
         }
+    }
+
+    @Test(enabled = false, expectedExceptions = ConflictException.class)
+    public void tryToCreateConflictWithMove() {
+        // create folder1 with a file "a"
+        // create file "a"
+        // move "a" to /folder => must throw an exception
+    }
+
+    @Test(enabled = false)
+    public void copyConflictWithOverwrite() {
+        // create file with some known reference data
+        // same as previous, but with overwrite
+        // and should properly overwrite original data
     }
 
     // copy :

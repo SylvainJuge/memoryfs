@@ -1,13 +1,13 @@
 package sylvain.juge.memoryfs;
 
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.*;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.nio.file.StandardOpenOption.*;
 import static sylvain.juge.memoryfs.MemoryPath.asMemoryPath;
 
@@ -167,21 +167,34 @@ public class MemoryFileSystem extends FileSystem {
             throw new DoesNotExistsException(source);
         }
         Entry targetEntry = fs.findEntry(target);
+
+        boolean overwrite = hasOption(REPLACE_EXISTING, options);
         if (null != targetEntry) {
-            // TODO : allow overwrite if it's a file, merge if it's a folder
-            throw new ConflictException("");
-        }
+            if (!overwrite) {
+                throw new ConflictException("");
+            }
+            Entry targetParentEntry = targetEntry.getParent();
+            if (sourceEntry.isDirectory()) {
+                Entry item = sourceEntry.getEntries();
+                while (null != item) {
+                    // TODO : what happens when there is a name conflict, do we overwrite too ?
+                    item.move(targetEntry);
+                }
+                sourceEntry.delete();
+            } else {
+                targetEntry.delete();
+                sourceEntry.move(targetParentEntry);
+            }
+        } else {
+            Entry targetParentEntry = fs.findEntry(target.getParent());
+            if (null == targetParentEntry) {
+                targetParentEntry = fs.createEntry(target.getParent(), true, true);
+            }
+            String targetFileName = target.getFileName().toString();
 
-        Path targetParent = target.getParent();
-        Entry parentEntry = fs.findEntry(targetParent);
-        if( null == parentEntry){
-            parentEntry = fs.createEntry(targetParent, true, true);
+            sourceEntry.rename(targetFileName);
+            sourceEntry.move(targetParentEntry);
         }
-        // TODO : what to do when there is a name conflict ?
-        String targetFileName = target.getFileName().toString();
-
-        sourceEntry.rename(targetFileName);
-        sourceEntry.move(parentEntry);
 
     }
 
