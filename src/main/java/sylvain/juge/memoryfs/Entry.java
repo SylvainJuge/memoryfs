@@ -20,7 +20,7 @@ class Entry implements BasicFileAttributes {
 
     // As long as this constructor remains private, we can "trust" calling code to provide consistent set of parameters
     // thus, we don't check them (directory has null data, file has non-null data, root has null name)
-    private Entry(Entry parent, boolean isDirectory, String name, FileData data) {
+    protected Entry(Entry parent, boolean isDirectory, String name, FileData data) {
         if (null != name) {
             checkName(name);
         }

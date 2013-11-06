@@ -282,8 +282,13 @@ public class MemoryFileSystemProviderTest {
         getNewProvider().readAttributes(path, UnsupportedAttribute.class);
     }
 
-    private static class UnsupportedAttribute extends MemoryFileAttributes {
+    private static class UnsupportedAttribute extends Entry {
         // empty by design, we just need an empty subtype of BasicFileAttributes without writing too much
+        // this constructor won't even be called once
+        private UnsupportedAttribute() {
+            super(null, false, null, null);
+            throw new RuntimeException("should not be called anyway");
+        }
     }
 
     @Test(expectedExceptions = NoSuchFileException.class)
