@@ -11,12 +11,11 @@ TODOs
 ### Required
 
  - read/write data in files
+ - file/folders operations : copy, move, rename
  - minimal read/write lock on files
  - basic file attribues read/write
  - minimal thread safety
  - usage documentation with code samples
- - file/folders operations : copy, move, rename
- - provide impl. for FileChannel
  
 ### Improvements
 
@@ -26,4 +25,4 @@ TODOs
  - control read-only/read-write at runtime for file stores
  - fs with limited capacity (currently heap is the limit)
  - fs with multiple stores
- - store files outside heap
+ - store files outside heap (memory-mapped file?)
