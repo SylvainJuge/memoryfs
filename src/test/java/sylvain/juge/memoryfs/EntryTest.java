@@ -13,14 +13,18 @@ import static org.fest.assertions.api.Assertions.fail;
 
 public class EntryTest {
 
-    // TODO : test reading file attributes
-    // - try to read supported attributes
-    // - try to read non-supported attributes
-    // --> how do we write attributes ?
-    // --> should we delegate to fs implementation (and thus keep a reference to it)
+    @Test
+    public void rootPath(){
+        assertThat(Entry.newRoot().getPath()).isEqualTo("/");
+    }
 
-    // entry copy should be a full copy
-    // -> files & folders : with same content (but distinct from original copy)
+    @Test
+    public void unsupportedAttributes(){
+        Entry entry = Entry.newRoot();
+        assertThat(entry.lastAccessTime()).isNull();
+        assertThat(entry.lastModifiedTime()).isNull();
+        assertThat(entry.creationTime()).isNull();
+    }
 
     @Test
     public void variousValidFileNames() {
@@ -297,7 +301,7 @@ public class EntryTest {
 
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
+    @Test(expectedExceptions = NullPointerException.class)
     public void moveNull() {
         Entry.newFile(Entry.newRoot(), "file").move(null);
     }
@@ -308,6 +312,26 @@ public class EntryTest {
         Entry a = Entry.newFile(root, "a");
         Entry b = Entry.newFile(root, "b");
         a.move(b);
+    }
+
+    @Test(expectedExceptions = InvalidRequestException.class)
+    public void tryToMoveRoot(){
+        Entry.newRoot().move(Entry.newRoot());
+    }
+
+    @Test(expectedExceptions = InvalidRequestException.class)
+    public void tryToRenameRoot(){
+        Entry.newRoot().rename("anything");
+    }
+
+    @Test(expectedExceptions = InvalidNameException.class)
+    public void tryToRenameToNull(){
+        Entry.newFile(Entry.newRoot(),"file").rename(null);
+    }
+
+    @Test(expectedExceptions = InvalidNameException.class)
+    public void tryToRenameToEmpty(){
+        Entry.newFile(Entry.newRoot(),"file").rename("");
     }
 
     @Test(expectedExceptions = ConflictException.class)
@@ -347,17 +371,17 @@ public class EntryTest {
 
     // TODO : define an exception more appropriate than one about "argument"
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
+    @Test(expectedExceptions = InvalidRequestException.class)
     public void deleteRootFails() {
         Entry.newRoot().delete();
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
+    @Test(expectedExceptions = InvalidRequestException.class)
     public void moveRootFails() {
-        Entry.newRoot().move(null);
+        Entry.newRoot().move(Entry.newRoot());
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
+    @Test(expectedExceptions = InvalidRequestException.class)
     public void renameRootFails() {
         Entry.newRoot().rename("");
     }

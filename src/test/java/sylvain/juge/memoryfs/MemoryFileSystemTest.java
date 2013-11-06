@@ -387,8 +387,8 @@ public class MemoryFileSystemTest {
 
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
-    public void shouldNotAllowToDeleteRoot() {
+    @Test(expectedExceptions = InvalidRequestException.class)
+    public void tryToDeleteRoot() {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath.createRoot(fs).findEntry().delete();
     }

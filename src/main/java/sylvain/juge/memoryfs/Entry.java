@@ -5,6 +5,8 @@ import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.Objects.requireNonNull;
+
 class Entry implements BasicFileAttributes {
 
     private final boolean isDirectory;
@@ -88,26 +90,23 @@ class Entry implements BasicFileAttributes {
 
     public void rename(String newName){
         if( null == parent){
-            throw new IllegalArgumentException("can't rename root");
+            throw new InvalidRequestException("can't rename root");
         }
-        if( null == newName) {
+
+        if (null == newName || newName.isEmpty()) {
             throw new InvalidNameException(newName);
         }
         Entry existingEntry = parent.getChild(newName);
         if( null != existingEntry){
             throw new ConflictException("name conflict : " + newName);
         }
-        this.name = newName;
+        this.name = checkName(newName);
     }
 
     public void move(Entry newParent){
+        requireNonNull(newParent);
         if (null == parent) {
-            throw new IllegalArgumentException("can't move root");
-        }
-        if (null == newParent) {
-            // TODO : use a classic NPE probably more appropriate
-            // simply use Objects.requireNonNull(newParent);
-            throw new IllegalArgumentException("parent entry required");
+            throw new InvalidRequestException("can't move root");
         }
         if (!newParent.isDirectory) {
             throw new IllegalArgumentException("directory expected");
@@ -129,7 +128,7 @@ class Entry implements BasicFileAttributes {
 
     public void delete() {
         if (null == parent) {
-            throw new IllegalArgumentException("deleting fs root is not allowed");
+            throw new InvalidRequestException("deleting fs root is not allowed");
         }
         if (previous == null) {
             // remove 1st file in folder
@@ -217,10 +216,11 @@ class Entry implements BasicFileAttributes {
         return getPath();
     }
 
-    private static void checkName(String name){
-        if (name.isEmpty() || name.contains("/") || name.contains("*") || ".".equals(name) || "..".equals(name)) {
+    private static String checkName(String name){
+        if (null == name || name.isEmpty() || name.contains("/") || name.contains("*") || ".".equals(name) || "..".equals(name)) {
             throw new InvalidNameException(name);
         }
+        return name;
     }
 
 
