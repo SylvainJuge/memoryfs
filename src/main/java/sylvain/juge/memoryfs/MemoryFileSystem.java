@@ -197,7 +197,8 @@ public class MemoryFileSystem extends FileSystem {
     }
 
     Entry createEntry(Path path, boolean directory, boolean createParents) {
-        Path parent = path.getParent();
+        Path absolutePath = path.toAbsolutePath();
+        Path parent = absolutePath.getParent();
         Entry parentEntry = findEntry(parent);
 
         if (null != parentEntry && !parentEntry.isDirectory()) {
@@ -224,7 +225,7 @@ public class MemoryFileSystem extends FileSystem {
             throw new DoesNotExistsException(parent);
         }
 
-        String name = asMemoryPath(path.getFileName()).getPath();
+        String name = asMemoryPath(absolutePath.getFileName()).getPath();
         return directory ?
                 Entry.newDirectory(parentEntry, name) :
                 Entry.newFile(parentEntry, name);

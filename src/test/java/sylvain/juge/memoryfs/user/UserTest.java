@@ -60,6 +60,20 @@ public class UserTest {
     }
 
     @Test
+    public void createWithRelativePathConvertedToAbsolute() throws IOException {
+
+        // issue #7
+        URI uri = URI.create("memory:/");
+        try (FileSystem fs = FileSystems.newFileSystem(uri, null)) {
+
+            Path relativePath = fs.getPath("hello");
+            Files.createDirectories(relativePath);
+            assertThat(Files.exists(relativePath)).isTrue();
+        }
+
+    }
+
+    @Test
     public void copyFromDefaultFsToMemoryFsUsingTreeWalking() throws IOException {
         // this test copies all files in src/main/java folder to a memoryfs instance
 
