@@ -11,6 +11,7 @@ import java.nio.file.WatchEvent;
 import java.util.*;
 
 import static org.fest.assertions.api.Assertions.assertThat;
+import static sylvain.juge.memoryfs.AssertPath.assertPath;
 import static sylvain.juge.memoryfs.TestEquals.checkHashCodeEqualsConsistency;
 
 public class MemoryPathTest {
@@ -22,9 +23,7 @@ public class MemoryPathTest {
     @Test
     public void createRoot() {
         MemoryPath path = MemoryPath.createRoot(defaultFs);
-        assertThat(path).isNotNull();
-        assertThat(path.isRoot()).isTrue();
-        assertThat(path.isAbsolute()).isTrue();
+        assertPath(path).isRoot();
         assertThat(path.toUri().toString()).isEqualTo("memory:/");
 
         assertThat(path.getNameCount()).isEqualTo(0);
@@ -76,8 +75,7 @@ public class MemoryPathTest {
     public void relativePathParts() {
         MemoryPath path = createPath("relative/path");
 
-        assertThat(path.isAbsolute()).isFalse();
-        assertThat(path.getRoot()).isNull(); // relative path does not have root
+        assertPath(path).isRelative();
 
         checkParts(path,
                 "relative",
@@ -102,8 +100,7 @@ public class MemoryPathTest {
     public void absolutePathParts() {
         MemoryPath path = createPath("/absolute/path");
 
-        assertThat(path.isAbsolute()).isTrue();
-        assertThat(path.getRoot()).isEqualTo(createPath("/"));
+        assertPath(path).isAbsolute();
 
         checkParts(path,
                 "absolute",
@@ -142,16 +139,16 @@ public class MemoryPathTest {
     @Test
     public void absolutePath() {
         for (String absolute : Arrays.asList("/", "/a", "/a/b")) {
-            MemoryPath path = createPath(absolute);
-            assertThat(path.isAbsolute()).isTrue();
-            assertThat(path.toAbsolutePath()).isEqualTo(path);
+            assertPath(createPath(absolute))
+                    .isAbsolute();
         }
+    }
+
+    @Test
+    public void relativePath() {
         for (String relative : Arrays.asList("a", "a/b")) {
-            MemoryPath path = createPath(relative);
-            assertThat(path.isAbsolute()).isFalse();
-            Path toAbsolute = path.toAbsolutePath();
-            assertThat(toAbsolute.isAbsolute()).isTrue();
-            assertThat(toAbsolute.endsWith(relative));
+            assertPath(createPath(relative))
+                    .isRelative();
         }
     }
 
@@ -198,9 +195,9 @@ public class MemoryPathTest {
     @Test
     public void equalsHashCodeWithSamePartsButAbsoluteness() {
         Path p1 = createPath("same/path");
-        assertThat(p1.isAbsolute()).isFalse();
+        assertPath(p1).isRelative();
         Path p2 = createPath("/same/path");
-        assertThat(p2.isAbsolute()).isTrue();
+        assertPath(p2).isAbsolute();
         checkHashCodeEqualsConsistency(false, p1, p2);
     }
 

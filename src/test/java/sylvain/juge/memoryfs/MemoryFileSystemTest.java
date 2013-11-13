@@ -12,6 +12,7 @@ import java.util.*;
 import static java.nio.file.StandardOpenOption.*;
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.fest.assertions.api.Assertions.fail;
+import static sylvain.juge.memoryfs.AssertPath.assertPath;
 
 public class MemoryFileSystemTest {
 
@@ -166,13 +167,10 @@ public class MemoryFileSystemTest {
     public void rootEntryAlwaysAvailable() {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath root = MemoryPath.createRoot(fs);
-        Entry entry = fs.findEntry(root);
-        assertThat(entry).isNotNull();
-        assertThat(entry.getParent()).isNull();
-        assertThat(entry.isDirectory()).isTrue();
 
-        // multiple equivalent paths leads to the same entry instance
-        assertThat(fs.findEntry(root)).isSameAs(entry);
+        assertPath(root)
+                .isRoot()
+                .isEmpty();
     }
 
     @Test
@@ -180,7 +178,8 @@ public class MemoryFileSystemTest {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath nonExistingPath = MemoryPath.create(fs, "non/existing/path");
 
-        assertThat(fs.findEntry(nonExistingPath)).isNull();
+        assertPath(nonExistingPath)
+                .doesNotExists();
     }
 
     @Test
@@ -189,15 +188,13 @@ public class MemoryFileSystemTest {
         MemoryPath root = MemoryPath.createRoot(fs);
         Path directory = root.resolve("directory");
 
-        assertThat(fs.findEntry(directory)).describedAs("non existing directory shouldn't have any entry yet").isNull();
+        assertPath(directory)
+                .doesNotExists();
 
-        Entry dirEntry = fs.createEntry(directory, true, false);
-        assertThat(dirEntry).isNotNull();
-        assertThat(dirEntry.isDirectory()).isTrue();
+        fs.createEntry(directory, true, false);
 
-        assertThat(dirEntry.getParent()).isSameAs(fs.findEntry(root));
-
-        assertThat(fs.findEntry(directory)).isSameAs(dirEntry);
+        assertPath(directory)
+                .isDirectory();
     }
 
     @Test
@@ -212,10 +209,12 @@ public class MemoryFileSystemTest {
         Path file1 = root.resolve("folder/file1");
         Path file2 = root.resolve("folder/file2");
 
-        fs.createEntry(file, false, false);
-        fs.createEntry(folder, true, false);
-        fs.createEntry(file1, false, false);
-        fs.createEntry(file2, false, false);
+        Files.createFile(file);
+        assertPath(file).isFile();
+
+        Files.createDirectory(folder);
+        Files.createFile(file1);
+        Files.createFile(file2);
 
         // only file and folder must be in directory stream.
 
@@ -228,25 +227,27 @@ public class MemoryFileSystemTest {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath root = MemoryPath.createRoot(fs);
 
+        fs.newDirectoryStream(root);
+
         fs.newDirectoryStream(root).iterator().remove();
     }
 
-    @Test(expectedExceptions = NoSuchElementException.class)
-    public void directoryStreamIteratorHasNoNextReturnsNull() throws IOException {
+    @Test
+    public void emptyDirectoryIsEmpty() {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath root = MemoryPath.createRoot(fs);
 
-        DirectoryStream<Path> stream = fs.newDirectoryStream(root);
-        Iterator<Path> it = stream.iterator();
-        assertThat(it.hasNext()).isFalse();
-        it.next();
+        assertPath(root)
+                .isDirectory()
+                .isEmpty();
     }
 
     @Test(expectedExceptions = NotDirectoryException.class)
     public void tryDirectoryStreamOnFile() throws IOException {
         MemoryFileSystem fs = newMemoryFs();
         Path file = MemoryPath.createRoot(fs).resolve("file");
-        fs.createEntry(file, false, false);
+        Files.createFile(file);
+        assertPath(file).isFile();
 
         fs.newDirectoryStream(file);
     }
@@ -255,6 +256,7 @@ public class MemoryFileSystemTest {
     public void tryDirectoryStreamOnNonExistingFolder() throws IOException {
         MemoryFileSystem fs = newMemoryFs();
         Path folder = MemoryPath.createRoot(fs).resolve("folder");
+        assertPath(folder).doesNotExists();
 
         fs.newDirectoryStream(folder);
     }
@@ -290,31 +292,21 @@ public class MemoryFileSystemTest {
         MemoryFileSystem fs = newMemoryFs();
 
         MemoryPath path = MemoryPath.create(fs, "/anywhere/beyond/root");
-        assertThat(fs.findEntry(path)).isNull();
-        assertThat(fs.findEntry(path.getParent())).isNull();
+        assertPath(path).doesNotExists();
+        assertPath(path.getParent()).doesNotExists();
 
         fs.createEntry(path, directory, false);
     }
 
     @Test(expectedExceptions = ConflictException.class)
-    public void failsToCreateFileWhenAlreadyExists() {
-        failsToCreateWhenAlreadyExists(false);
-    }
-
-    @Test(expectedExceptions = ConflictException.class)
-    public void failsToCreateFolderWhenAlreadyExists() {
-        failsToCreateWhenAlreadyExists(false);
-    }
-
-    private static void failsToCreateWhenAlreadyExists(boolean directory) {
+    void failsToCreateWhenAlreadyExists() throws IOException {
         MemoryFileSystem fs = newMemoryFs();
 
         MemoryPath path = MemoryPath.create(fs, "/existing");
-        fs.createEntry(path, directory, false);
-        Entry entry = fs.findEntry(path);
-        assertThat(entry).isNotNull();
+        Files.createFile(path);
+        assertPath(path).isFile();
 
-        fs.createEntry(path, directory, false);
+        Files.createFile(path);
     }
 
     @Test
