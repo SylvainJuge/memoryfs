@@ -179,13 +179,15 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
     }
 
     @Override
-    public boolean isSameFile(Path path, Path path2) throws IOException {
-        throw new UnsupportedOperationException("TODO : implement this");
+    public boolean isSameFile(Path path1, Path path2) throws IOException {
+        MemoryPath memPath1 = asMemoryPath(path1);
+        MemoryPath memPath2 = asMemoryPath(path2);
+        return null != memPath1 && (memPath1 == memPath2 || memPath1.findEntry() == memPath2.findEntry());
     }
 
     @Override
     public boolean isHidden(Path path) throws IOException {
-        throw new UnsupportedOperationException("TODO : implement this");
+        return false;
     }
 
     @Override
@@ -195,7 +197,10 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
 
     @Override
     public void checkAccess(Path path, AccessMode... modes) throws IOException {
-        findEntry(path);
+        Entry entry = findEntry(path);
+        if (null == entry) {
+            throw new DoesNotExistsException(path);
+        }
     }
 
     @Override
