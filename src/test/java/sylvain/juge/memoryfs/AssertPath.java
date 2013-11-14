@@ -1,6 +1,7 @@
 package sylvain.juge.memoryfs;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.file.*;
 import java.util.EnumSet;
 import java.util.Iterator;
@@ -77,8 +78,18 @@ class AssertPath {
             iteratorNoMoreItems(dirStream.iterator());
 
         } else {
-            // TODO : try to read file content by any mean and make sure that it's really empty
-            throw new RuntimeException("not supported yet");
+            try {
+                assertThat(Files.readAllBytes(path)).isEmpty();
+                assertThat(Files.newInputStream(path).read()).isLessThan(0);
+
+                ByteBuffer byteBuffer = ByteBuffer.wrap(new byte[1]);
+                assertThat(byteBuffer.position()).isEqualTo(0);
+                assertThat(Files.newByteChannel(path).read(byteBuffer)).isLessThan(0);
+                assertThat(byteBuffer.position()).isEqualTo(0); // buffer remains untouched
+
+            } catch (IOException e) {
+                fail(e.getMessage());
+            }
         }
         return this;
     }
@@ -158,6 +169,18 @@ class AssertPath {
         absolutePath.endsWith(path);
         absolutePath.endsWith(path.getPath());
 
+        return this;
+    }
+
+    public AssertPath contains(byte[] data) {
+        isFile();
+        byte[] actual = new byte[0];
+        try {
+            actual = Files.readAllBytes(path);
+        } catch (IOException e) {
+            fail(e.getMessage());
+        }
+        assertThat(actual).isEqualTo(data);
         return this;
     }
 }
