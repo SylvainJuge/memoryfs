@@ -429,22 +429,22 @@ public class MemoryFileSystemTest {
     }
 
     @Test(expectedExceptions = ConflictException.class)
-    public void tryToCopyCreateConflict() {
+    public void tryToCopyCreateConflict() throws IOException {
         tryToCopyOrMoveCreateConflict(true);
     }
 
     @Test(expectedExceptions = ConflictException.class)
-    public void tryToMoveCreateConflict() {
+    public void tryToMoveCreateConflict() throws IOException {
         tryToCopyOrMoveCreateConflict(false);
     }
 
-    public void tryToCopyOrMoveCreateConflict(boolean copy) {
+    public void tryToCopyOrMoveCreateConflict(boolean copy) throws IOException {
         MemoryFileSystem fs = newMemoryFs();
         Path root = MemoryPath.createRoot(fs);
         Path folder = root.resolve("folder");
         Path conflict = root.resolve("conflict");
-        fs.createEntry(folder, true, false);
-        fs.createEntry(conflict, false, false);
+        Files.createDirectory(folder);
+        Files.createFile(conflict);
 
         if (copy) {
             fs.copy(folder, conflict);
@@ -454,16 +454,16 @@ public class MemoryFileSystemTest {
     }
 
     @Test
-    public void copyDirectoryConflictOverwriteDoesNotDelete() {
+    public void copyDirectoryConflictOverwriteDoesNotDelete() throws IOException {
         copyOrMoveDirectoryConflictOverwriteDoesNotDelete(true);
     }
 
     @Test
-    public void moveDirectoryConflictOverwriteDoesNotDelete() {
+    public void moveDirectoryConflictOverwriteDoesNotDelete() throws IOException {
         copyOrMoveDirectoryConflictOverwriteDoesNotDelete(false);
     }
 
-    private static void copyOrMoveDirectoryConflictOverwriteDoesNotDelete(boolean copy) {
+    private static void copyOrMoveDirectoryConflictOverwriteDoesNotDelete(boolean copy) throws IOException {
         // when there is a conflict while copying/moving a directory,
         // the overwrite option should just skip error, and the existing
         // folder content must remain unaltered (only attributes may be copied, and since we don't handle them yet...)
@@ -477,12 +477,10 @@ public class MemoryFileSystemTest {
 
         MemoryFileSystem fs = newMemoryFs();
         Path root = MemoryPath.createRoot(fs);
-        Path titanic = root.resolve("titanic");
-        Path boatCaptain = titanic.resolve("captain");
-        Entry captainEntry = fs.createEntry(boatCaptain, false, true);
+        Path titanic = Files.createDirectories(root.resolve("titanic"));
+        Path boatCaptain = Files.createFile(titanic.resolve("captain"));
 
-        Path iceberg = root.resolve("iceberg");
-        Entry icebergEntry = fs.createEntry(iceberg, true, false);
+        Path iceberg = Files.createDirectory(root.resolve("iceberg"));
 
         if (copy) {
             fs.copy(iceberg, titanic, StandardCopyOption.REPLACE_EXISTING);
@@ -492,14 +490,14 @@ public class MemoryFileSystemTest {
 
         if (copy) {
             // with copy, original iceberg is still in place
-            assertThat(fs.findEntry(iceberg)).isSameAs(icebergEntry);
+            assertPath(iceberg).exists();
         } else {
             // with move, it has been merged with the boat
-            assertThat(fs.findEntry(iceberg)).isNull();
+            assertPath(iceberg).doesNotExists();
         }
 
         // whatever the scenario, captain is still on the boat
-        assertThat(fs.findEntry(boatCaptain)).isSameAs(captainEntry);
+        assertPath(boatCaptain).isFile();
 
         // since we don't handle attributes, there is nothing special to check on target folder
 
