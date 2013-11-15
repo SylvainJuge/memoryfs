@@ -3,9 +3,7 @@ package sylvain.juge.memoryfs;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.*;
-import java.util.EnumSet;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.fest.assertions.api.Assertions.fail;
@@ -181,6 +179,21 @@ class AssertPath {
             fail(e.getMessage());
         }
         assertThat(actual).isEqualTo(data);
+        return this;
+    }
+
+    public AssertPath contains(Path item){
+        isDirectory();
+        assertThat(item.getParent()).isEqualTo(path);
+        List<Path> content = new ArrayList<>();
+        try {
+            for (Path p : Files.newDirectoryStream(path)) {
+                content.add(p);
+            }
+        } catch (IOException e) {
+            fail(e.getMessage());
+        }
+        assertThat(content).contains(item);
         return this;
     }
 }
