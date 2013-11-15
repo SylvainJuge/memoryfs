@@ -349,7 +349,7 @@ public class MemoryFileSystem extends FileSystem {
         } else {
             if (null == entry) {
                 if (!create) throw new DoesNotExistsException(path);
-                entry = createEntry(absolutePath, false, true);
+                entry = createEntry(absolutePath, false, false);
             } else {
                 if (createNew) throw new ConflictException("impossible to create new file, it already exists");
                 if (truncate) entry.getData().truncate(0);

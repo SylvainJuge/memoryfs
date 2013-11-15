@@ -150,7 +150,7 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
 
     @Override
     public void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
-        asMemoryFileSystem(dir.getFileSystem()).createEntry(dir, true, true);
+        asMemoryFileSystem(dir.getFileSystem()).createEntry(dir, true, false);
     }
 
     @Override
