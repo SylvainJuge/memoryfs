@@ -106,7 +106,7 @@ public class MemoryFileSystem extends FileSystem {
         return childEntry;
     }
 
-    Entry copy(Path source, Path target, CopyOption... options) {
+    Entry copy(Path source, Path target, CopyOption... options) throws IOException {
         // Copies a single file/folder withint the same fs instance,
         // and does not perform recursive copy for folders (see Files#copy(...) for details)
 
@@ -153,7 +153,7 @@ public class MemoryFileSystem extends FileSystem {
         return false;
     }
 
-    void move(Path source, Path target, CopyOption... options) {
+    void move(Path source, Path target, CopyOption... options) throws IOException {
 
         MemoryFileSystem fs = asMemoryFileSystem(source.getFileSystem());
         Entry sourceEntry = fs.findEntry(source);
@@ -192,7 +192,7 @@ public class MemoryFileSystem extends FileSystem {
 
     }
 
-    Entry createEntry(Path path, boolean directory, boolean createParents) {
+    Entry createEntry(Path path, boolean directory, boolean createParents) throws IOException {
         Path absolutePath = path.toAbsolutePath();
         Path parent = absolutePath.getParent();
         Entry parentEntry = findEntry(parent);
@@ -323,7 +323,7 @@ public class MemoryFileSystem extends FileSystem {
         return SCHEME + ":/" + id;
     }
 
-    public MemoryByteChannel newByteChannel(Path path, Set<? extends OpenOption> options) {
+    public MemoryByteChannel newByteChannel(Path path, Set<? extends OpenOption> options) throws IOException {
         if (hasAnyOption(options, SPARSE, DELETE_ON_CLOSE, SYNC, DSYNC)) {
             throw new UnsupportedOperationException();
         }

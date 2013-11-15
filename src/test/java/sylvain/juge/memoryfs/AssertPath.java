@@ -120,28 +120,28 @@ class AssertPath {
 
         try {
             fs.newDirectoryStream(path);
-        } catch (IOException | DoesNotExistsException e) {
+        } catch (IOException e) {
             thrown = e;
         }
         assertThat(thrown).isInstanceOf(DoesNotExistsException.class);
 
         try {
             fs.copy(path, null);
-        } catch (DoesNotExistsException e) {
+        } catch (IOException e) {
             thrown = e;
         }
         assertThat(thrown).isInstanceOf(DoesNotExistsException.class);
 
         try {
             fs.newByteChannel(path, EnumSet.noneOf(StandardOpenOption.class));
-        } catch (DoesNotExistsException e) {
+        } catch (IOException e) {
             thrown = e;
         }
         assertThat(thrown).isInstanceOf(DoesNotExistsException.class);
 
         try {
             fs.move(path, null);
-        } catch (DoesNotExistsException e) {
+        } catch (IOException e) {
             thrown = e;
         }
         assertThat(thrown).isInstanceOf(DoesNotExistsException.class);

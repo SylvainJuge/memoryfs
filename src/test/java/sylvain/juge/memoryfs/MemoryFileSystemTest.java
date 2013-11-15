@@ -672,7 +672,7 @@ public class MemoryFileSystemTest {
     }
 
     @Test(expectedExceptions = ConflictException.class)
-    public void tryWriteExistingFileAndRequestCreateNew() {
+    public void tryWriteExistingFileAndRequestCreateNew() throws IOException {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath file = MemoryPath.create(fs, "/file");
         fs.createEntry(file, false, true);
