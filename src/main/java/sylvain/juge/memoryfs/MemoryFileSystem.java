@@ -354,7 +354,7 @@ public class MemoryFileSystem extends FileSystem {
                 if (createNew) throw new ConflictException("impossible to create new file, it already exists");
                 if (truncate) entry.getData().truncate(0);
             }
-            return MemoryByteChannel.newWriteChannel(entry.getData(), false);
+            return MemoryByteChannel.newWriteChannel(entry.getData(), options.contains(APPEND));
         }
     }
 
