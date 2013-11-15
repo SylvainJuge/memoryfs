@@ -675,10 +675,11 @@ public class MemoryFileSystemTest {
     public void tryWriteExistingFileAndRequestCreateNew() throws IOException {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath file = MemoryPath.create(fs, "/file");
-        fs.createEntry(file, false, true);
-        assertThat(fs.findEntry(file)).isNotNull();
 
-        fs.newByteChannel(file, EnumSet.of(WRITE, CREATE_NEW));
+        createFile(file);
+        assertPath(file).isFile();
+
+        newByteChannel(file, WRITE, CREATE_NEW);
     }
 
     public SeekableByteChannel writeMissingCreateNew(OpenOption... options) throws IOException {
