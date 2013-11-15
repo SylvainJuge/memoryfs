@@ -106,10 +106,6 @@ public class MemoryFileSystem extends FileSystem {
         return childEntry;
     }
 
-    // createDirectory( Path, boolean createParents )
-    // createFile( Path, boolean createParents )
-    // copyFile( Path, Entry source )
-
     Entry copy(Path source, Path target, CopyOption... options) {
         // Copies a single file/folder withint the same fs instance,
         // and does not perform recursive copy for folders (see Files#copy(...) for details)
