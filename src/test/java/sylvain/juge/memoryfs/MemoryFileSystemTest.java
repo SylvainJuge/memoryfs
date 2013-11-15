@@ -427,6 +427,7 @@ public class MemoryFileSystemTest {
         createFile(fileInFolder);
 
         Path target = root.resolve("target");
+        assertPath(target).doesNotExists();
 
         if (copy) {
             fs.copy(source, target);
@@ -434,13 +435,12 @@ public class MemoryFileSystemTest {
             fs.move(source, target);
         }
 
-        Entry targetEntry = fs.findEntry(target);
-        assertThat(targetEntry.isDirectory());
+        assertPath(target).isDirectory();
         if (copy) {
-            assertThat(targetEntry.getEntries()).isNull();
+            assertPath(target).isEmpty();
         } else {
-            Entry fileEntry = fs.findEntry(fileInFolder);
-            assertThat(targetEntry.getEntries()).isSameAs(fileEntry);
+            assertPath(target).contains(target.resolve("file"));
+            assertPath(fileInFolder).doesNotExists();
         }
     }
 
