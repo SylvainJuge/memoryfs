@@ -235,8 +235,9 @@ public class MemoryFileSystemProviderTest {
 
         MemoryPath ab = MemoryPath.create(fs, "/a/b");
         MemoryPath cd = MemoryPath.create(fs, "/c/d");
-        provider.createDirectory(ab, null);
-        provider.createDirectory(cd, null);
+
+        Files.createDirectories(ab);
+        Files.createDirectories(cd);
 
         // Note : order of elements is not enforced
         MemoryPath a = MemoryPath.create(fs, "/a");
