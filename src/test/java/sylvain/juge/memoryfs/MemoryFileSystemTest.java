@@ -338,7 +338,6 @@ public class MemoryFileSystemTest {
         MemoryPath path = MemoryPath.create(fs, "/not/in/root");
 
         assertPath(path).doesNotExists();
-
         createDirectories(path);
 
         assertPath(path).isDirectory();
@@ -602,18 +601,15 @@ public class MemoryFileSystemTest {
 
 
     @Test
-    public void readChannel() throws IOException {
+    public void readEmptyFile() throws IOException {
         MemoryFileSystem fs = newMemoryFs();
-        MemoryPath filePath = MemoryPath.create(fs, "/file");
+        MemoryPath file = MemoryPath.create(fs, "/file");
 
-        // create file manually directly in guts of fs impl
-        Entry entry = fs.createEntry(filePath, false, true);
-        byte[] data = filePath.getPath().getBytes();
-        entry.getData().asOutputStream().write(data);
+        createFile(file);
 
-        assertPath(filePath)
+        assertPath(file)
                 .isFile()
-                .contains(data);
+                .isEmpty();
     }
 
     @Test(expectedExceptions = InvalidRequestException.class)

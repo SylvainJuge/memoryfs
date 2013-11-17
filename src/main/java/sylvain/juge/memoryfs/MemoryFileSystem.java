@@ -192,7 +192,11 @@ public class MemoryFileSystem extends FileSystem {
 
     }
 
-    Entry createEntry(Path path, boolean directory, boolean createParents) throws IOException {
+    public void createDirectory(Path path) throws IOException {
+        createEntry(path, true, false);
+    }
+
+    private Entry createEntry(Path path, boolean directory, boolean createParents) throws IOException {
         Path absolutePath = path.toAbsolutePath();
         Path parent = absolutePath.getParent();
         Entry parentEntry = findEntry(parent);
