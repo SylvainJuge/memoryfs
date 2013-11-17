@@ -15,17 +15,17 @@ class AssertPath {
     private final MemoryPath path;
     private final MemoryFileSystem fs;
 
-    public static AssertPath assertPath(Path path){
+    public static AssertPath assertPath(Path path) {
         return new AssertPath(path);
     }
 
-    private AssertPath(Path path){
+    private AssertPath(Path path) {
         assertThat(path).isNotNull();
         this.path = MemoryPath.asMemoryPath(path);
         this.fs = MemoryFileSystem.asMemoryFileSystem(path.getFileSystem());
     }
 
-    public AssertPath exists(){
+    public AssertPath exists() {
         Entry entry = path.findEntry();
         assertThat(entry).isSameAs(fs.findEntry(path));
         try {
@@ -41,7 +41,7 @@ class AssertPath {
         return this;
     }
 
-    public AssertPath isDirectory(){
+    public AssertPath isDirectory() {
         exists();
         Entry entry = path.findEntry();
         assertThat(entry.isDirectory()).isTrue();
@@ -50,7 +50,7 @@ class AssertPath {
         return this;
     }
 
-    public AssertPath isFile(){
+    public AssertPath isFile() {
         exists();
         Entry entry = path.findEntry();
         assertThat(entry.isDirectory()).isFalse();
@@ -59,7 +59,7 @@ class AssertPath {
         return this;
     }
 
-    public AssertPath isEmpty(){
+    public AssertPath isEmpty() {
         exists();
         Entry entry = path.findEntry();
         if (entry.isDirectory()) {
@@ -92,7 +92,7 @@ class AssertPath {
         return this;
     }
 
-    private void iteratorNoMoreItems(Iterator<?> it){
+    private void iteratorNoMoreItems(Iterator<?> it) {
         assertThat(it).isNotNull();
         assertThat(it.hasNext()).isFalse();
         boolean thrown = false;
@@ -104,7 +104,7 @@ class AssertPath {
         assertThat(thrown).isTrue();
     }
 
-    public AssertPath isRoot(){
+    public AssertPath isRoot() {
         exists();
         isDirectory();
         assertThat(path.getParent()).isNull();
@@ -149,14 +149,14 @@ class AssertPath {
         return this;
     }
 
-    public AssertPath isAbsolute(){
+    public AssertPath isAbsolute() {
         assertThat(path.isAbsolute()).isTrue();
         assertPath(path.getRoot()).isRoot();
         assertThat(path.toAbsolutePath()).isEqualTo(path);
         return this;
     }
 
-    public AssertPath isRelative(){
+    public AssertPath isRelative() {
         assertThat(path.isAbsolute()).isFalse();
         // relative path does not have root
         assertThat(path.getRoot()).isNull();
@@ -182,18 +182,27 @@ class AssertPath {
         return this;
     }
 
-    public AssertPath contains(Path item){
+    public AssertPath contains(Path item) {
+        assertThat(getContent()).contains(item);
+        return this;
+    }
+
+    public AssertPath containsExactly(Path... items) {
+        assertThat(getContent()).containsExactly(items);
+        return this;
+    }
+
+    private List<Path> getContent() {
         isDirectory();
-        assertThat(item.getParent()).isEqualTo(path);
-        List<Path> content = new ArrayList<>();
+        List<Path> paths = new ArrayList<>();
         try {
             for (Path p : Files.newDirectoryStream(path)) {
-                content.add(p);
+                assertThat(p.getParent()).isEqualTo(path);
+                paths.add(p);
             }
         } catch (IOException e) {
             fail(e.getMessage());
         }
-        assertThat(content).contains(item);
-        return this;
+        return paths;
     }
 }
