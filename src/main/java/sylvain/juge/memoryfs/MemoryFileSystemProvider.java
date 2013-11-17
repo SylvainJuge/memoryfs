@@ -76,16 +76,6 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
         return fs;
     }
 
-    private static Long getCapacity(Map<String, ?> env) {
-        Object o = env.get("capacity");
-        if (o == null) {
-            return null;
-        } else if (!(o instanceof Long)) {
-            throw new IllegalStateException("capacity parameter must be of type long");
-        }
-        return (Long) o;
-    }
-
     @Override
     public FileSystem newFileSystem(Path path, Map<String, ?> env) throws IOException {
         URI uri = URI.create(String.format("%s://%s", SCHEME, path));
@@ -140,12 +130,7 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
 
     @Override
     public DirectoryStream<Path> newDirectoryStream(Path dir, DirectoryStream.Filter<? super Path> filter) throws IOException {
-        // TODO : path type is already enforced by code below, see how we can have a common exception for this
-        // => see (outside of tests) where such exception is required in API spec
-        if (!(dir instanceof MemoryPath)) {
-            throw new IllegalArgumentException("unexpected path type");
-        }
-        return asMemoryFileSystem(dir.getFileSystem()).newDirectoryStream(dir);
+         return asMemoryFileSystem(dir.getFileSystem()).newDirectoryStream(dir);
     }
 
     @Override
@@ -161,12 +146,6 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
         }
         entry.delete();
     }
-
-    // test cases
-    // - target path exists ( use overwrite option to see what to do)
-    // - target path exists and is not of the same type (folder|file)
-    // - creates target parent folder if it does not exists
-
 
     @Override
     public void move(Path source, Path target, CopyOption... options) throws IOException {

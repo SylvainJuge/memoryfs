@@ -15,6 +15,7 @@ import java.util.Set;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.fest.assertions.api.Fail.fail;
+import static sylvain.juge.memoryfs.AssertPath.assertPath;
 
 public class MemoryFileSystemProviderTest {
 
@@ -214,46 +215,32 @@ public class MemoryFileSystemProviderTest {
     }
 
     @Test
-    public void emptyFolderDirectoryStream() throws IOException {
-        MemoryFileSystemProvider provider = getNewProvider();
-        MemoryFileSystem fs = MemoryFileSystem.builder(provider).build();
-        Path root = MemoryPath.create(fs, "/");
-
-        DirectoryStream<Path> stream = provider.newDirectoryStream(root, new DirectoryStream.Filter<Path>() {
-            @Override
-            public boolean accept(Path entry) throws IOException {
-                return true;
-            }
-        });
-        assertThat(stream).isEmpty();
-    }
-
-    @Test
     public void folderStructureDirectoryStream() throws IOException {
         MemoryFileSystemProvider provider = getNewProvider();
         MemoryFileSystem fs = MemoryFileSystem.builder(provider).build();
 
-        MemoryPath ab = MemoryPath.create(fs, "/a/b");
-        MemoryPath cd = MemoryPath.create(fs, "/c/d");
+        Path root = MemoryPath.createRoot(fs);
+
+        Path a = root.resolve("a");
+        Path ab = a.resolve("b");
+        Path c = root.resolve("c");
+        Path cd = c.resolve("d");
 
         Files.createDirectories(ab);
         Files.createDirectories(cd);
 
-        // Note : order of elements is not enforced
-        MemoryPath a = MemoryPath.create(fs, "/a");
-        MemoryPath c = MemoryPath.create(fs, "/c");
-        assertThat(provider.newDirectoryStream(MemoryPath.createRoot(fs), null))
-                .containsOnly(a, c);
+        assertPath(root).containsExactly(a,c);
 
-        assertThat(provider.newDirectoryStream(a, null)).containsOnly(ab);
-        assertThat(provider.newDirectoryStream(c, null)).containsOnly(cd);
+        assertPath(a).containsExactly(ab);
+        assertPath(c).containsExactly(cd);
+
     }
 
     @Test
     public void rootDirectoryAttributes() throws IOException {
         MemoryFileSystemProvider provider = getNewProvider();
         MemoryFileSystem fs = MemoryFileSystem.builder(provider).build();
-        Path root = MemoryPath.create(fs, "/");
+        Path root = MemoryPath.createRoot(fs);
 
         BasicFileAttributes a = provider.readAttributes(root, BasicFileAttributes.class);
         checkDirectoryAttributes(a);
