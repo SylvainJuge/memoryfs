@@ -26,7 +26,7 @@ public class MemoryFileSystem extends FileSystem {
     private AtomicBoolean isOpen;
 
     static MemoryFileSystem asMemoryFileSystem(FileSystem fs) {
-        if (fs instanceof MemoryFileSystem) {
+        if (fs instanceof MemoryFileSystem || null == fs) {
             return (MemoryFileSystem) fs;
         }
         throw new ProviderMismatchException();

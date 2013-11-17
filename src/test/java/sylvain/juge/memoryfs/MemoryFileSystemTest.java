@@ -301,6 +301,11 @@ public class MemoryFileSystemTest {
         MemoryFileSystem.asMemoryFileSystem(FileSystems.getDefault());
     }
 
+    @Test
+    public void safeCastWithNull(){
+        assertThat(MemoryFileSystem.asMemoryFileSystem(null)).isNull();
+    }
+
     private static void failsToCreateWithMissingParent(boolean directory) throws IOException {
         // createFile and createDirectory methods should not silently create parent folders
         MemoryFileSystem fs = newMemoryFs();
