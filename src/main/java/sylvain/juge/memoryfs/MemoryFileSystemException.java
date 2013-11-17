@@ -1,7 +1,6 @@
 package sylvain.juge.memoryfs;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 
 /**
@@ -18,7 +17,7 @@ class MemoryFileSystemException extends RuntimeException {
 /**
  * exception thrown when a path that should exists does not exists
  */
-class DoesNotExistsException extends FileNotFoundException {
+class DoesNotExistsException extends NoSuchFileException {
     DoesNotExistsException(Path path) {
         super("path does not exists : " + path);
     }
