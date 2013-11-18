@@ -82,6 +82,11 @@ public class MemoryFileSystem extends FileSystem {
         return id;
     }
 
+    FileStore getFileStore(Path path){
+        // yet we handle only 1 file store
+        return store;
+    }
+
     /**
      * @param path path
      * @return filesystem entry associated to this path, null if no such entry exists

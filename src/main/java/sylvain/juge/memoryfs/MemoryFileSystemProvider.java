@@ -171,7 +171,7 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
 
     @Override
     public FileStore getFileStore(Path path) throws IOException {
-        throw new UnsupportedOperationException("TODO : implement this");
+        return asMemoryFileSystem(path.getFileSystem()).getFileStore(path);
     }
 
     @Override

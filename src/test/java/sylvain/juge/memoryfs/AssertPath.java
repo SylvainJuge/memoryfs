@@ -31,6 +31,7 @@ class AssertPath {
         try {
             assertThat(Files.isSameFile(path, path)).isTrue();
             assertThat(Files.isHidden(path)).isFalse();
+            assertThat(Files.getFileStore(path)).isNotNull();
         } catch (IOException e) {
             fail(e.getMessage());
         }
