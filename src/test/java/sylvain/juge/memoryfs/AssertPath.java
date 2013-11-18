@@ -113,40 +113,56 @@ class AssertPath {
         return this;
     }
 
+    private static void assertDoesNotExists(IOTask... tasks){
+        for(IOTask task:tasks){
+            Throwable thrown = null;
+            try {
+                task.run();
+            } catch (IOException e) {
+                thrown = e;
+            }
+            assertThat(thrown).isInstanceOf(DoesNotExistsException.class);
+        }
+    }
+
+    private static interface IOTask {
+        public void run() throws IOException;
+    }
+
     public AssertPath doesNotExists() {
         assertThat(path.findEntry()).isNull();
         assertThat(Files.exists(path)).isFalse();
 
-        Throwable thrown = null;
-
-        try {
-            fs.newDirectoryStream(path);
-        } catch (IOException e) {
-            thrown = e;
-        }
-        assertThat(thrown).isInstanceOf(DoesNotExistsException.class);
-
-        try {
-            fs.copy(path, null);
-        } catch (IOException e) {
-            thrown = e;
-        }
-        assertThat(thrown).isInstanceOf(DoesNotExistsException.class);
-
-        try {
-            fs.newByteChannel(path, EnumSet.noneOf(StandardOpenOption.class));
-        } catch (IOException e) {
-            thrown = e;
-        }
-        assertThat(thrown).isInstanceOf(DoesNotExistsException.class);
-
-        try {
-            fs.move(path, null);
-        } catch (IOException e) {
-            thrown = e;
-        }
-        assertThat(thrown).isInstanceOf(DoesNotExistsException.class);
-
+        assertDoesNotExists(
+                new IOTask() {
+                    @Override
+                    public void run() throws IOException {
+                        Files.newDirectoryStream(path);
+                    }
+                }, new IOTask() {
+                    @Override
+                    public void run() throws IOException {
+                        Path target = path.resolveSibling("fakeTarget");
+                        Files.copy(path, target);
+                    }
+                }, new IOTask() {
+                    @Override
+                    public void run() throws IOException {
+                        Files.newByteChannel(path);
+                    }
+                }, new IOTask() {
+                    @Override
+                    public void run() throws IOException {
+                        Path target = path.resolveSibling("fakeTarget");
+                        Files.move(path, target);
+                    }
+                }, new IOTask() {
+                    @Override
+                    public void run() throws IOException {
+                        Files.getFileStore(path);
+                    }
+                }
+        );
         return this;
     }
 

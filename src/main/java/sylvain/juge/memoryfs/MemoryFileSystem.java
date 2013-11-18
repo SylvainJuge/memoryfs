@@ -82,7 +82,11 @@ public class MemoryFileSystem extends FileSystem {
         return id;
     }
 
-    FileStore getFileStore(Path path){
+    FileStore getFileStore(Path path) throws IOException {
+        Entry entry = findEntry(path);
+        if (null == entry) {
+            throw new DoesNotExistsException(path);
+        }
         // yet we handle only 1 file store
         return store;
     }
