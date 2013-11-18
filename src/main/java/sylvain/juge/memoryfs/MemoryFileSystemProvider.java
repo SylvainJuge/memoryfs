@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static sylvain.juge.memoryfs.MemoryFileSystem.SCHEME;
+import static sylvain.juge.memoryfs.MemoryFileSystem.SEPARATOR;
 import static sylvain.juge.memoryfs.MemoryFileSystem.asMemoryFileSystem;
 import static sylvain.juge.memoryfs.MemoryPath.asMemoryPath;
 
@@ -46,7 +47,7 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
         if (null == path || path.length() < 1 || null != uri.getHost()) {
             throw new IllegalArgumentException("invalid URI, fs root path must be in the form : 'memory:/[ID]' where [ID] is the filesystem ID");
         }
-        for (String part : path.split("/")) {
+        for (String part : path.split(SEPARATOR)) {
             if (!part.isEmpty()) {
                 return part;
             }

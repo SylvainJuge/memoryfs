@@ -164,12 +164,11 @@ public class MemoryFileSystem extends FileSystem {
 
     void move(Path source, Path target, CopyOption... options) throws IOException {
 
-        MemoryFileSystem fs = asMemoryFileSystem(source.getFileSystem());
-        Entry sourceEntry = fs.findEntry(source);
+        Entry sourceEntry = findEntry(source);
         if (null == sourceEntry) {
             throw new DoesNotExistsException(source);
         }
-        Entry targetEntry = fs.findEntry(target);
+        Entry targetEntry = findEntry(target);
 
         boolean overwrite = hasOption(REPLACE_EXISTING, options);
         if (null != targetEntry) {
@@ -189,9 +188,9 @@ public class MemoryFileSystem extends FileSystem {
                 sourceEntry.move(targetParentEntry);
             }
         } else {
-            Entry targetParentEntry = fs.findEntry(target.getParent());
+            Entry targetParentEntry = findEntry(target.getParent());
             if (null == targetParentEntry) {
-                targetParentEntry = fs.createEntry(target.getParent(), true, true);
+                targetParentEntry = createEntry(target.getParent(), true, true);
             }
             String targetFileName = target.getFileName().toString();
 
