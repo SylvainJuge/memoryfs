@@ -79,8 +79,7 @@ public class MemoryFileSystemProvider extends FileSystemProvider {
 
     @Override
     public FileSystem newFileSystem(Path path, Map<String, ?> env) throws IOException {
-        URI uri = URI.create(String.format("%s://%s", SCHEME, path));
-        return newFileSystem(uri, env);
+        throw new UnsupportedOperationException("creating memory fs within file not supported");
     }
 
     @Override

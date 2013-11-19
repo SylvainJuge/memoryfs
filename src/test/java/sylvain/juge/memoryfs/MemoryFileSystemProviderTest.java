@@ -263,6 +263,11 @@ public class MemoryFileSystemProviderTest {
     }
 
     @Test(expectedExceptions = UnsupportedOperationException.class)
+    public void createFsInstanceFromFileNotSupported() throws IOException {
+        getNewProvider().newFileSystem((Path) null, null);
+    }
+
+    @Test(expectedExceptions = UnsupportedOperationException.class)
     public void readAttributesWithWrongAttributeType() throws IOException {
         MemoryFileSystemProvider provider = getNewProvider();
         MemoryFileSystem fs = MemoryFileSystem.builder(provider).build();
