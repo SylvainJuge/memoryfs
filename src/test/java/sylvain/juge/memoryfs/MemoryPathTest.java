@@ -81,6 +81,13 @@ public class MemoryPathTest {
     }
 
     @Test
+    public void realPathIsAbsoluteAndNormalized() throws IOException {
+        Path real = createPath("a/b").toRealPath();
+        assertThat(real).isAbsolute();
+        assertThat(real.normalize()).isEqualTo(real);
+    }
+
+    @Test
     public void checkPathParent() {
         assertThat(createPath("/").getParent()).isNull();
         assertThat(createPath("a").getParent()).isNull();
