@@ -15,7 +15,7 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.nio.file.StandardOpenOption.*;
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.fest.assertions.api.Assertions.fail;
-import static sylvain.juge.memoryfs.AssertPath.assertPath;
+import static sylvain.juge.memoryfs.AssertPath.assertThat;
 
 public class MemoryFileSystemTest {
 
@@ -171,9 +171,9 @@ public class MemoryFileSystemTest {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath root = MemoryPath.createRoot(fs);
 
-        assertPath(root)
+        assertThat(root)
                 .isRoot()
-                .isEmpty();
+                .isEmptyDirectory();
     }
 
     @Test
@@ -181,7 +181,7 @@ public class MemoryFileSystemTest {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath nonExistingPath = MemoryPath.create(fs, "non/existing/path");
 
-        assertPath(nonExistingPath).doesNotExists();
+        assertThat(nonExistingPath).doesNotExists();
     }
 
     @Test
@@ -190,13 +190,13 @@ public class MemoryFileSystemTest {
         MemoryPath root = MemoryPath.createRoot(fs);
         Path directory = root.resolve("directory");
 
-        assertPath(directory).doesNotExists();
+        assertThat(directory).doesNotExists();
 
         createDirectory(directory);
 
-        assertPath(directory)
+        assertThat(directory)
                 .isDirectory()
-                .isEmpty();
+                .isEmptyDirectory();
     }
 
     @Test
@@ -204,13 +204,13 @@ public class MemoryFileSystemTest {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath file = MemoryPath.create(fs, "/file");
 
-        assertPath(file).doesNotExists();
+        assertThat(file).doesNotExists();
 
         createFile(file);
 
-        assertPath(file)
+        assertThat(file)
                 .isFile()
-                .isEmpty();
+                .isEmptyFile();
     }
 
     @Test
@@ -226,7 +226,7 @@ public class MemoryFileSystemTest {
         Path file2 = root.resolve("folder/file2");
 
         createFile(file);
-        assertPath(file).isFile();
+        assertThat(file).isFile();
 
         createDirectory(folder);
         createFile(file1);
@@ -234,7 +234,7 @@ public class MemoryFileSystemTest {
 
         // only file and folder must be in directory stream.
 
-        // TODO : add method on assertPath to check folder contains other paths
+        // TODO : add method on assertThat to check folder contains other paths
         assertThat(newDirectoryStream(root)).containsExactly(file, folder);
     }
 
@@ -249,9 +249,10 @@ public class MemoryFileSystemTest {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath root = MemoryPath.createRoot(fs);
 
-        assertPath(root)
+        assertThat(root)
+                .isRoot()
                 .isDirectory()
-                .isEmpty();
+                .isEmptyDirectory();
     }
 
     @Test(expectedExceptions = NotDirectoryException.class)
@@ -259,7 +260,7 @@ public class MemoryFileSystemTest {
         MemoryFileSystem fs = newMemoryFs();
         Path file = MemoryPath.createRoot(fs).resolve("file");
         createFile(file);
-        assertPath(file).isFile();
+        assertThat(file).isFile();
 
         newDirectoryStream(file);
     }
@@ -268,7 +269,7 @@ public class MemoryFileSystemTest {
     public void tryDirectoryStreamOnNonExistingFolder() throws IOException {
         MemoryFileSystem fs = newMemoryFs();
         Path folder = MemoryPath.createRoot(fs).resolve("folder");
-        assertPath(folder).doesNotExists();
+        assertThat(folder).doesNotExists();
 
         newDirectoryStream(folder);
     }
@@ -311,8 +312,8 @@ public class MemoryFileSystemTest {
         MemoryFileSystem fs = newMemoryFs();
 
         MemoryPath path = MemoryPath.create(fs, "/anywhere/beyond/root");
-        assertPath(path).doesNotExists();
-        assertPath(path.getParent()).doesNotExists();
+        assertThat(path).doesNotExists();
+        assertThat(path.getParent()).doesNotExists();
 
         if (directory) {
             createDirectory(path);
@@ -327,7 +328,7 @@ public class MemoryFileSystemTest {
 
         MemoryPath path = MemoryPath.create(fs, "/existing");
         createFile(path);
-        assertPath(path).isFile();
+        assertThat(path).isFile();
 
         createFile(path);
     }
@@ -337,10 +338,10 @@ public class MemoryFileSystemTest {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath path = MemoryPath.create(fs, "/not/in/root");
 
-        assertPath(path).doesNotExists();
+        assertThat(path).doesNotExists();
         createDirectories(path);
 
-        assertPath(path).isDirectory();
+        assertThat(path).isDirectory();
     }
 
     @Test(expectedExceptions = ConflictException.class)
@@ -365,18 +366,18 @@ public class MemoryFileSystemTest {
         createDirectory(path.getParent());
         createFile(path);
 
-        assertPath(path).isFile();
+        assertThat(path).isFile();
 
         delete(path);
 
-        assertPath(path).doesNotExists();
+        assertThat(path).doesNotExists();
 
         // parent folder is not deleted
-        assertPath(path.getParent()).isDirectory();
+        assertThat(path.getParent()).isDirectory();
 
         // once deleted, we can create it again
         createFile(path);
-        assertPath(path).isFile();
+        assertThat(path).isFile();
     }
 
     // Note : probably already partialy tested at entry level
@@ -389,12 +390,12 @@ public class MemoryFileSystemTest {
 
         createDirectory(folder);
         createFile(file);
-        assertPath(file).exists();
+        assertThat(file).exists();
 
         delete(folder);
 
-        assertPath(folder).doesNotExists();
-        assertPath(file).doesNotExists();
+        assertThat(folder).doesNotExists();
+        assertThat(file).doesNotExists();
 
     }
 
@@ -431,7 +432,7 @@ public class MemoryFileSystemTest {
         createFile(fileInFolder);
 
         Path target = root.resolve("target");
-        assertPath(target).doesNotExists();
+        assertThat(target).doesNotExists();
 
         if (copy) {
             fs.copy(source, target);
@@ -439,12 +440,12 @@ public class MemoryFileSystemTest {
             fs.move(source, target);
         }
 
-        assertPath(target).isDirectory();
+        assertThat(target).isDirectory();
         if (copy) {
-            assertPath(target).isEmpty();
+            assertThat(target).isEmptyDirectory();
         } else {
-            assertPath(target).contains(target.resolve("file"));
-            assertPath(fileInFolder).doesNotExists();
+            assertThat(target).contains(target.resolve("file"));
+            assertThat(fileInFolder).doesNotExists();
         }
     }
 
@@ -510,14 +511,14 @@ public class MemoryFileSystemTest {
 
         if (copy) {
             // with copy, original iceberg is still in place
-            assertPath(iceberg).exists();
+            assertThat(iceberg).exists();
         } else {
             // with move, it has been merged with the boat
-            assertPath(iceberg).doesNotExists();
+            assertThat(iceberg).doesNotExists();
         }
 
         // whatever the scenario, captain is still on the boat
-        assertPath(boatCaptain).isFile();
+        assertThat(boatCaptain).isFile();
 
         // since we don't handle attributes, there is nothing special to check on target folder
 
@@ -536,15 +537,15 @@ public class MemoryFileSystemTest {
 
         createFile(original);
         write(original, new byte[]{1, 2, 3});
-        assertPath(original).contains(new byte[]{1, 2, 3});
+        assertThat(original).contains(new byte[]{1, 2, 3});
 
         Path copy = root.resolve("copy");
         copy(original, copy);
 
         write(original, new byte[]{4, 5, 6});
-        assertPath(original).contains(new byte[]{4, 5, 6});
+        assertThat(original).contains(new byte[]{4, 5, 6});
 
-        assertPath(copy).contains(new byte[]{1, 2, 3});
+        assertThat(copy).contains(new byte[]{1, 2, 3});
 
     }
 
@@ -607,9 +608,9 @@ public class MemoryFileSystemTest {
 
         createFile(file);
 
-        assertPath(file)
+        assertThat(file)
                 .isFile()
-                .isEmpty();
+                .isEmptyFile();
     }
 
     @Test(expectedExceptions = InvalidRequestException.class)
@@ -678,7 +679,7 @@ public class MemoryFileSystemTest {
         MemoryPath file = MemoryPath.create(fs, "/file");
 
         createFile(file);
-        assertPath(file).isFile();
+        assertThat(file).isFile();
 
         newByteChannel(file, WRITE, CREATE_NEW);
     }
@@ -686,12 +687,12 @@ public class MemoryFileSystemTest {
     public SeekableByteChannel writeMissingCreateNew(OpenOption... options) throws IOException {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath file = MemoryPath.create(fs, "/file");
-        assertPath(file).doesNotExists();
+        assertThat(file).doesNotExists();
 
         SeekableByteChannel channel = newByteChannel(file, options);
         assertThat(channel).isNotNull();
 
-        assertPath(file).exists().isEmpty();
+        assertThat(file).exists().isEmptyFile();
 
         return channel;
     }
@@ -706,7 +707,7 @@ public class MemoryFileSystemTest {
         // truncate should just be ignored
         newByteChannel(file, READ, TRUNCATE_EXISTING);
 
-        assertPath(file)
+        assertThat(file)
                 .isFile()
                 .contains(data);
     }
@@ -732,10 +733,10 @@ public class MemoryFileSystemTest {
         MemoryPath file = MemoryPath.create(fs, "/file");
 
         write(file, new byte[]{1, 2, 3, 4}, WRITE, CREATE_NEW);
-        assertPath(file).contains(new byte[]{1, 2, 3, 4});
+        assertThat(file).contains(new byte[]{1, 2, 3, 4});
 
         write(file, new byte[]{5, 6, 7, 8}, WRITE, APPEND);
-        assertPath(file).contains(new byte[]{1, 2, 3, 4, 5, 6, 7, 8});
+        assertThat(file).contains(new byte[]{1, 2, 3, 4, 5, 6, 7, 8});
     }
 
     @Test
@@ -743,13 +744,13 @@ public class MemoryFileSystemTest {
         MemoryFileSystem fs = newMemoryFs();
         MemoryPath file = MemoryPath.create(fs, "/file");
 
-        assertPath(file).doesNotExists();
+        assertThat(file).doesNotExists();
 
         write(file, new byte[]{1, 2, 3, 4}, WRITE, CREATE_NEW);
-        assertPath(file).contains(new byte[]{1, 2, 3, 4});
+        assertThat(file).contains(new byte[]{1, 2, 3, 4});
 
         write(file, new byte[]{5, 6, 7, 8}, WRITE, TRUNCATE_EXISTING);
-        assertPath(file).contains(new byte[]{5, 6, 7, 8});
+        assertThat(file).contains(new byte[]{5, 6, 7, 8});
     }
 
     // watch service not implemented

@@ -1,5 +1,8 @@
 package sylvain.juge.memoryfs;
 
+import org.fest.assertions.api.Assertions;
+import org.fest.assertions.api.IterableAssert;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.*;
@@ -11,105 +14,105 @@ import static org.fest.assertions.api.Assertions.fail;
 /**
  * Helps to write assertions on memory path, tries to check all possible entry points and invariants for each assertion.
  */
-class AssertPath {
+class AssertPath extends IterableAssert<Path> {
     private final MemoryPath path;
-    private final MemoryFileSystem fs;
 
-    public static AssertPath assertPath(Path path) {
+    public static AssertPath assertThat(Path path) {
         return new AssertPath(path);
     }
 
     private AssertPath(Path path) {
-        assertThat(path).isNotNull();
-        this.path = MemoryPath.asMemoryPath(path);
-        this.fs = MemoryFileSystem.asMemoryFileSystem(path.getFileSystem());
+        super(path);
+        this.path = (path instanceof MemoryPath) ? MemoryPath.asMemoryPath(path) : null;
     }
 
     public AssertPath exists() {
+        isInstanceOf(MemoryPath.class);
         Entry entry = path.findEntry();
-        assertThat(entry).isSameAs(fs.findEntry(path));
+        MemoryFileSystem fs = MemoryFileSystem.asMemoryFileSystem(path.getFileSystem());
+        Assertions.assertThat(entry).isSameAs(fs.findEntry(path));
         try {
-            assertThat(Files.isSameFile(path, path)).isTrue();
-            assertThat(Files.isHidden(path)).isFalse();
-            assertThat(Files.getFileStore(path)).isNotNull();
+            Assertions.assertThat(Files.isSameFile(path, path)).isTrue();
+            Assertions.assertThat(Files.isHidden(path)).isFalse();
+            Assertions.assertThat(Files.getFileStore(path)).isNotNull();
         } catch (IOException e) {
             fail(e.getMessage());
         }
-        assertThat(Files.isExecutable(path)).isTrue();
-        assertThat(Files.isReadable(path)).isTrue();
-        assertThat(Files.isWritable(path)).isTrue();
-        assertThat(Files.isSymbolicLink(path)).isFalse();
+        Assertions.assertThat(Files.isExecutable(path)).isTrue();
+        Assertions.assertThat(Files.isReadable(path)).isTrue();
+        Assertions.assertThat(Files.isWritable(path)).isTrue();
+        Assertions.assertThat(Files.isSymbolicLink(path)).isFalse();
         return this;
     }
 
     public AssertPath isDirectory() {
         exists();
         Entry entry = path.findEntry();
-        assertThat(entry.isDirectory()).isTrue();
-        assertThat(Files.isDirectory(path)).isTrue();
-        assertThat(Files.isRegularFile(path)).isFalse();
+        Assertions.assertThat(entry.isDirectory()).isTrue();
+        Assertions.assertThat(Files.isDirectory(path)).isTrue();
+        Assertions.assertThat(Files.isRegularFile(path)).isFalse();
         return this;
     }
 
     public AssertPath isFile() {
         exists();
         Entry entry = path.findEntry();
-        assertThat(entry.isDirectory()).isFalse();
-        assertThat(Files.isDirectory(path)).isFalse();
-        assertThat(Files.isRegularFile(path)).isTrue();
+        Assertions.assertThat(entry.isDirectory()).isFalse();
+        Assertions.assertThat(Files.isDirectory(path)).isFalse();
+        Assertions.assertThat(Files.isRegularFile(path)).isTrue();
         return this;
     }
 
-    public AssertPath isEmpty() {
-        exists();
-        Entry entry = path.findEntry();
-        if (entry.isDirectory()) {
+    public AssertPath isEmptyFile(){
+        isFile();
+        try {
+            Assertions.assertThat(Files.readAllBytes(path)).isEmpty();
+            Assertions.assertThat(Files.newInputStream(path).read()).isLessThan(0);
 
-            assertThat(entry.getEntries()).isNull();
+            ByteBuffer byteBuffer = ByteBuffer.wrap(new byte[1]);
+            Assertions.assertThat(byteBuffer.position()).isEqualTo(0);
+            Assertions.assertThat(Files.newByteChannel(path).read(byteBuffer)).isLessThan(0);
+            Assertions.assertThat(byteBuffer.position()).isEqualTo(0); // buffer remains untouched
 
-            DirectoryStream<Path> dirStream = null;
-            try {
-                dirStream = Files.newDirectoryStream(path);
-            } catch (IOException e) {
-                fail(e.getMessage());
-            }
-            assertThat(dirStream).isNotNull();
-            iteratorNoMoreItems(dirStream.iterator());
-
-        } else {
-            try {
-                assertThat(Files.readAllBytes(path)).isEmpty();
-                assertThat(Files.newInputStream(path).read()).isLessThan(0);
-
-                ByteBuffer byteBuffer = ByteBuffer.wrap(new byte[1]);
-                assertThat(byteBuffer.position()).isEqualTo(0);
-                assertThat(Files.newByteChannel(path).read(byteBuffer)).isLessThan(0);
-                assertThat(byteBuffer.position()).isEqualTo(0); // buffer remains untouched
-
-            } catch (IOException e) {
-                fail(e.getMessage());
-            }
+        } catch (IOException e) {
+            fail(e.getMessage());
         }
         return this;
     }
 
+    public AssertPath isEmptyDirectory() {
+        isDirectory();
+
+        Assertions.assertThat(path.findEntry().getEntries()).isNull();
+
+        DirectoryStream<Path> dirStream = null;
+        try {
+            dirStream = Files.newDirectoryStream(path);
+        } catch (IOException e) {
+            fail(e.getMessage());
+        }
+        Assertions.assertThat(dirStream).isNotNull();
+        iteratorNoMoreItems(dirStream.iterator());
+        return this;
+    }
+
     private void iteratorNoMoreItems(Iterator<?> it) {
-        assertThat(it).isNotNull();
-        assertThat(it.hasNext()).isFalse();
+        Assertions.assertThat(it).isNotNull();
+        Assertions.assertThat(it.hasNext()).isFalse();
         boolean thrown = false;
         try {
             it.next();
         } catch (NoSuchElementException e) {
             thrown = true;
         }
-        assertThat(thrown).isTrue();
+        Assertions.assertThat(thrown).isTrue();
     }
 
     public AssertPath isRoot() {
         exists();
         isDirectory();
-        assertThat(path.getParent()).isNull();
-        assertThat(path.isAbsolute()).isTrue();
+        Assertions.assertThat(path.getParent()).isNull();
+        Assertions.assertThat(path.isAbsolute()).isTrue();
         return this;
     }
 
@@ -121,7 +124,7 @@ class AssertPath {
             } catch (IOException e) {
                 thrown = e;
             }
-            assertThat(thrown).isInstanceOf(DoesNotExistsException.class);
+            Assertions.assertThat(thrown).isInstanceOf(DoesNotExistsException.class);
         }
     }
 
@@ -130,8 +133,8 @@ class AssertPath {
     }
 
     public AssertPath doesNotExists() {
-        assertThat(path.findEntry()).isNull();
-        assertThat(Files.exists(path)).isFalse();
+        Assertions.assertThat(path.findEntry()).isNull();
+        Assertions.assertThat(Files.exists(path)).isFalse();
 
         assertDoesNotExists(
                 new IOTask() {
@@ -167,19 +170,19 @@ class AssertPath {
     }
 
     public AssertPath isAbsolute() {
-        assertThat(path.isAbsolute()).isTrue();
-        assertPath(path.getRoot()).isRoot();
-        assertThat(path.toAbsolutePath()).isEqualTo(path);
+        Assertions.assertThat(path.isAbsolute()).isTrue();
+        assertThat(path.getRoot()).isRoot();
+        Assertions.assertThat(path.toAbsolutePath()).isEqualTo(path);
         return this;
     }
 
     public AssertPath isRelative() {
-        assertThat(path.isAbsolute()).isFalse();
+        Assertions.assertThat(path.isAbsolute()).isFalse();
         // relative path does not have root
-        assertThat(path.getRoot()).isNull();
+        Assertions.assertThat(path.getRoot()).isNull();
 
         Path absolutePath = path.toAbsolutePath();
-        assertPath(absolutePath).isAbsolute();
+        assertThat(absolutePath).isAbsolute();
 
         absolutePath.endsWith(path);
         absolutePath.endsWith(path.getPath());
@@ -195,17 +198,17 @@ class AssertPath {
         } catch (IOException e) {
             fail(e.getMessage());
         }
-        assertThat(actual).isEqualTo(data);
+        Assertions.assertThat(actual).isEqualTo(data);
         return this;
     }
 
     public AssertPath contains(Path item) {
-        assertThat(getContent()).contains(item);
+        Assertions.assertThat(getContent()).contains(item);
         return this;
     }
 
     public AssertPath containsExactly(Path... items) {
-        assertThat(getContent()).containsExactly(items);
+        Assertions.assertThat(getContent()).containsExactly(items);
         return this;
     }
 
@@ -214,7 +217,7 @@ class AssertPath {
         List<Path> paths = new ArrayList<>();
         try {
             for (Path p : Files.newDirectoryStream(path)) {
-                assertThat(p.getParent()).isEqualTo(path);
+                Assertions.assertThat(p.getParent()).isEqualTo(path);
                 paths.add(p);
             }
         } catch (IOException e) {

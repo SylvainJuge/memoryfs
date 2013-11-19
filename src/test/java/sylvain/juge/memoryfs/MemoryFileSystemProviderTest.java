@@ -15,7 +15,7 @@ import java.util.Set;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.fest.assertions.api.Fail.fail;
-import static sylvain.juge.memoryfs.AssertPath.assertPath;
+import static sylvain.juge.memoryfs.AssertPath.assertThat;
 
 public class MemoryFileSystemProviderTest {
 
@@ -229,10 +229,10 @@ public class MemoryFileSystemProviderTest {
         Files.createDirectories(ab);
         Files.createDirectories(cd);
 
-        assertPath(root).containsExactly(a,c);
+        assertThat(root).containsExactly(a,c);
 
-        assertPath(a).containsExactly(ab);
-        assertPath(c).containsExactly(cd);
+        assertThat(a).containsExactly(ab);
+        assertThat(c).containsExactly(cd);
 
     }
 
