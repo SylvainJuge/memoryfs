@@ -64,6 +64,11 @@ public class FileDataTest {
     }
 
     @Test
+    public void equalsWithAnotherType() {
+        assertThat(FileData.newEmpty().equals(new Object())).isFalse();
+    }
+
+    @Test
     public void dataCopyOnCopy() {
         byte[] bytes = new byte[]{1, 2, 3, 4};
         FileData data = assertData(FileData.fromData(bytes))
