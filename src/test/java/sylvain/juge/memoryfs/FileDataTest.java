@@ -50,6 +50,19 @@ public class FileDataTest {
         assertData(data).hasContent(bytesCopy);
     }
 
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void truncateNegativeSize(){
+        FileData.fromData(new byte[1]).truncate(-1);
+    }
+
+    @Test
+    public void truncateOutOfBoundsIgnored(){
+        FileData data = FileData.fromData(new byte[1]);
+        assertData(data).hasSize(1);
+        data.truncate(2);
+        assertData(data).hasSize(1);
+    }
+
     @Test
     public void dataCopyOnCopy() {
         byte[] bytes = new byte[]{1, 2, 3, 4};
