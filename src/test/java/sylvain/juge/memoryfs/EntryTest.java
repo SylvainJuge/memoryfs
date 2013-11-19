@@ -464,6 +464,7 @@ public class EntryTest {
             this.entry = entry;
             assertThat(entry).isNotNull();
             assertThat(entry.isOther()).isFalse();
+            assertThat(entry.fileKey()).isSameAs(entry);
         }
 
         public EntryAssert isRoot() {

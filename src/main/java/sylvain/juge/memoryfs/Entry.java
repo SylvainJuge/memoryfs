@@ -190,7 +190,7 @@ class Entry implements BasicFileAttributes {
 
     @Override
     public Object fileKey() {
-        return null;
+        return this;
     }
 
     String getPath() {
