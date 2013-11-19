@@ -15,7 +15,7 @@ import static org.fest.assertions.api.Assertions.fail;
  * Helps to write assertions on memory path, tries to check all possible entry points and invariants for each assertion.
  */
 class AssertPath extends IterableAssert<Path> {
-    private final MemoryPath path;
+    private final Path path;
 
     public static AssertPath assertThat(Path path) {
         return new AssertPath(path);
@@ -23,12 +23,12 @@ class AssertPath extends IterableAssert<Path> {
 
     private AssertPath(Path path) {
         super(path);
-        this.path = (path instanceof MemoryPath) ? MemoryPath.asMemoryPath(path) : null;
+        this.path = path;
     }
 
     public AssertPath exists() {
         isInstanceOf(MemoryPath.class);
-        Entry entry = path.findEntry();
+        Entry entry = MemoryPath.asMemoryPath(path).findEntry();
         MemoryFileSystem fs = MemoryFileSystem.asMemoryFileSystem(path.getFileSystem());
         Assertions.assertThat(entry).isSameAs(fs.findEntry(path));
         try {
@@ -47,7 +47,7 @@ class AssertPath extends IterableAssert<Path> {
 
     public AssertPath isDirectory() {
         exists();
-        Entry entry = path.findEntry();
+        Entry entry = MemoryPath.asMemoryPath(path).findEntry();
         Assertions.assertThat(entry.isDirectory()).isTrue();
         Assertions.assertThat(Files.isDirectory(path)).isTrue();
         Assertions.assertThat(Files.isRegularFile(path)).isFalse();
@@ -56,7 +56,7 @@ class AssertPath extends IterableAssert<Path> {
 
     public AssertPath isFile() {
         exists();
-        Entry entry = path.findEntry();
+        Entry entry = MemoryPath.asMemoryPath(path).findEntry();
         Assertions.assertThat(entry.isDirectory()).isFalse();
         Assertions.assertThat(Files.isDirectory(path)).isFalse();
         Assertions.assertThat(Files.isRegularFile(path)).isTrue();
@@ -83,7 +83,7 @@ class AssertPath extends IterableAssert<Path> {
     public AssertPath isEmptyDirectory() {
         isDirectory();
 
-        Assertions.assertThat(path.findEntry().getEntries()).isNull();
+        Assertions.assertThat(MemoryPath.asMemoryPath(path).findEntry().getEntries()).isNull();
 
         DirectoryStream<Path> dirStream = null;
         try {
@@ -133,7 +133,7 @@ class AssertPath extends IterableAssert<Path> {
     }
 
     public AssertPath doesNotExists() {
-        Assertions.assertThat(path.findEntry()).isNull();
+        Assertions.assertThat(MemoryPath.asMemoryPath(path).findEntry()).isNull();
         Assertions.assertThat(Files.exists(path)).isFalse();
 
         assertDoesNotExists(
@@ -185,7 +185,7 @@ class AssertPath extends IterableAssert<Path> {
         assertThat(absolutePath).isAbsolute();
 
         absolutePath.endsWith(path);
-        absolutePath.endsWith(path.getPath());
+        absolutePath.endsWith(MemoryPath.asMemoryPath(path).getPath());
 
         return this;
     }
