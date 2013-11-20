@@ -5,10 +5,14 @@ import org.fest.assertions.api.IterableAssert;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.file.*;
-import java.util.*;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
 
-import static org.fest.assertions.api.Assertions.assertThat;
 import static org.fest.assertions.api.Assertions.fail;
 
 /**
@@ -28,9 +32,11 @@ class AssertPath extends IterableAssert<Path> {
 
     public AssertPath exists() {
         isInstanceOf(MemoryPath.class);
+
         Entry entry = MemoryPath.asMemoryPath(path).findEntry();
         MemoryFileSystem fs = MemoryFileSystem.asMemoryFileSystem(path.getFileSystem());
         Assertions.assertThat(entry).isSameAs(fs.findEntry(path));
+
         try {
             Assertions.assertThat(Files.isSameFile(path, path)).isTrue();
             Assertions.assertThat(Files.isHidden(path)).isFalse();
@@ -63,7 +69,7 @@ class AssertPath extends IterableAssert<Path> {
         return this;
     }
 
-    public AssertPath isEmptyFile(){
+    public AssertPath isEmptyFile() {
         isFile();
         try {
             Assertions.assertThat(Files.readAllBytes(path)).isEmpty();
@@ -116,8 +122,8 @@ class AssertPath extends IterableAssert<Path> {
         return this;
     }
 
-    private static void assertDoesNotExists(IOTask... tasks){
-        for(IOTask task:tasks){
+    private static void assertDoesNotExists(IOTask... tasks) {
+        for (IOTask task : tasks) {
             Throwable thrown = null;
             try {
                 task.run();

@@ -1,10 +1,12 @@
 package sylvain.juge.memoryfs;
 
+import org.fest.assertions.api.Assertions;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 
 import static org.fest.assertions.api.Assertions.assertThat;
@@ -85,6 +87,22 @@ public class MemoryPathTest {
         Path real = createPath("a/b").toRealPath();
         assertThat(real).isAbsolute();
         assertThat(real.normalize()).isEqualTo(real);
+    }
+
+    @Test
+    public void fileKeyIsTheSameForEquivalentPaths() throws IOException {
+        Path path = createPath("file");
+        Files.createFile(path);
+
+        assertThat(path).exists().isRelative();
+
+        Path absolute = path.toAbsolutePath();
+        assertThat(absolute).exists().isAbsolute();
+
+        assertThat(Files.isSameFile(path,absolute)).isTrue();
+
+        Assertions.assertThat(Files.readAttributes(path, BasicFileAttributes.class).fileKey())
+                .isEqualTo(Files.readAttributes(absolute, BasicFileAttributes.class).fileKey());
     }
 
     @Test
