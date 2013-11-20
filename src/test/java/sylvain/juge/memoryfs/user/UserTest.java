@@ -8,9 +8,6 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import static java.nio.file.StandardOpenOption.*;
@@ -60,6 +57,39 @@ public class UserTest {
         }
 
     }
+
+    @Test
+    public void sandbox() throws IOException {
+        // test parameters :
+        // - filesystem
+        FileSystem fs = FileSystems.getDefault();
+
+        Path path = fs.getPath("toCreate");
+        assertThat(Files.exists(path))
+                .isEqualTo(Files.exists(path.toAbsolutePath()))
+                .isFalse();
+        Path created = Files.createFile(path);
+
+        assertThat(created).isEqualTo(path);
+        assertThat(Files.isDirectory(path)).isFalse();
+
+        // when creating a relative path, it is resolved against "current working dir"
+        // => how to define such state in our memory implementation ?
+
+        assertThat(Files.exists(path))
+                .isEqualTo(Files.exists(path.toAbsolutePath()))
+                .isTrue();
+
+
+        // methods to test
+        // Files.createFile()
+        // Files.exists();
+
+    }
+
+    // TODO : make tests pass on default implementation to understand how Files.xxx methods should work
+    // then, once the test suite covers everything, switch implementation to our memory impl
+    // and make sure that implementation is compliant
 
     @Test
     public void createWithRelativePathConvertedToAbsolute() throws IOException {
@@ -112,108 +142,4 @@ public class UserTest {
 
     }
 
-    private static class CopyVisitor extends SimpleFileVisitor<Path> {
-
-        private final Path src;
-        private final Path dst;
-
-        public CopyVisitor(Path src, Path dst) {
-            this.src = src;
-            this.dst = dst;
-        }
-
-        @Override
-        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-            return copy(dir);
-        }
-
-        @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-            return copy(file);
-        }
-
-        private FileVisitResult copy(Path item) throws IOException {
-            Path srcItem = src.relativize(item);
-            Path targetPath = dst;
-            for (int i = 0; i < srcItem.getNameCount(); i++) {
-                targetPath = targetPath.resolve(srcItem.getName(i).toString());
-            }
-            Files.copy(item, targetPath);
-            return FileVisitResult.CONTINUE;
-        }
-    }
-
-    private static class ListPathVisitor extends SimpleFileVisitor<Path> {
-
-        private final List<Path> paths;
-
-        private ListPathVisitor() {
-            this.paths = new ArrayList<>();
-        }
-
-        private List<Path> getList() {
-            return paths;
-        }
-
-        @Override
-        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-            paths.add(dir);
-            return FileVisitResult.CONTINUE;
-        }
-
-        @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-            paths.add(file);
-            return FileVisitResult.CONTINUE;
-        }
-
-    }
-
-    private static class Sha1FileVisitor extends SimpleFileVisitor<Path> {
-        private final List<String> hashes;
-        private final List<Path> paths;
-        private Sha1FileVisitor(){
-            hashes = new ArrayList<>();
-            paths = new ArrayList<>();
-        }
-
-        public List<String> getHashes(){
-            return hashes;
-        }
-
-        public List<Path> getPaths(){
-            return paths;
-        }
-
-        @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-
-            SeekableByteChannel channel = Files.newByteChannel(file, StandardOpenOption.READ);
-            ByteBuffer readBuffer = ByteBuffer.wrap(new byte[8048]);
-
-            MessageDigest digest;
-            try {
-                digest = MessageDigest.getInstance("SHA-1");
-            } catch (NoSuchAlgorithmException e) {
-                throw new RuntimeException(e);
-            }
-            int n;
-            do {
-                readBuffer.clear();
-                n = channel.read(readBuffer);
-                if( 0 < n ){
-                    digest.update(readBuffer);
-                }
-            } while( 0 < n );
-
-            StringBuilder sb = new StringBuilder();
-            for(byte b:digest.digest()){
-                sb.append(String.format("%02x",b));
-            }
-            hashes.add(sb.toString());
-            paths.add(file);
-
-            return FileVisitResult.CONTINUE;
-        }
-    }
 }
