@@ -9,6 +9,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import static java.nio.file.StandardOpenOption.*;
@@ -82,6 +84,10 @@ public class UserTest {
         Path toCopy = ProjectPathFinder.getFolder("memoryfs").resolve("src/main/java");
         Files.walkFileTree(toCopy, toCopyList);
 
+        // store file sha1 in original folder to compare later with their copies
+        Sha1FileVisitor originalFilesSha1 = new Sha1FileVisitor();
+        Files.walkFileTree(toCopy, originalFilesSha1);
+
         assertThat(toCopyList.getList()).isNotEmpty();
 
         URI uri = URI.create("memory:/");
@@ -98,6 +104,10 @@ public class UserTest {
             Files.walkFileTree(copyTarget, copyList);
 
             assertThat(copyList.getList()).hasSameSizeAs(toCopyList.getList());
+
+            Sha1FileVisitor copyFilesSha1 = new Sha1FileVisitor();
+            Files.walkFileTree(copyTarget, copyFilesSha1);
+            assertThat(copyFilesSha1.getHashes()).isEqualTo(originalFilesSha1.getHashes());
         }
 
     }
@@ -123,8 +133,12 @@ public class UserTest {
         }
 
         private FileVisitResult copy(Path item) throws IOException {
-            Path targetPath = dst.resolve(src.relativize(item).toString());
-            Files.copy(src, targetPath);
+            Path srcItem = src.relativize(item);
+            Path targetPath = dst;
+            for (int i = 0; i < srcItem.getNameCount(); i++) {
+                targetPath = targetPath.resolve(srcItem.getName(i).toString());
+            }
+            Files.copy(item, targetPath);
             return FileVisitResult.CONTINUE;
         }
     }
@@ -153,5 +167,53 @@ public class UserTest {
             return FileVisitResult.CONTINUE;
         }
 
+    }
+
+    private static class Sha1FileVisitor extends SimpleFileVisitor<Path> {
+        private final List<String> hashes;
+        private final List<Path> paths;
+        private Sha1FileVisitor(){
+            hashes = new ArrayList<>();
+            paths = new ArrayList<>();
+        }
+
+        public List<String> getHashes(){
+            return hashes;
+        }
+
+        public List<Path> getPaths(){
+            return paths;
+        }
+
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+
+            SeekableByteChannel channel = Files.newByteChannel(file, StandardOpenOption.READ);
+            ByteBuffer readBuffer = ByteBuffer.wrap(new byte[8048]);
+
+            MessageDigest digest;
+            try {
+                digest = MessageDigest.getInstance("SHA-1");
+            } catch (NoSuchAlgorithmException e) {
+                throw new RuntimeException(e);
+            }
+            int n;
+            do {
+                readBuffer.clear();
+                n = channel.read(readBuffer);
+                if( 0 < n ){
+                    digest.update(readBuffer);
+                }
+            } while( 0 < n );
+
+            StringBuilder sb = new StringBuilder();
+            for(byte b:digest.digest()){
+                sb.append(String.format("%02x",b));
+            }
+            hashes.add(sb.toString());
+            paths.add(file);
+
+            return FileVisitResult.CONTINUE;
+        }
     }
 }
