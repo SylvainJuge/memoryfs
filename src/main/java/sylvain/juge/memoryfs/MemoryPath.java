@@ -32,10 +32,15 @@ public class MemoryPath implements Path {
         throw new ProviderMismatchException();
     }
 
-    static MemoryPath create(MemoryFileSystem fs, String path) {
-        if (null == path || path.isEmpty()) {
-            throw new IllegalArgumentException("path required not empty, got : " + path);
+    private static void checkPath(String path) {
+        if (null == path || path.isEmpty() || path.contains("*") || path.contains("?")) {
+            throw new InvalidPathException(path, "path required not empty and without illegal characters");
         }
+    }
+
+    static MemoryPath create(MemoryFileSystem fs, String path) {
+        checkPath(path);
+
         boolean absolute = path.startsWith(SEPARATOR);
         List<String> parts = new ArrayList<>();
         for (String s : path.split(SEPARATOR)) {

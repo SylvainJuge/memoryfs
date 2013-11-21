@@ -10,6 +10,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 
 import static org.fest.assertions.api.Assertions.assertThat;
+import static org.fest.assertions.api.Assertions.fail;
 import static sylvain.juge.memoryfs.AssertPath.assertThat;
 import static sylvain.juge.memoryfs.TestEquals.checkHashCodeEqualsConsistency;
 
@@ -17,7 +18,19 @@ public class MemoryPathTest {
 
     private static final MemoryFileSystem defaultFs = createFs();
 
-    // TODO : InvalidPathException when string is not a valid path
+    @Test
+    public void tryToCreateWithInvalidCharacters() {
+        for (String path : Arrays.asList("", "*", "**", "a**a", "a*a", "*a", "*a", "?")) {
+            boolean thrown = false;
+            try {
+                MemoryPath.create(defaultFs, path);
+                fail("should not be able to create file with path : " + path);
+            } catch (InvalidPathException e) {
+                thrown = true;
+            }
+            assertThat(thrown).isTrue();
+        }
+    }
 
     @Test
     public void createRoot() {
