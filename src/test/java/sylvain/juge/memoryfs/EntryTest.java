@@ -39,7 +39,8 @@ public class EntryTest {
     @Test
     public void tryToCreateFileWithInvalidName() {
         Entry root = Entry.newRoot();
-        for (String name : Arrays.asList("", "*", "**", "a**a", "a*a", "*a", "*a", "/", "/a", "a/", "a/a", ".", "..")) {
+        // note : we test only for invalid file names, some illegal charachers are already tested at path level
+        for (String name : Arrays.asList("/", "/a", "a/", "a/a", ".", "..")) {
             boolean thrown = false;
             try {
                 Entry.newFile(root, name);
