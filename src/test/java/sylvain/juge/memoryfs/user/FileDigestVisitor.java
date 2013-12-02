@@ -11,11 +11,11 @@ import java.util.List;
 /**
  * Computes hash for all files found while walking file tree
  */
-class HashFileVisitor extends SimpleFileVisitor<Path> {
+class FileDigestVisitor extends SimpleFileVisitor<Path> {
     private final List<FileHash> hashes;
     private final FileDigest fileDigest;
 
-    public HashFileVisitor(String algorithm, int bufferSize) {
+    public FileDigestVisitor(String algorithm, int bufferSize) {
         hashes = new ArrayList<>();
         fileDigest = new FileDigest(algorithm, bufferSize);
     }

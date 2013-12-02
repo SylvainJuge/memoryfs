@@ -115,7 +115,7 @@ public class UserTest {
         Files.walkFileTree(toCopy, toCopyList);
 
         // store file sha1 in original folder to compare later with their copies
-        HashFileVisitor originalFilesSha1 = new HashFileVisitor("SHA-1", 4096);
+        FileDigestVisitor originalFilesSha1 = new FileDigestVisitor("SHA-1", 4096);
         Files.walkFileTree(toCopy, originalFilesSha1);
 
         assertThat(toCopyList.getList()).isNotEmpty();
@@ -130,15 +130,15 @@ public class UserTest {
             // thus we have to write a custom (but rather simple) file visitor.
             Files.walkFileTree(toCopy, new CopyVisitor(toCopy, copyTarget));
 
-            HashFileVisitor copyFilesSha1 = new HashFileVisitor("SHA-1", 4096);
+            FileDigestVisitor copyFilesSha1 = new FileDigestVisitor("SHA-1", 4096);
             Files.walkFileTree(copyTarget, copyFilesSha1);
 
-            List<HashFileVisitor.FileHash> copy = copyFilesSha1.getResult();
-            List<HashFileVisitor.FileHash> original = originalFilesSha1.getResult();
+            List<FileDigestVisitor.FileHash> copy = copyFilesSha1.getResult();
+            List<FileDigestVisitor.FileHash> original = originalFilesSha1.getResult();
             assertThat(copy).hasSameSizeAs(original);
             for(int i=0;i<copy.size();i++){
-                HashFileVisitor.FileHash copyHash = copy.get(i);
-                HashFileVisitor.FileHash originalHash = original.get(i);
+                FileDigestVisitor.FileHash copyHash = copy.get(i);
+                FileDigestVisitor.FileHash originalHash = original.get(i);
                 assertThat(copyHash.getHash()).isEqualTo(originalHash.getHash());
 
                 // TODO : we might even check that both paths are "equivalent"
