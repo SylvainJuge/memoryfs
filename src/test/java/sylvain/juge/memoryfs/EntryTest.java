@@ -370,8 +370,6 @@ public class EntryTest {
         assertEntry(root).hasEntries(a, b, c);
     }
 
-    // TODO : define an exception more appropriate than one about "argument"
-
     @Test(expectedExceptions = InvalidRequestException.class)
     public void deleteRootFails() {
         Entry.newRoot().delete();

@@ -13,11 +13,6 @@ public class MemoryFileStore extends FileStore {
     private long usableSpace = 0;
     private long unallocatedSpace = 0;
 
-    // TODO : relationship with filesystem ?
-    // => filesystem should delegate here current space usage and attributes management
-    // => filesystem should probably delegate here actual storage of files
-    // we don't need to ask anything to FS
-
     private MemoryFileStore(String name, boolean readOnly, long capacity) {
         this.name = name;
         this.readOnly = readOnly;
