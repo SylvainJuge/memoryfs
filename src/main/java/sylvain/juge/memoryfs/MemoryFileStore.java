@@ -10,15 +10,13 @@ public class MemoryFileStore extends FileStore {
     private final String name;
     private final boolean readOnly;
     private long totalSpace = 0;
-    private long usableSpace = 0;
-    private long unallocatedSpace = 0;
+    private long freeSpace = 0;
 
     private MemoryFileStore(String name, boolean readOnly, long capacity) {
         this.name = name;
         this.readOnly = readOnly;
         this.totalSpace = capacity;
-        this.usableSpace = capacity;
-        this.unallocatedSpace = capacity;
+        this.freeSpace = capacity;
     }
 
     static class Builder {
@@ -68,12 +66,12 @@ public class MemoryFileStore extends FileStore {
 
     @Override
     public long getUsableSpace() throws IOException {
-        return usableSpace;
+        return readOnly ? 0 : freeSpace;
     }
 
     @Override
     public long getUnallocatedSpace() throws IOException {
-        return unallocatedSpace;
+        return freeSpace;
     }
 
     @Override

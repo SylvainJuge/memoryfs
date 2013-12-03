@@ -20,11 +20,17 @@ public class MemoryFileStoreTest {
     }
 
     @Test
-    public void createReadOnly() {
+    public void createReadOnly() throws IOException {
         MemoryFileStore store = MemoryFileStore.builder()
                 .readOnly(true)
+                .capacity(100)
                 .build();
         assertThat(store.isReadOnly()).isTrue();
+
+        assertThat(store.getTotalSpace()).isEqualTo(100);
+        assertThat(store.getUnallocatedSpace()).isEqualTo(100);
+        // no space is usable as long as store is read-only
+        assertThat(store.getUsableSpace()).isEqualTo(0);
     }
 
     @Test
