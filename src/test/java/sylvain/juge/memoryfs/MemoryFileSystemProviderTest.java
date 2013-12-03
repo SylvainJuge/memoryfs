@@ -169,23 +169,6 @@ public class MemoryFileSystemProviderTest {
         assertThat(found).isTrue();
     }
 
-    @Test(enabled = false) // TODO : disabled yet since file store is not implemented
-    // TODO : move this test to FileSystemTest
-    public void getFileStoreFromPath() throws IOException {
-        URI uri = URI.create("memory://dummy/");
-        try (FileSystem fs = staticCreateAndGet(uri)) {
-            Path path = Paths.get(uri);
-            assertThat(path).isNotNull();
-            assertThat(path.getFileSystem())
-                    .isSameAs(fs);
-            Iterable<FileStore> stores = path.getFileSystem().getFileStores();
-            assertThat(stores).hasSize(1);
-            for (FileStore store : stores) {
-                assertThat(store).isNotNull();
-            }
-        }
-    }
-
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void getFileSystemIdFromUriWithInvalidUriScheme() throws IOException {
         createAndGet(getNewProvider(), URI.create("notMemory://dummy/"));
