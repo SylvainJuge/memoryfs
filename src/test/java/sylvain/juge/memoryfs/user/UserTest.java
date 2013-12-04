@@ -7,8 +7,12 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
-import java.nio.file.*;
-import java.util.*;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.EnumSet;
+import java.util.List;
 
 import static java.nio.file.StandardOpenOption.*;
 import static org.fest.assertions.api.Assertions.assertThat;
@@ -136,7 +140,7 @@ public class UserTest {
             List<FileDigestVisitor.FileHash> copy = copyFilesSha1.getResult();
             List<FileDigestVisitor.FileHash> original = originalFilesSha1.getResult();
             assertThat(copy).hasSameSizeAs(original);
-            for(int i=0;i<copy.size();i++){
+            for (int i = 0; i < copy.size(); i++) {
                 FileDigestVisitor.FileHash copyHash = copy.get(i);
                 FileDigestVisitor.FileHash originalHash = original.get(i);
                 assertThat(copyHash.getHash()).isEqualTo(originalHash.getHash());

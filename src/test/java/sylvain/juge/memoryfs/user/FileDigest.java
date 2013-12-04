@@ -41,14 +41,14 @@ public final class FileDigest {
         do {
             readBuffer.clear();
             n = channel.read(readBuffer);
-            if( 0 < n ){
+            if (0 < n) {
                 digest.update(readBuffer);
             }
-        } while( 0 < n );
+        } while (0 < n);
 
         StringBuilder sb = new StringBuilder();
-        for(byte b:digest.digest()){
-            sb.append(String.format("%02x",b));
+        for (byte b : digest.digest()) {
+            sb.append(String.format("%02x", b));
         }
         return sb.toString();
     }

@@ -34,7 +34,7 @@ class FileDigestVisitor extends SimpleFileVisitor<Path> {
         private final Path path;
         private final String hash;
 
-        private FileHash(Path path, String hash){
+        private FileHash(Path path, String hash) {
             this.path = path;
             this.hash = hash;
         }

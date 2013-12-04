@@ -8,7 +8,10 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.List;
 
 import static java.nio.file.Files.*;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -159,7 +162,7 @@ public class MemoryFileSystemTest {
     }
 
     @Test(enabled = false)
-    public void deleteFreesSpace(){
+    public void deleteFreesSpace() {
         // TODO
     }
 
@@ -341,7 +344,7 @@ public class MemoryFileSystemTest {
     }
 
     @Test
-    public void safeCastWithNull(){
+    public void safeCastWithNull() {
         assertThat(MemoryFileSystem.asMemoryFileSystem(null)).isNull();
     }
 

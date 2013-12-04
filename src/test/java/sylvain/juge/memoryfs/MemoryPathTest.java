@@ -112,7 +112,7 @@ public class MemoryPathTest {
         Path absolute = path.toAbsolutePath();
         assertThat(absolute).exists().isAbsolute();
 
-        assertThat(Files.isSameFile(path,absolute)).isTrue();
+        assertThat(Files.isSameFile(path, absolute)).isTrue();
 
         Assertions.assertThat(Files.readAttributes(path, BasicFileAttributes.class).fileKey())
                 .isEqualTo(Files.readAttributes(absolute, BasicFileAttributes.class).fileKey());

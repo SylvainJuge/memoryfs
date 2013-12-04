@@ -212,7 +212,7 @@ public class MemoryFileSystemProviderTest {
         Files.createDirectories(ab);
         Files.createDirectories(cd);
 
-        assertThat(root).containsExactly(a,c);
+        assertThat(root).containsExactly(a, c);
 
         assertThat(a).containsExactly(ab);
         assertThat(c).containsExactly(cd);

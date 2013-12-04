@@ -14,12 +14,12 @@ import static org.fest.assertions.api.Assertions.fail;
 public class EntryTest {
 
     @Test
-    public void rootPath(){
+    public void rootPath() {
         assertThat(Entry.newRoot().getPath()).isEqualTo("/");
     }
 
     @Test
-    public void unsupportedAttributes(){
+    public void unsupportedAttributes() {
         Entry entry = Entry.newRoot();
         assertThat(entry.lastAccessTime()).isNull();
         assertThat(entry.lastModifiedTime()).isNull();
@@ -316,23 +316,23 @@ public class EntryTest {
     }
 
     @Test(expectedExceptions = InvalidRequestException.class)
-    public void tryToMoveRoot(){
+    public void tryToMoveRoot() {
         Entry.newRoot().move(Entry.newRoot());
     }
 
     @Test(expectedExceptions = InvalidRequestException.class)
-    public void tryToRenameRoot(){
+    public void tryToRenameRoot() {
         Entry.newRoot().rename("anything");
     }
 
     @Test(expectedExceptions = InvalidNameException.class)
-    public void tryToRenameToNull(){
-        Entry.newFile(Entry.newRoot(),"file").rename(null);
+    public void tryToRenameToNull() {
+        Entry.newFile(Entry.newRoot(), "file").rename(null);
     }
 
     @Test(expectedExceptions = InvalidNameException.class)
-    public void tryToRenameToEmpty(){
-        Entry.newFile(Entry.newRoot(),"file").rename("");
+    public void tryToRenameToEmpty() {
+        Entry.newFile(Entry.newRoot(), "file").rename("");
     }
 
     @Test(expectedExceptions = ConflictException.class)
