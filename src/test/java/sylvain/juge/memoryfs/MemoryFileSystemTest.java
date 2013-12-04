@@ -131,6 +131,44 @@ public class MemoryFileSystemTest {
         }
     }
 
+    // Keeping track of actual storage status requires a non-trivial refactoring
+    // since store does not do anything yet. However, it might be easier once we are able to
+    // store everything in an appropriate data structure
+    //
+    // - store should allow to track actual storage status
+    // or
+    // - should at least keep an accurate count when doing file operations
+
+    @Test(enabled = false)
+    public void writeToFileDecreaseFreeSpace() throws IOException {
+        try (FileSystem fs = MemoryFileSystem
+                .builder(newProvider())
+                .capacity(100)
+                .build()) {
+
+            Path file = fs.getPath("file");
+            Files.write(file, new byte[]{1, 2, 3});
+            assertThat(fs.getFileStores()).hasSize(1);
+            for (FileStore store : fs.getFileStores()) {
+                assertThat(store.getTotalSpace()).isEqualTo(100);
+                assertThat(store.getUnallocatedSpace()).isEqualTo(97);
+                assertThat(store.getUsableSpace()).isEqualTo(97);
+            }
+
+        }
+    }
+
+    @Test(enabled = false)
+    public void deleteFreesSpace(){
+        // TODO
+    }
+
+    @Test(enabled = false)
+    public void tryToWriteMoreThanCapacity() {
+        // TOOD
+    }
+
+
     @Test
     public void buildWithDefaultValues() throws IOException {
         MemoryFileSystem fs = newMemoryFs();
