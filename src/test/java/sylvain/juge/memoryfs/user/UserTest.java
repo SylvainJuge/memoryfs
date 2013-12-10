@@ -1,7 +1,7 @@
 package sylvain.juge.memoryfs.user;
 
 import org.testng.annotations.Test;
-import sylvain.juge.memoryfs.util.ProjectPathFinder;
+import sylvain.juge.fsutils.ProjectPathFinder;
 
 import java.io.IOException;
 import java.net.URI;
