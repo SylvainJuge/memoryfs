@@ -2,6 +2,9 @@ package sylvain.juge.memoryfs.user;
 
 import org.testng.annotations.Test;
 import sylvain.juge.fsutils.ProjectPathFinder;
+import sylvain.juge.fsutils.ListPathVisitor;
+import sylvain.juge.fsutils.FileDigestVisitor;
+import sylvain.juge.fsutils.CopyVisitor;
 
 import java.io.IOException;
 import java.net.URI;
