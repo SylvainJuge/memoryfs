@@ -31,13 +31,7 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>sylvain.juge</groupId>
-            <artifactId>fsutils</artifactId>
-            <version>0.1-SNAPSHOT</version>
-        </dependency>
-
-    </dependencies>
+     </dependencies>
 
     <build>
         <defaultGoal>install</defaultGoal>
