@@ -46,8 +46,33 @@
      </dependencies>
 
     <build>
+        <resources>
+           <resource>
+              <directory>src/main/resources</directory>
+              <filtering>true</filtering>
+           </resource>
+        </resources>
         <defaultGoal>install</defaultGoal>
         <plugins>
+           <plugin>
+              <groupId>pl.project13.maven</groupId>
+              <artifactId>git-commit-id-plugin</artifactId>
+              <version>2.1.7</version>
+              <executions>
+                 <execution>
+                    <goals>
+                       <goal>revision</goal>
+                    </goals>
+                    <configuration>
+                       <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                       <generateGitPropertiesFilename>src/main/resources/META-INF/memoryfs/git.properties</generateGitPropertiesFilename>
+                       <gitDescribe>
+                          <dirty>-dirty</dirty>
+                       </gitDescribe>
+                    </configuration>
+                 </execution>
+              </executions>
+           </plugin>
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
                 <version>2.5</version>
