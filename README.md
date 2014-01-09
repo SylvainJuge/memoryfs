@@ -8,8 +8,16 @@ Java7 in-memory filesystem implementation
 Features
 --------
 
-Usages
+Usage
 ------
+
+* Maven dependencies are available in Sonatype OSS repository
+
+[snapshots](https://oss.sonatype.org/content/repositories/snapshots/)
+
+[releases](https://oss.sonatype.org/content/repositories/releases/) (none available yet)
+
+* Usages
 - testing without using temporary files
 
 TODOs
@@ -17,8 +25,8 @@ TODOs
 
 ### Required
 
- x read/write data in files
- x file/folders operations : copy, move, rename
+ - DONE read/write data in files
+ - DONE file/folders operations : copy, move, rename
  - minimal read/write lock on files
  - basic file attribues read/write
  - minimal thread safety
