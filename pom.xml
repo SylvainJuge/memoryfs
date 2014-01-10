@@ -70,8 +70,6 @@
                        <goal>revision</goal>
                     </goals>
                     <configuration>
-                       <generateGitPropertiesFile>true</generateGitPropertiesFile>
-                       <generateGitPropertiesFilename>src/main/resources/META-INF/memoryfs/git.properties</generateGitPropertiesFilename>
                        <gitDescribe>
                           <dirty>-dirty</dirty>
                        </gitDescribe>
