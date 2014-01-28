@@ -11,7 +11,7 @@ import java.nio.channels.NonReadableChannelException;
 import java.nio.channels.NonWritableChannelException;
 import java.security.SecureRandom;
 
-import static org.fest.assertions.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static com.github.sylvainjuge.memoryfs.MemoryByteChannel.newReadChannel;
 import static com.github.sylvainjuge.memoryfs.MemoryByteChannel.newWriteChannel;
 

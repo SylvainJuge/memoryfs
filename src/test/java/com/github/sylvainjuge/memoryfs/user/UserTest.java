@@ -19,7 +19,7 @@ import java.util.EnumSet;
 import java.util.List;
 
 import static java.nio.file.StandardOpenOption.*;
-import static org.fest.assertions.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * This test class represents library use cases.

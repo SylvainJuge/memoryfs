@@ -13,9 +13,9 @@ import java.util.List;
 import java.util.ServiceLoader;
 import java.util.Set;
 
-import static org.fest.assertions.api.Assertions.assertThat;
-import static org.fest.assertions.api.Fail.fail;
+import static org.assertj.core.api.Assertions.assertThat;
 import static com.github.sylvainjuge.memoryfs.AssertPath.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class MemoryFileSystemProviderTest {
 

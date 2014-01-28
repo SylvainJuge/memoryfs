@@ -16,9 +16,10 @@ import java.util.List;
 import static java.nio.file.Files.*;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.nio.file.StandardOpenOption.*;
-import static org.fest.assertions.api.Assertions.assertThat;
-import static org.fest.assertions.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static com.github.sylvainjuge.memoryfs.AssertPath.assertThat;
+
 
 public class MemoryFileSystemTest {
 

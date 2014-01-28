@@ -1,7 +1,7 @@
 package com.github.sylvainjuge.memoryfs;
 
-import org.fest.assertions.api.Assertions;
-import org.fest.assertions.api.IterableAssert;
+import org.assertj.core.api.Assertions;
+import org.assertj.core.api.IterableAssert;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -13,7 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import static org.fest.assertions.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * Helps to write assertions on memory path, tries to check all possible entry points and invariants for each assertion.

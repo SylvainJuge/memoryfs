@@ -1,6 +1,6 @@
 package com.github.sylvainjuge.memoryfs;
 
-import org.fest.assertions.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -9,8 +9,8 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 
-import static org.fest.assertions.api.Assertions.assertThat;
-import static org.fest.assertions.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static com.github.sylvainjuge.memoryfs.AssertPath.assertThat;
 
 public class MemoryPathTest {
