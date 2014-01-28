@@ -1,5 +1,6 @@
 package com.github.sylvainjuge.memoryfs.user;
 
+import com.google.common.hash.Hashing;
 import org.testng.annotations.Test;
 import com.github.sylvainjuge.fsutils.ProjectPathFinder;
 import com.github.sylvainjuge.fsutils.ListPathVisitor;
@@ -122,7 +123,7 @@ public class UserTest {
         Files.walkFileTree(toCopy, toCopyList);
 
         // store file sha1 in original folder to compare later with their copies
-        FileDigestVisitor originalFilesSha1 = new FileDigestVisitor("SHA-1", 4096);
+        FileDigestVisitor originalFilesSha1 = new FileDigestVisitor(Hashing.sha1(), 4096);
         Files.walkFileTree(toCopy, originalFilesSha1);
 
         assertThat(toCopyList.getList()).isNotEmpty();
@@ -137,7 +138,7 @@ public class UserTest {
             // thus we have to write a custom (but rather simple) file visitor.
             Files.walkFileTree(toCopy, new CopyVisitor(toCopy, copyTarget));
 
-            FileDigestVisitor copyFilesSha1 = new FileDigestVisitor("SHA-1", 4096);
+            FileDigestVisitor copyFilesSha1 = new FileDigestVisitor(Hashing.sha1(), 4096);
             Files.walkFileTree(copyTarget, copyFilesSha1);
 
             List<FileDigestVisitor.FileHash> copy = copyFilesSha1.getResult();
