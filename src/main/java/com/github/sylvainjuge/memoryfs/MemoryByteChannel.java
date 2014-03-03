@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 
+import static com.github.sylvainjuge.memoryfs.ParamAssert.checkNotNull;
+
 public class MemoryByteChannel implements SeekableByteChannel {
 
     private boolean open;
@@ -13,11 +15,8 @@ public class MemoryByteChannel implements SeekableByteChannel {
     private final ReadableByteChannel readChannel;
     private final FileData data;
 
-    protected MemoryByteChannel(FileData data, boolean readOnly, boolean append) {
-        if (null == data) {
-            throw new IllegalArgumentException("file data storage is required");
-        }
-        this.data = data;
+    private MemoryByteChannel(FileData data, boolean readOnly, boolean append) {
+        this.data = checkNotNull(data, "file data");
         this.open = true;
         if (readOnly) {
             writeChannel = null;
