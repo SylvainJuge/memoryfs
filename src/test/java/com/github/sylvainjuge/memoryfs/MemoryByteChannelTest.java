@@ -1,7 +1,5 @@
 package com.github.sylvainjuge.memoryfs;
 
-import com.github.sylvainjuge.memoryfs.FileData;
-import com.github.sylvainjuge.memoryfs.MemoryByteChannel;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -10,10 +8,15 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.channels.NonReadableChannelException;
 import java.nio.channels.NonWritableChannelException;
 import java.security.SecureRandom;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static com.github.sylvainjuge.memoryfs.MemoryByteChannel.newReadChannel;
 import static com.github.sylvainjuge.memoryfs.MemoryByteChannel.newWriteChannel;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Fail.fail;
 
 public class MemoryByteChannelTest {
 
@@ -306,6 +309,60 @@ public class MemoryByteChannelTest {
     @Test(expectedExceptions = NonWritableChannelException.class)
     public void writeReadOnly() throws IOException {
         newReadChannel(zeroFileData(10)).write(null);
+    }
+
+    @Test(invocationCount = 5)
+    public void concurrentWrite() throws IOException, InterruptedException {
+        // we have to make sure that writing is an atomic operation
+        // This test creates concurrent writing threads that may trigger
+        // inconsistency between position and written data amount.
+        final MemoryByteChannel c = newWriteChannel(FileData.newEmpty(), true);
+
+        int threadCount = 100;
+        final int writesCount = 100;
+
+        try (TestExecutorService pool = TestExecutorService.wrap(Executors.newFixedThreadPool(threadCount))) {
+
+            final CountDownLatch startLatch = new CountDownLatch(threadCount);
+            final CountDownLatch endLatch = new CountDownLatch(threadCount);
+
+            for (int i = 1; i <= threadCount; i++) {
+                final int bytesPerWrite = i;
+                pool.getPool().submit(new Runnable() {
+                    @Override
+                    public void run() {
+                        startLatch.countDown();
+                        try {
+                            startLatch.await();
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+                        try {
+                            for (int i = 0; i < writesCount; i++) {
+                                c.write(ByteBuffer.wrap(new byte[bytesPerWrite]));
+                            }
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                        endLatch.countDown();
+                    }
+                });
+            }
+
+            if (!endLatch.await(1, TimeUnit.SECONDS)) {
+                fail("not all tasks terminated");
+            }
+        }
+
+        // thread 1 has written writesCount * 1 bytes
+        // thread 2 has written writesCount * 2 bytes
+        // thread 3 has written writesCount * 3 bytes
+        // thread 4 has written writesCount * 4 bytes
+
+        // 1 + 2 + 3 + 4 + ... + n = n(n+1)/2
+        long expectedPosition = writesCount * (threadCount * (threadCount + 1) / 2);
+        assertThat(c.position()).isEqualTo(expectedPosition);
+
     }
 
     private FileData randomFileData(int size) {
