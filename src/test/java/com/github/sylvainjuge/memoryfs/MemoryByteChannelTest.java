@@ -9,7 +9,6 @@ import java.nio.channels.NonReadableChannelException;
 import java.nio.channels.NonWritableChannelException;
 import java.security.SecureRandom;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -321,38 +320,16 @@ public class MemoryByteChannelTest {
         int threadCount = 100;
         final int writesCount = 100;
 
-        try (TestExecutorService pool = TestExecutorService.wrap(Executors.newFixedThreadPool(threadCount))) {
-
-            final CountDownLatch startLatch = new CountDownLatch(threadCount);
-            final CountDownLatch endLatch = new CountDownLatch(threadCount);
-
-            for (int i = 1; i <= threadCount; i++) {
-                final int bytesPerWrite = i;
-                pool.getPool().submit(new Runnable() {
-                    @Override
-                    public void run() {
-                        startLatch.countDown();
-                        try {
-                            startLatch.await();
-                        } catch (InterruptedException e) {
-                            Thread.currentThread().interrupt();
-                        }
-                        try {
-                            for (int i = 0; i < writesCount; i++) {
-                                c.write(ByteBuffer.wrap(new byte[bytesPerWrite]));
-                            }
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                        endLatch.countDown();
-                    }
-                });
+        final ConcurrentIOTestTask task = new ConcurrentIOTestTask(){
+            @Override
+            public void run(int threadId) throws IOException {
+                for (int i = 0; i < writesCount; i++) {
+                    c.write(ByteBuffer.wrap(new byte[threadId]));
+                }
             }
+        };
 
-            if (!endLatch.await(1, TimeUnit.SECONDS)) {
-                fail("not all tasks terminated");
-            }
-        }
+        runIoTasks(task, threadCount);
 
         // thread 1 has written writesCount * 1 bytes
         // thread 2 has written writesCount * 2 bytes
@@ -377,5 +354,48 @@ public class MemoryByteChannelTest {
         byte[] result = new byte[size];
         rand.nextBytes(result);
         return result;
+    }
+
+    private static interface ConcurrentIOTestTask {
+        public void run(int threadId) throws  IOException;
+    }
+
+    private void runIoTasks(final ConcurrentIOTestTask task, int threadCount) {
+        try (TestExecutorService pool = TestExecutorService.wrap(Executors.newFixedThreadPool(threadCount))) {
+
+            final CountDownLatch startLatch = new CountDownLatch(threadCount);
+            final CountDownLatch endLatch = new CountDownLatch(threadCount);
+
+            for (int i = 1; i <= threadCount; i++) {
+                final int threadId = i;
+                pool.submit(new Runnable() {
+                    @Override
+                    public void run() {
+                        startLatch.countDown();
+                        try {
+                            startLatch.await();
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+                        try {
+                            task.run(threadId);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                        endLatch.countDown();
+                    }
+                });
+            }
+
+
+            try {
+                if (!endLatch.await(1, TimeUnit.SECONDS)) {
+                    fail("not all tasks terminated");
+                }
+            } catch (InterruptedException e) {
+                fail("are you interrupting to me ?");
+                Thread.currentThread().interrupt();
+            }
+        }
     }
 }

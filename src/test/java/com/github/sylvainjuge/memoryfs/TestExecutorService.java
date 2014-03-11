@@ -1,13 +1,14 @@
 package com.github.sylvainjuge.memoryfs;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.*;
 
 /**
  * Wraps {@link java.util.concurrent.ExecutorService} for tests with {@link java.lang.AutoCloseable} implementation,
  * thus allowing to use "try with resources" within tests requiring disposable thread pools.
  */
-public class TestExecutorService implements AutoCloseable {
+public class TestExecutorService implements AutoCloseable, ExecutorService  {
 
     private static final int WAIT_TIMEOUT_SECONDS = 5;
 
@@ -17,7 +18,7 @@ public class TestExecutorService implements AutoCloseable {
         this.pool = pool;
     }
 
-    public static TestExecutorService wrap(ExecutorService pool) {
+    public static <T extends ExecutorService> TestExecutorService wrap(T pool) {
         return new TestExecutorService(pool);
     }
 
@@ -42,12 +43,67 @@ public class TestExecutorService implements AutoCloseable {
         }
     }
 
-    /**
-     * @return wrapped execution pool
-     */
-    public ExecutorService getPool() {
-        return pool;
+    @Override
+    public void shutdown() {
+        pool.shutdown();
     }
 
+    @Override
+    public List<Runnable> shutdownNow() {
+        return pool.shutdownNow();
+    }
+
+    @Override
+    public boolean isShutdown() {
+        return pool.isShutdown();
+    }
+
+    @Override
+    public boolean isTerminated() {
+        return pool.isTerminated();
+    }
+
+    @Override
+    public boolean awaitTermination(long l, TimeUnit timeUnit) throws InterruptedException {
+        return pool.awaitTermination(l, timeUnit);
+    }
+
+    public <T> Future<T> submit(Callable<T> callable) {
+        return pool.submit(callable);
+    }
+
+    public <T> Future<T> submit(Runnable runnable, T t) {
+        return pool.submit(runnable, t);
+    }
+
+    public Future<?> submit(Runnable runnable) {
+        return pool.submit(runnable);
+    }
+
+    @Override
+    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> callables) throws InterruptedException {
+        return pool.invokeAll(callables);
+    }
+
+    @Override
+    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> callables, long l, TimeUnit timeUnit) throws InterruptedException {
+        return pool.invokeAll(callables, l, timeUnit);
+    }
+
+    @Override
+    public <T> T invokeAny(Collection<? extends Callable<T>> callables) throws InterruptedException, ExecutionException {
+        return pool.invokeAny(callables);
+    }
+
+    @Override
+    public <T> T invokeAny(Collection<? extends Callable<T>> callables, long l, TimeUnit timeUnit) throws InterruptedException, ExecutionException, TimeoutException {
+        return pool.invokeAny(callables, l, timeUnit);
+    }
+
+
+    @Override
+    public void execute(Runnable runnable) {
+        pool.execute(runnable);
+    }
 }
 
