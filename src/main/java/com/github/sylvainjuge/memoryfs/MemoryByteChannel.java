@@ -51,11 +51,15 @@ public class MemoryByteChannel implements SeekableByteChannel {
 
     @Override
     public int write(ByteBuffer src) throws IOException {
-        checkOpen();
-        checkCanWrite();
-        int written = writeChannel.write(src);
-        position += written;
-        return written;
+        Objects.requireNonNull(src, "source buffer");
+        // all writes are sequential
+        synchronized (this) {
+            checkOpen();
+            checkCanWrite();
+            int written = writeChannel.write(src);
+            position += written;
+            return written;
+        }
     }
 
     private void checkCanRead() {
