@@ -71,12 +71,12 @@ public class MemoryByteChannelTest {
         MemoryByteChannel c = newWriteChannel(FileData.newEmpty(), false);
         c.close();
         assertThat(c.isOpen()).isFalse();
-        c.write(null);
+        c.write(ByteBuffer.wrap(new byte[1]));
     }
 
     @Test(expectedExceptions = NonWritableChannelException.class)
     public void writeInReadChannel() throws IOException {
-        newReadChannel(FileData.newEmpty()).write(null);
+        newReadChannel(FileData.newEmpty()).write(ByteBuffer.wrap(new byte[1]));
     }
 
     @Test(expectedExceptions = NonWritableChannelException.class)
@@ -307,7 +307,7 @@ public class MemoryByteChannelTest {
 
     @Test(expectedExceptions = NonWritableChannelException.class)
     public void writeReadOnly() throws IOException {
-        newReadChannel(zeroFileData(10)).write(null);
+        newReadChannel(zeroFileData(10)).write(ByteBuffer.wrap(new byte[1]));
     }
 
     @Test(invocationCount = 5)
