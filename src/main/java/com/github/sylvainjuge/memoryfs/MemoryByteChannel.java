@@ -23,7 +23,6 @@ public class MemoryByteChannel implements SeekableByteChannel {
             readChannel = Channels.newChannel(data.asInputStream());
         } else {
             readChannel = null;
-            data.asOutputStream();
             if (append) {
                 position = data.size();
             } else {
