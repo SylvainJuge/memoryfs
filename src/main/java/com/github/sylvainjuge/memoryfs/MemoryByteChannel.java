@@ -3,6 +3,7 @@ package com.github.sylvainjuge.memoryfs;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
+import java.util.Objects;
 
 import static com.github.sylvainjuge.memoryfs.ParamAssert.checkNotNull;
 
