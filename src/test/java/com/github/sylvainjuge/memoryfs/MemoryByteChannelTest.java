@@ -53,13 +53,6 @@ public class MemoryByteChannelTest {
     }
 
     @Test(expectedExceptions = ClosedChannelException.class)
-    public void closeTwice() throws IOException {
-        MemoryByteChannel c = newReadChannel(FileData.newEmpty());
-        c.close();
-        c.close();
-    }
-
-    @Test(expectedExceptions = ClosedChannelException.class)
     public void readClosed() throws IOException {
         MemoryByteChannel c = newReadChannel(FileData.newEmpty());
         c.close();
