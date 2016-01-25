@@ -116,11 +116,19 @@ public class MemoryByteChannel implements SeekableByteChannel {
 
     @Override
     public void close() throws IOException {
-        this.open = false;
-        if (writeChannel != null)
+        if (! open) {
+          return;
+        }
+        
+        if (writeChannel != null) {
           writeChannel.close();
-        if (readChannel != null)
+        }
+        
+        if (readChannel != null) {
           readChannel.close();
+        }
+        
+        this.open = false;
     }
 
     private void checkOpen() throws ClosedChannelException {
