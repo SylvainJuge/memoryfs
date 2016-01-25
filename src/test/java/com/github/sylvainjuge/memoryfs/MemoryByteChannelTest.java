@@ -52,11 +52,14 @@ public class MemoryByteChannelTest {
         assertThat(c.isOpen()).isFalse();
     }
 
-    @Test(expectedExceptions = ClosedChannelException.class)
-    public void closeTwice() throws IOException {
+    @Test
+    public void closeTwiceShouldBeFine() throws IOException {
         MemoryByteChannel c = newReadChannel(FileData.newEmpty());
+        assertThat(c.isOpen()).isTrue();
         c.close();
+        assertThat(c.isOpen()).isFalse();
         c.close();
+        assertThat(c.isOpen()).isFalse();
     }
 
     @Test(expectedExceptions = ClosedChannelException.class)
